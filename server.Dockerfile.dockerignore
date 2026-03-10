@@ -1,0 +1,20 @@
+**/node_modules
+**/build
+**/.git
+**/.env
+**/.env.*
+**/*.log
+**/.DS_Store
+**/coverage
+
+# Only include what the server build needs
+!package.json
+!pnpm-workspace.yaml
+!pnpm-lock.yaml
+!.npmrc
+!server/package.json
+!server/tsconfig.json
+!server/codegen.yml
+!server/schema.graphql
+!server/src
+!shared

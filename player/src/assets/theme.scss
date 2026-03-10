@@ -1,0 +1,58 @@
+$richpod-app-max-width: 520px;
+$richpod-desktop-breakpoint: 1024px;
+
+:root {
+    --richpod-sidebar-width: 320px;
+    --richpod-desktop-max-width: 1200px;
+    --richpod-color: #fff;
+    --richpod-background-color: #2F2C35;
+    --richpod-header-height: 65px;
+    --richpod-header-background-color: #B2BC57;
+
+    --richpod-app-max-width: #{$richpod-app-max-width};
+
+    --richpod-overlay-background-color: var(--richpod-header-background-color);
+    --richpod-overlay-backdrop: rgba(47, 44, 53, 0.4);
+
+    --richpod-font-family-text: "Open Sans", sans-serif;
+
+    --richpod-controls-height: 100px;
+    --richpod-controls-background-color: var(--richpod-background-color);
+
+    --richpod-button-text: var(--richpod-background-color);
+    --richpod-button-background: #FFFAF4;
+
+    --richpod-chapter-color: var(--richpod-background-color);
+    --richpod-chapter-background: var(--richpod-button-background);
+
+    --richpod-unverified-warning-background: rgb(213, 67, 23);
+
+    --richpod-seek-bar-height: 12px;
+    --richpod-seek-bar-color: #fff;
+    --richpod-seek-bar-progress-color: #FA8702;
+    --richpod-seek-bar-progress-radius: calc(var(--richpod-seek-bar-height) / 2);
+    --richpod-chapter-nibble-size: 20px;
+    --richpod-chapter-nibble-border-width: 1px;
+    --richpod-chapter-nibble-past: #FFFAF4;
+    --richpod-chapter-nibble-current: #FA8702;
+    --richpod-chapter-nibble-upcoming: #B2BC57;
+
+    // Play button colors (promoted from hardcoded values in PlayerControls.vue)
+    --richpod-play-button-gradient-start: #DBB57B;
+    --richpod-play-button-gradient-end: #B2BC57;
+    --richpod-play-button-border: #FFFFFF;
+    --richpod-control-button-border: #FFFFFF;
+
+    // Disabled variants — mixed 50% with neutral grey
+    --richpod-play-button-gradient-start-disabled: color-mix(in srgb, var(--richpod-play-button-gradient-start) 50%, gray);
+    --richpod-play-button-gradient-end-disabled: color-mix(in srgb, var(--richpod-play-button-gradient-end) 50%, gray);
+    --richpod-play-button-border-disabled: color-mix(in srgb, var(--richpod-play-button-border) 50%, gray);
+    --richpod-button-background-disabled: color-mix(in srgb, var(--richpod-button-background) 50%, gray);
+    --richpod-button-text-disabled: color-mix(in srgb, var(--richpod-button-text) 50%, gray);
+    --richpod-control-button-border-disabled: color-mix(in srgb, var(--richpod-control-button-border) 50%, gray);
+    --richpod-seek-bar-color-disabled: color-mix(in srgb, var(--richpod-seek-bar-color) 50%, gray);
+    --richpod-seek-bar-progress-color-disabled: color-mix(in srgb, var(--richpod-seek-bar-progress-color) 50%, gray);
+    --richpod-chapter-nibble-past-disabled: color-mix(in srgb, var(--richpod-chapter-nibble-past) 50%, gray);
+    --richpod-chapter-nibble-current-disabled: color-mix(in srgb, var(--richpod-chapter-nibble-current) 50%, gray);
+    --richpod-chapter-nibble-upcoming-disabled: color-mix(in srgb, var(--richpod-chapter-nibble-upcoming) 50%, gray);
+}

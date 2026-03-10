@@ -1,0 +1,119 @@
+mutation CreateRichPod($input: CreateRichPodInput!) {
+  createRichPod(input: $input) {
+    ...RichPodFields
+    origin {
+      id
+      title
+      link
+      feedUrl
+      artworkUrl
+      verified
+      episode {
+        guid
+        title
+        artworkUrl
+        link
+        media {
+          url
+          type
+          length
+          checksum
+        }
+      }
+    }
+    chapters {
+      ...ChapterFields
+    }
+  }
+}
+
+mutation UpdateRichPod($id: ID!, $input: UpdateRichPodInput!) {
+  updateRichPod(id: $id, input: $input) {
+    ...RichPodFields
+    origin {
+      id
+      title
+      link
+      feedUrl
+      artworkUrl
+      verified
+      episode {
+        guid
+        title
+        artworkUrl
+        link
+        media {
+          url
+          type
+          length
+          checksum
+        }
+      }
+    }
+    chapters {
+      ...ChapterFields
+    }
+  }
+}
+
+mutation DeleteRichPod($id: ID!) {
+  deleteRichPod(id: $id)
+}
+
+mutation SetRichPodChapters($id: ID!, $chapters: [ChapterInput!]!) {
+  setRichPodChapters(id: $id, chapters: $chapters) {
+    ...RichPodFields
+    origin {
+      id
+      title
+      link
+      feedUrl
+      artworkUrl
+      verified
+      episode {
+        guid
+        title
+        artworkUrl
+        link
+        media {
+          url
+          type
+          length
+          checksum
+        }
+      }
+    }
+    chapters {
+      ...ChapterFields
+    }
+  }
+}
+
+query GetRichPod($id: ID!) {
+  richPod(id: $id) {
+    ...RichPodFields
+    origin {
+      id
+      title
+      link
+      feedUrl
+      artworkUrl
+      verified
+      episode {
+        guid
+        title
+        artworkUrl
+        link
+        media {
+          url
+          type
+          length
+          checksum
+        }
+      }
+    }
+    chapters {
+      ...ChapterFields
+    }
+  }
+}

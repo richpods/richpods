@@ -1,0 +1,24 @@
+@use "sass:math";
+
+@forward "responsive-mq";
+@use "responsive-mq" as mq;
+
+@function rem-calc($px, $base-font-size: 16px) {
+    @return math.div($px, $base-font-size) * 1rem;
+}
+
+@mixin grid() {
+    box-sizing: border-box;
+    display: grid;
+    margin-left: auto;
+    margin-right: auto;
+    width: var(--content-max-width);
+
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-s);
+
+    @include mq.mq($from: md) {
+        grid-template-columns: repeat(12, 1fr);
+        gap: var(--space-m);
+    }
+}

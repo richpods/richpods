@@ -1,0 +1,17 @@
+{
+    "extends": "@tsconfig/node24/tsconfig.json",
+    "compilerOptions": {
+        "module": "preserve",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "baseUrl": ".",
+        "rootDir": ".",
+        "outDir": "build",
+        "paths": {
+            "@/*": ["./src/*"],
+            "@shared/*": ["../shared/*"]
+        }
+    },
+    "include": ["src", "scripts"]
+}

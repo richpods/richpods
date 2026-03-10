@@ -1,0 +1,28 @@
+{
+    "name": "@richpods/validate-mp3",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "main": "build/index.js",
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "scripts": {
+        "gcp-build": "tsc",
+        "build": "tsc",
+        "clean": "rimraf build",
+        "start": "npx @google-cloud/functions-framework --target=validateMp3 --signature-type=cloudevent"
+    },
+    "dependencies": {
+        "@google-cloud/firestore": "7.11.6",
+        "@google-cloud/functions-framework": "3.3.0",
+        "@google-cloud/storage": "7.17.2",
+        "music-metadata": "11.12.1"
+    },
+    "devDependencies": {
+        "@tsconfig/node24": "24.0.0",
+        "@types/node": "24.0.0",
+        "rimraf": "6.0.1",
+        "typescript": "5.8.3"
+    }
+}

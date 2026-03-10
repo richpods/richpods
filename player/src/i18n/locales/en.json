@@ -1,0 +1,40 @@
+{
+    "common": {
+        "loading": "Loading…",
+        "ellipsis": "…",
+        "error": "Error: {message}",
+        "retry": "Retry",
+        "noRichPodLoaded": "No RichPod loaded…",
+        "close": "Close"
+    },
+    "header": {
+        "menu": "Menu",
+        "home": "Home",
+        "homePath": "/en/",
+        "listen": "Listen",
+        "listenPath": "/en/listen",
+        "team": "Team",
+        "teamPath": "/en/team",
+        "contact": "Contact",
+        "contactPath": "/en/contact"
+    },
+    "poll": {
+        "loading": "Loading poll..."
+    },
+    "geoMap": {
+        "info": "Info"
+    },
+    "disclaimer": {
+        "unverified": "This RichPod was not published by its original creator. The publisher is {publisherName}.",
+        "unverifiedNoPublisher": "This RichPod was not published by its original creator."
+    },
+    "sidebar": {
+        "openEpisode": "Open Episode"
+    },
+    "player": {
+        "explicit": "Explicit"
+    },
+    "infoDialog": {
+        "explicit": "Explicit"
+    }
+}

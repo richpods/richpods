@@ -1,0 +1,30 @@
+query UserRichPods($first: Int, $after: String, $state: RichPodState) {
+    userRichPods(first: $first, after: $after, state: $state) {
+        items {
+            id
+            title
+            description
+            state
+            isHosted
+            origin {
+                title
+                link
+                feedUrl
+                artworkUrl
+                verified
+                episode {
+                    guid
+                    title
+                    artworkUrl
+                    link
+                }
+            }
+            editor {
+                publicName
+            }
+            createdAt
+            updatedAt
+        }
+        nextCursor
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "name": "@richpods/check-verifications",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "main": "build/index.js",
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "scripts": {
+        "gcp-build": "tsc",
+        "build": "tsc",
+        "clean": "rimraf build",
+        "start": "npx @google-cloud/functions-framework --target=checkVerifications --signature-type=http"
+    },
+    "dependencies": {
+        "@google-cloud/firestore": "7.11.6",
+        "@google-cloud/functions-framework": "3.3.0",
+        "got": "14.4.8",
+        "xml2js": "0.6.2"
+    },
+    "devDependencies": {
+        "@tsconfig/node24": "24.0.0",
+        "@types/node": "24.0.0",
+        "@types/xml2js": "0.4.14",
+        "rimraf": "6.0.1",
+        "typescript": "5.8.3"
+    }
+}

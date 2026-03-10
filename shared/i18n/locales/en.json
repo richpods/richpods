@@ -1,0 +1,22 @@
+{
+    "player": {
+        "info": "Info",
+        "chapters": "Chapters",
+        "play": "Play",
+        "pause": "Pause",
+        "skipForward": "Skip forward 15 seconds",
+        "skipBackward": "Skip backward 15 seconds"
+    },
+    "infoDialog": {
+        "originalPodcastTitle": "Original Podcast",
+        "episode": "Episode",
+        "episodeLink": "Episode Link"
+    },
+    "chapterDialog": {
+        "title": "Chapter overview",
+        "chapterN": "Chapter {n}:"
+    },
+    "enclosure": {
+        "unsupported": "Unsupported"
+    }
+}

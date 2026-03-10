@@ -1,0 +1,11 @@
+query GetCurrentUser {
+  currentUser {
+    ...CurrentUserFields
+  }
+}
+
+mutation UpdateProfile($input: UpdateProfileInput!) {
+  updateProfile(input: $input) {
+    ...CurrentUserFields
+  }
+}

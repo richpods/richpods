@@ -1,0 +1,19 @@
+# codegen.yml
+schema: ../server/schema.graphql
+documents:
+    - "src/graphql/*.{gql,graphql}"
+
+generates:
+    ./src/graphql/generated.ts:
+        plugins:
+            - typescript
+            - typescript-operations
+            - typescript-graphql-request
+        config:
+            rawRequest: false
+            useTypeImports: true
+            enumsAsConst: true
+
+hooks:
+    afterAllFileWrite:
+        - prettier --write

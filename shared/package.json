@@ -1,0 +1,32 @@
+{
+    "name": "@richpods/shared",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "files": [
+        "dist",
+        "assets",
+        "public"
+    ],
+    "exports": {
+        "./i18n/language": {
+            "types": "./dist/i18n/language.d.ts",
+            "import": "./dist/i18n/language.js"
+        },
+        "./utils/roles": {
+            "types": "./dist/utils/roles.d.ts",
+            "import": "./dist/utils/roles.js"
+        },
+        "./utils/itunesCategories": {
+            "types": "./dist/utils/itunesCategories.d.ts",
+            "import": "./dist/utils/itunesCategories.js"
+        },
+        "./assets/*": "./assets/*"
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json"
+    },
+    "devDependencies": {
+        "typescript": "catalog:"
+    }
+}

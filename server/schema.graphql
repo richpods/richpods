@@ -1,0 +1,431 @@
+scalar JSON
+scalar GeoJSON
+
+interface BaseEnclosure {
+    title: String!
+}
+
+type Markdown implements BaseEnclosure {
+    title: String!
+    text: String!
+}
+
+enum ChartFormat {
+    PLAIN_DATA
+    ECHARTS
+}
+
+type InteractiveChart implements BaseEnclosure {
+    title: String!
+    description: String
+    chartFormat: ChartFormat!
+    chart: JSON!
+}
+
+type GeoMap implements BaseEnclosure {
+    title: String!
+    description: String
+    geoJSON: GeoJSON!
+}
+
+type Slideshow implements BaseEnclosure {
+    title: String!
+    description: String
+    slides: [Slide!]!
+}
+
+type Slide {
+    imageUrl: String!
+    imageAlt: String!
+    caption: String!
+    credit: String!
+}
+
+type Coloeus {
+    endpoint: String!
+    pollId: String!
+}
+
+type Poll {
+    coloeus: Coloeus!
+}
+
+type FactboxLink {
+    label: String!
+    url: String!
+}
+
+type Factbox implements BaseEnclosure {
+    title: String!
+    text: String!
+    links: [FactboxLink!]!
+}
+
+enum CardType {
+    LINK
+    COVER
+    CITATION
+    IMAGE
+    BLANK
+}
+
+type CardOpenGraph {
+    ogTitle: String
+    ogDescription: String
+    ogImageUrl: String
+    ogImageWidth: Int
+    ogImageHeight: Int
+}
+
+type Card implements BaseEnclosure {
+    title: String!
+    cardType: CardType!
+    visibleAsChapter: Boolean!
+    """Link card: the external URL"""
+    url: String
+    """Link card: parsed Open Graph metadata"""
+    openGraph: CardOpenGraph
+    """Link card: optional description"""
+    description: String
+    """Cover card: 'podcast' or 'episode'"""
+    coverSource: String
+    """Cover card: resolved artwork URL"""
+    coverImageUrl: String
+    """Citation card: the quoted text"""
+    quoteText: String
+    """Citation card: attribution source"""
+    citationSource: String
+    """Citation card: optional link URL"""
+    citationUrl: String
+    """Image card: uploaded image URL"""
+    imageUrl: String
+    """Image card: alt text for accessibility"""
+    imageAlt: String
+    """Image card: optional link wrapping the image"""
+    imageLink: String
+}
+
+union Enclosure = Markdown | InteractiveChart | Slideshow | GeoMap | Poll | Factbox | Card
+
+type Chapter {
+    begin: String!
+    enclosure: Enclosure!
+}
+
+enum EnclosureType {
+    Markdown
+    InteractiveChart
+    GeoMap
+    Slideshow
+    Poll
+    Factbox
+    Card
+}
+
+input ChapterInput {
+    begin: String!
+    enclosureType: EnclosureType!
+    enclosure: JSON!
+}
+
+type PodcastMedia {
+    url: String!
+    type: String!
+    length: Int!
+    checksum: String!
+}
+
+type PodcastOrigin {
+    id: ID!
+    title: String!
+    link: String
+    feedUrl: String!
+    artworkUrl: String
+    verified: Boolean!
+    episode: PodcastEpisode!
+}
+
+type PodcastEpisode {
+    guid: String!
+    title: String!
+    artworkUrl: String
+    link: String
+    media: PodcastMedia!
+}
+
+type PodcastInfo {
+    title: String!
+    description: String!
+    artwork: String!
+    link: String!
+}
+
+type EpisodeInfo {
+    guid: String!
+    title: String!
+    publicationDate: String!
+    artwork: String!
+    link: String!
+    url: String!
+    type: String!
+    length: Int!
+    checksum: String!
+}
+
+type PodcastMetadata {
+    podcast: PodcastInfo!
+    episodes: [EpisodeInfo!]!
+}
+
+type PodcastEpisodeSearchResult {
+    feedUrl: String!
+    podcastTitle: String!
+    episodeTitle: String!
+    creator: String
+    artwork: String
+    date: String
+    genre: String
+    episodeGuid: String
+    episodeUrl: String
+}
+
+enum RichPodState {
+    draft
+    published
+}
+
+enum RichPodVerificationStatus {
+    unverified
+    pending
+    failed
+    verified
+}
+
+enum HostedEpisodeValidationStatus {
+    pending
+    valid
+    invalid
+}
+
+type User {
+    id: ID!
+    publicName: String
+    biography: String
+    website: String
+    publicEmail: String
+    socialAccounts: [String!]!
+    editorLanguage: String
+    """Only populated for the current user (via currentUser query)."""
+    role: String
+    usedQuotaBytes: Int
+    totalQuotaBytes: Int
+}
+
+type RichPod {
+    id: ID!
+    title: String!
+    description: String!
+    state: RichPodState!
+    origin: PodcastOrigin!
+    chapters: [Chapter!]!
+    editor: User
+    createdAt: String!
+    updatedAt: String!
+    isHosted: Boolean!
+    hostedEpisodeId: ID
+    publishedAt: String
+    explicit: Boolean!
+}
+
+type Verification {
+    id: ID!
+    feedUrl: String!
+    email: String!
+    state: RichPodVerificationStatus!
+    createdAt: String!
+    verificationTimestamp: String
+    expiresAt: String!
+}
+
+type AuthPayload {
+    token: String!
+    user: User!
+}
+
+type HostedPodcast {
+    id: ID!
+    title: String!
+    description: String!
+    link: String!
+    language: String!
+    itunesCategory: String!
+    itunesExplicit: Boolean!
+    itunesAuthor: String!
+    itunesType: String
+    copyright: String
+    applePodcastsVerifyTxt: String
+    coverImageUrl: String!
+    episodeCount: Int!
+    feedUrl: String!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type HostedEpisode {
+    id: ID!
+    hostedPodcastId: ID!
+    richPodId: ID!
+    audioUrl: String!
+    audioByteSize: Int!
+    audioDurationSeconds: Float
+    audioBitrate: Int
+    audioSampleRate: Int
+    audioChannels: Int
+    validationStatus: HostedEpisodeValidationStatus!
+    validationError: String
+    episodeCoverUrl: String
+    itunesExplicit: Boolean!
+    publishedAt: String
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CreateRichPodInput {
+    title: String!
+    description: String!
+    origin: PodcastOriginInput!
+}
+
+input UpdateRichPodInput {
+    title: String
+    description: String
+    state: RichPodState
+    explicit: Boolean
+}
+
+input PodcastOriginInput {
+    title: String!
+    link: String
+    feedUrl: String!
+    artworkUrl: String
+    episode: PodcastEpisodeInput!
+}
+
+input PodcastEpisodeInput {
+    guid: String!
+    title: String!
+    artworkUrl: String
+    link: String
+    media: PodcastMediaInput!
+}
+
+input PodcastMediaInput {
+    url: String!
+    type: String!
+    length: Int!
+    checksum: String!
+}
+
+input CreateHostedPodcastInput {
+    title: String!
+    description: String!
+    link: String
+    language: String!
+    itunesCategory: String!
+    itunesExplicit: Boolean!
+    itunesAuthor: String!
+    itunesType: String
+    copyright: String
+    applePodcastsVerifyTxt: String
+}
+
+input UpdateHostedPodcastInput {
+    title: String
+    description: String
+    link: String
+    language: String
+    itunesCategory: String
+    itunesExplicit: Boolean
+    itunesAuthor: String
+    itunesType: String
+    copyright: String
+    applePodcastsVerifyTxt: String
+}
+
+input SignUpInput {
+    email: String!
+    password: String!
+}
+
+input SignInInput {
+    email: String!
+    password: String!
+}
+
+input UpdateProfileInput {
+    publicName: String
+    biography: String
+    website: String
+    publicEmail: String
+    socialAccounts: [String!]
+    editorLanguage: String
+}
+
+type InstanceInfo {
+    version: String!
+    serverVersion: String!
+    commitHash: String!
+}
+
+type PaginatedRichPods {
+    items: [RichPod!]!
+    nextCursor: String
+}
+
+type PaginatedVerifications {
+    items: [Verification!]!
+    nextCursor: String
+}
+
+type PaginatedHostedPodcasts {
+    items: [HostedPodcast!]!
+    nextCursor: String
+}
+
+type PaginatedHostedEpisodes {
+    items: [HostedEpisode!]!
+    nextCursor: String
+}
+
+type Query {
+    instanceInfo: InstanceInfo!
+    richPod(id: ID!): RichPod
+    userRichPods(first: Int, after: String, state: RichPodState): PaginatedRichPods!
+    recentPublishedRichPods(first: Int, after: String): PaginatedRichPods!
+    currentUser: User
+    user(id: ID!): User
+    podcastMetadata(feedUrl: String!, episodeGuid: String): PodcastMetadata!
+    extractFeedUrl(url: String!): String!
+    podcastEpisodeSearch(query: String!, country: String, language: String): [PodcastEpisodeSearchResult!]!
+    userVerifications(first: Int, after: String): PaginatedVerifications!
+    hostedPodcasts(first: Int, after: String): PaginatedHostedPodcasts!
+    hostedPodcast(id: ID!): HostedPodcast
+    hostedEpisodes(podcastId: ID!, first: Int, after: String): PaginatedHostedEpisodes!
+    hostedEpisode(id: ID!): HostedEpisode
+}
+
+type Mutation {
+    signUp(input: SignUpInput!): AuthPayload!
+    signIn(input: SignInInput!): AuthPayload!
+    signInWithGoogle(idToken: String!): AuthPayload!
+    updateProfile(input: UpdateProfileInput!): User!
+    createRichPod(input: CreateRichPodInput!): RichPod!
+    updateRichPod(id: ID!, input: UpdateRichPodInput!): RichPod!
+    setRichPodChapters(id: ID!, chapters: [ChapterInput!]!): RichPod!
+    deleteRichPod(id: ID!): Boolean!
+    startRichPodVerification(feedUrl: String!): Verification!
+    completeRichPodVerification(feedUrl: String!, code: String!): Verification!
+    updateHostedPodcast(id: ID!, input: UpdateHostedPodcastInput!): HostedPodcast!
+    deleteHostedPodcast(id: ID!): Boolean!
+    deleteHostedEpisode(id: ID!): Boolean!
+}

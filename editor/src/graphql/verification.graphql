@@ -1,0 +1,38 @@
+query UserVerifications($first: Int, $after: String) {
+    userVerifications(first: $first, after: $after) {
+        items {
+            id
+            feedUrl
+            email
+            state
+            createdAt
+            verificationTimestamp
+            expiresAt
+        }
+        nextCursor
+    }
+}
+
+mutation StartRichPodVerification($feedUrl: String!) {
+    startRichPodVerification(feedUrl: $feedUrl) {
+        id
+        feedUrl
+        email
+        state
+        createdAt
+        verificationTimestamp
+        expiresAt
+    }
+}
+
+mutation CompleteRichPodVerification($feedUrl: String!, $code: String!) {
+    completeRichPodVerification(feedUrl: $feedUrl, code: $code) {
+        id
+        feedUrl
+        email
+        state
+        createdAt
+        verificationTimestamp
+        expiresAt
+    }
+}

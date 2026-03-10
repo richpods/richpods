@@ -1,0 +1,26 @@
+mutation SignUp($input: SignUpInput!) {
+  signUp(input: $input) {
+    token
+    user {
+      ...CurrentUserFields
+    }
+  }
+}
+
+mutation SignIn($input: SignInInput!) {
+  signIn(input: $input) {
+    token
+    user {
+      ...CurrentUserFields
+    }
+  }
+}
+
+mutation SignInWithGoogle($idToken: String!) {
+  signInWithGoogle(idToken: $idToken) {
+    token
+    user {
+      ...CurrentUserFields
+    }
+  }
+}

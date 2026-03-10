@@ -1,0 +1,118 @@
+query HostedPodcasts($first: Int, $after: String) {
+    hostedPodcasts(first: $first, after: $after) {
+        items {
+            id
+            title
+            description
+            link
+            language
+            itunesCategory
+            itunesExplicit
+            itunesAuthor
+            itunesType
+            copyright
+            applePodcastsVerifyTxt
+            coverImageUrl
+            episodeCount
+            feedUrl
+            createdAt
+            updatedAt
+        }
+        nextCursor
+    }
+}
+
+query HostedPodcast($id: ID!) {
+    hostedPodcast(id: $id) {
+        id
+        title
+        description
+        link
+        language
+        itunesCategory
+        itunesExplicit
+        itunesAuthor
+        itunesType
+        copyright
+        applePodcastsVerifyTxt
+        coverImageUrl
+        episodeCount
+        feedUrl
+        createdAt
+        updatedAt
+    }
+}
+
+query HostedEpisodes($podcastId: ID!, $first: Int, $after: String) {
+    hostedEpisodes(podcastId: $podcastId, first: $first, after: $after) {
+        items {
+            id
+            hostedPodcastId
+            richPodId
+            audioUrl
+            audioByteSize
+            audioDurationSeconds
+            audioBitrate
+            audioSampleRate
+            audioChannels
+            validationStatus
+            validationError
+            episodeCoverUrl
+            itunesExplicit
+            publishedAt
+            createdAt
+            updatedAt
+        }
+        nextCursor
+    }
+}
+
+query HostedEpisode($id: ID!) {
+    hostedEpisode(id: $id) {
+        id
+        hostedPodcastId
+        richPodId
+        audioUrl
+        audioByteSize
+        audioDurationSeconds
+        audioBitrate
+        audioSampleRate
+        audioChannels
+        validationStatus
+        validationError
+        episodeCoverUrl
+        itunesExplicit
+        publishedAt
+        createdAt
+        updatedAt
+    }
+}
+
+mutation UpdateHostedPodcast($id: ID!, $input: UpdateHostedPodcastInput!) {
+    updateHostedPodcast(id: $id, input: $input) {
+        id
+        title
+        description
+        link
+        language
+        itunesCategory
+        itunesExplicit
+        itunesAuthor
+        itunesType
+        copyright
+        applePodcastsVerifyTxt
+        coverImageUrl
+        episodeCount
+        feedUrl
+        createdAt
+        updatedAt
+    }
+}
+
+mutation DeleteHostedPodcast($id: ID!) {
+    deleteHostedPodcast(id: $id)
+}
+
+mutation DeleteHostedEpisode($id: ID!) {
+    deleteHostedEpisode(id: $id)
+}

@@ -1,0 +1,68 @@
+{
+    "meta": {
+        "siteTitle": "RichPods"
+    },
+    "nav": {
+        "listen": "Anhören",
+        "team": "Team",
+        "contact": "Kontakt"
+    },
+    "footer": {
+        "home": "Startseite",
+        "listen": "Anhören",
+        "team": "Team",
+        "contact": "Kontakt",
+        "privacy": "Datenschutz",
+        "netideeBlog": "netidee-Blog",
+        "languageSelection": "Sprachauswahl"
+    },
+    "netidee": {
+        "supportedBy": "Unterstützt von Netidee Call 19"
+    },
+    "home": {
+        "heroTitle": "Eine neue Dimension des Storytellings!",
+        "heroIntro": "Unser Ziel ist eine erweiterte, vertiefte Form des Zuhörens für Podcasts zu schaffen. RichPods denkt dabei die Art und Weise neu, wie {interactiveElements} in klassische lineare Podcast-Formate integriert werden können. Hörer:innen erleben Inhalte multimedial und kontextbezogen. Wir stecken {inDevelopment}. Dank der Netidee-Förderung können wir dir aber schon erste Einblicke in unser Produkt geben.",
+        "interactiveElements": "interaktive Elemente",
+        "inDevelopment": "mitten in der Entwicklung unseres Players",
+        "devBlog": "Zum Entwicklungs-Blog",
+        "demoTitle": "Make it Multimedia.",
+        "demoText": "{transformPodcast} Karten. Infoboxen. Interaktive Diagramme. Bilder und Slideshows. Zum richtigen Zeitpunkt, interaktiv und einfach anzulegen.",
+        "transformPodcast": "Verwandle Deinen Podcast in ein multimediales Erlebnis:",
+        "ctaTitle": "Willst du deinen Podcast auf das nächste Level bringen?",
+        "ctaEmail": "📧 Mail senden"
+    },
+    "team": {
+        "title": "Team",
+        "subtitle": "Wir kombinieren technisches Fachwissen, Podcast-Expertise und gestalterischen Anspruch.",
+        "photoAlt": "Teamfoto von Philipp Naderer-Puiu und Sonja Harter.",
+        "philippName": "Philipp Naderer-Puiu",
+        "philippBio": "Sein Schwerpunkt liegt in der Entwicklung von skalierfähigen Web-Anwendungen. Dabei beschäftigt er sich u.a. mit Offenen Daten, die von Behörden oder Verkehrsunternehmen bereitgestellt werden. Diese Rohdaten werden durch die von ihm entwickelte Software transformiert und für unterschiedlichste Kanäle aufbereitet. Außerdem arbeitet Philipp seit fast 20 Jahren als Softwareentwickler im Medienbereich.",
+        "sonjaName": "Sonja Harter",
+        "sonjaBio": "Sonja Harter arbeitet als Kultur-Redakteurin und als freischaffende Lyrikerin und Podcast-Host. Mit „Nord.Post“ betreibt sie seit 2020 einen monatlichen Podcast für das Wiener Nordbahnviertel.",
+        "lisaName": "Lisa Vietze",
+        "lisaBio": "Als Illustratorin und Grafikerin liebt Lisa es, Charaktere, Welten und visuelle Konzepte zu erschaffen, die nicht nur gut aussehen, sondern etwas spürbar machen."
+    },
+    "listen": {
+        "title": "Anhören",
+        "subtitle": "Entdecke die neuesten RichPods — Podcasts, angereichert mit interaktiven Inhalten.",
+        "unverified": "Nicht vom Podcast-Urheber.",
+        "loadMore": "Mehr anzeigen",
+        "loading": "Wird geladen…",
+        "empty": "Noch keine RichPods verfügbar. Schau bald wieder vorbei!",
+        "loadError": "RichPods konnten nicht geladen werden. Bitte versuche es später erneut."
+    },
+    "contact": {
+        "title": "Kontakt",
+        "address": "Bruno-Marek-Allee 5/51, 1020 Wien",
+        "photos": "Fotos: {photographer}",
+        "privacyTitle": "Datenschutz",
+        "privacyIntro": "Personenbezogene Daten werden nur dann gespeichert, wenn dies für den Betrieb und die Nutzung dieses Angebots nicht anders möglich ist. Die Speicherung erfolgt nur so lange wie unbedingt notwendig. Wir lassen dabei größte uns mögliche Sorgfalt walten, dass niemals mutwillig Ihre persönlichen Daten an Dritte weitergegeben werden.",
+        "privacyHosting": "Diese Website verwendet Google Cloud für das Hosting der Webseite. Dieser Dienstleister erstellt Webserver‑Protokolle, die Datum und Uhrzeit, den abgerufenen URL-Pfad, ggf. den Referrer sowie den verwendeten Browser enthalten; deine IP-Adresse wird soweit wie möglich mit IP-Masking anonymisiert, sodass nur geringfügig personenbezogenen Daten vorliegen. Mehr zum Datenschutz von Google Cloud gibt es unter {link}.",
+        "privacyHostingLink": "„Cloud Data Processing Addendum“",
+        "privacyNoTracking": "Diese Webseite verwendet kein Tracking oder Analytics.",
+        "embeddedTitle": "Eingebettete Inhalte",
+        "embeddedContent": "Diese Webseite kann in Ausnahmefällen eingebettete Inhalte verwenden (z. B. Videos, Bilder, Beiträge etc.). Eingebettete Inhalte von anderen Websites verhalten sich exakt so, als ob der Besucher die andere Website besucht hätte. Diese Websites können Daten über dich sammeln, Cookies benutzen, zusätzliche Tracking-Dienste von Dritten einbetten und deine Interaktion mit diesem eingebetteten Inhalt aufzeichnen, inklusive deiner Interaktion mit dem eingebetteten Inhalt, falls du ein Konto hast und auf dieser Website angemeldet bist.",
+        "inquiriesTitle": "Auskünfte",
+        "inquiriesText": "Sollten Sie detailliertere Auskünfte zum Datenschutz benötigen, bitten wir um Kontaktaufnahme unter folgender E-Mail-Adresse:"
+    }
+}

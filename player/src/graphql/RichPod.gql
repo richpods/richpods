@@ -1,0 +1,104 @@
+query RichPod($id: ID!) {
+    richPod(id: $id) {
+        id
+        chapters {
+            begin
+            enclosure {
+                ... on Markdown {
+                    __typename
+                    title
+                    text
+                }
+                ... on InteractiveChart {
+                    __typename
+                    title
+                    description
+                    chartFormat
+                    chart
+                }
+                ... on Slideshow {
+                    __typename
+                    description
+                    slides {
+                        caption
+                        credit
+                        imageUrl
+                        imageAlt
+                    }
+                    title
+                }
+                ... on GeoMap {
+                    __typename
+                    description
+                    geoJSON
+                    title
+                }
+                ... on Poll {
+                    __typename
+                    coloeus {
+                        endpoint
+                        pollId
+                    }
+                }
+                ... on Factbox {
+                    __typename
+                    title
+                    text
+                    links {
+                        label
+                        url
+                    }
+                }
+                ... on Card {
+                    __typename
+                    title
+                    cardType
+                    visibleAsChapter
+                    url
+                    openGraph {
+                        ogTitle
+                        ogDescription
+                        ogImageUrl
+                        ogImageWidth
+                        ogImageHeight
+                    }
+                    description
+                    coverSource
+                    coverImageUrl
+                    quoteText
+                    citationSource
+                    citationUrl
+                    imageUrl
+                    imageAlt
+                    imageLink
+                }
+            }
+        }
+        description
+        explicit
+        origin {
+            id
+            title
+            link
+            feedUrl
+            artworkUrl
+            verified
+            episode {
+                guid
+                title
+                artworkUrl
+                link
+                media {
+                    checksum
+                    length
+                    type
+                    url
+                }
+            }
+        }
+        title
+        editor {
+            publicName
+        }
+    }
+}

@@ -1,0 +1,17 @@
+/**
+ * Sass MQ
+ */
+$breakpoints: (
+    xs: 320px,
+    md: 740px,
+    lg: 1024px,
+    xl: 1300px,
+);
+
+//$show-breakpoints: (xs, md, lg, xl);
+$show-breakpoints: ();
+
+@forward "sass-mq/mq" with (
+    $breakpoints: $breakpoints,
+    $show-breakpoints: $show-breakpoints
+);

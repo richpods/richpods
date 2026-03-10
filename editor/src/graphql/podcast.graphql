@@ -1,0 +1,38 @@
+query PodcastEpisodeSearch($query: String!, $country: String, $language: String) {
+    podcastEpisodeSearch(query: $query, country: $country, language: $language) {
+        feedUrl
+        podcastTitle
+        episodeTitle
+        episodeGuid
+        creator
+        artwork
+        date
+        genre
+    }
+}
+
+query ExtractFeedUrl($url: String!) {
+    extractFeedUrl(url: $url)
+}
+
+query PodcastMetadata($feedUrl: String!, $episodeGuid: String) {
+    podcastMetadata(feedUrl: $feedUrl, episodeGuid: $episodeGuid) {
+        podcast {
+            title
+            description
+            artwork
+            link
+        }
+        episodes {
+            guid
+            title
+            publicationDate
+            artwork
+            link
+            url
+            type
+            length
+            checksum
+        }
+    }
+}

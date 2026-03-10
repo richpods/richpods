@@ -1,0 +1,27 @@
+{
+    "name": "richpods",
+    "private": true,
+    "version": "0.9.0",
+    "packageManager": "pnpm@10.30.0",
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "scripts": {
+        "preinstall": "node -e \"const ua = process.env.npm_config_user_agent || ''; if (!ua.includes('pnpm/')) { console.error('\\nThis repository uses pnpm. Run: corepack enable && pnpm install\\n'); process.exit(1); }\"",
+        "dev:server": "pnpm --filter @richpods/server dev",
+        "dev:editor": "pnpm --filter @richpods/editor dev",
+        "dev:player": "pnpm --filter @richpods/player dev",
+        "dev:website": "pnpm --filter @richpods/website dev",
+        "build:shared": "pnpm --filter @richpods/shared build",
+        "build:server": "pnpm --filter @richpods/server build",
+        "build:editor": "pnpm --filter @richpods/editor build",
+        "build:player": "pnpm --filter @richpods/player build",
+        "build:website": "pnpm --filter @richpods/website build",
+        "test:server": "pnpm --filter @richpods/server test",
+        "test:player": "pnpm --filter @richpods/player test:unit",
+        "lint": "pnpm -r --if-present run lint",
+        "type-check": "pnpm -r --if-present run type-check",
+        "format": "pnpm -r --if-present run format",
+        "deps:update": "pnpm -r update --latest"
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "common": {
+        "loading": "Lade…",
+        "ellipsis": "…",
+        "error": "Fehler: {message}",
+        "retry": "Erneut versuchen",
+        "noRichPodLoaded": "Kein RichPod geladen…",
+        "close": "Schließen"
+    },
+    "header": {
+        "menu": "Menü",
+        "home": "Startseite",
+        "homePath": "/",
+        "listen": "Anhören",
+        "listenPath": "/anhoeren",
+        "team": "Team",
+        "teamPath": "/team",
+        "contact": "Kontakt",
+        "contactPath": "/kontakt"
+    },
+    "poll": {
+        "loading": "Umfrage wird geladen..."
+    },
+    "geoMap": {
+        "info": "Infos"
+    },
+    "disclaimer": {
+        "unverified": "Dieser RichPod wurde nicht vom Podcast-Urheber veröffentlicht. Der Herausgeber ist {publisherName}.",
+        "unverifiedNoPublisher": "Dieser RichPod wurde nicht vom Podcast-Urheber veröffentlicht."
+    },
+    "sidebar": {
+        "openEpisode": "Episode öffnen"
+    },
+    "player": {
+        "explicit": "Explizit"
+    },
+    "infoDialog": {
+        "explicit": "Explizit"
+    }
+}

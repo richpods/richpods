@@ -1,0 +1,106 @@
+fragment UserFields on User {
+  id
+  publicName
+  biography
+  website
+  publicEmail
+  socialAccounts
+  usedQuotaBytes
+  totalQuotaBytes
+}
+
+fragment CurrentUserFields on User {
+  id
+  publicName
+  biography
+  website
+  publicEmail
+  socialAccounts
+  editorLanguage
+  role
+  usedQuotaBytes
+  totalQuotaBytes
+}
+
+fragment RichPodFields on RichPod {
+  id
+  title
+  description
+  state
+  createdAt
+  updatedAt
+  isHosted
+  hostedEpisodeId
+  explicit
+  editor {
+    ...UserFields
+  }
+}
+
+fragment ChapterFields on Chapter {
+  begin
+  enclosure {
+    __typename
+    ... on Markdown {
+      title
+      text
+    }
+    ... on InteractiveChart {
+      title
+      description
+      chartFormat
+      chart
+    }
+    ... on GeoMap {
+      title
+      description
+      geoJSON
+    }
+    ... on Slideshow {
+      title
+      description
+      slides {
+        imageUrl
+        imageAlt
+        caption
+        credit
+      }
+    }
+    ... on Poll {
+      coloeus {
+        endpoint
+        pollId
+      }
+    }
+    ... on Factbox {
+      title
+      text
+      links {
+        label
+        url
+      }
+    }
+    ... on Card {
+      title
+      cardType
+      visibleAsChapter
+      url
+      openGraph {
+        ogTitle
+        ogDescription
+        ogImageUrl
+        ogImageWidth
+        ogImageHeight
+      }
+      description
+      coverSource
+      coverImageUrl
+      quoteText
+      citationSource
+      citationUrl
+      imageUrl
+      imageAlt
+      imageLink
+    }
+  }
+}

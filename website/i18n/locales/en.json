@@ -1,0 +1,68 @@
+{
+    "meta": {
+        "siteTitle": "RichPods"
+    },
+    "nav": {
+        "listen": "Listen",
+        "team": "Team",
+        "contact": "Contact"
+    },
+    "footer": {
+        "home": "Home",
+        "listen": "Listen",
+        "team": "Team",
+        "contact": "Contact",
+        "privacy": "Privacy Policy",
+        "netideeBlog": "netidee Blog",
+        "languageSelection": "Language selection"
+    },
+    "netidee": {
+        "supportedBy": "Supported by Netidee Call 19"
+    },
+    "home": {
+        "heroTitle": "A new dimension for storytelling!",
+        "heroIntro": "Our goal is to create a richer, deeper way to listen to podcasts. RichPods rethinks how {interactiveElements} can be woven into classic, linear podcast formats. Listeners experience content in a multimedia, contextual way. We are {inDevelopment}. Thanks to netidee funding, we can already give you a first look at our product.",
+        "interactiveElements": "interactive elements",
+        "inDevelopment": "currently developing our player",
+        "devBlog": "Development Blog",
+        "demoTitle": "Make it multimedia.",
+        "demoText": "{transformPodcast} Maps. Info boxes. Interactive charts. Images and slideshows. Delivered at the right moment, interactive and easy to create.",
+        "transformPodcast": "Transform your podcast into a multimedia experience:",
+        "ctaTitle": "Ready to take your podcast to the next level?",
+        "ctaEmail": "📧 Send us an email"
+    },
+    "team": {
+        "title": "Team",
+        "subtitle": "We combine technical expertise, podcast know-how, and design ambition.",
+        "photoAlt": "Team photo of Philipp Naderer-Puiu and Sonja Harter.",
+        "philippName": "Philipp Naderer-Puiu",
+        "philippBio": "Philipp focuses on building scalable web applications. He works with open data from public authorities and transport companies, transforming raw data with the software he develops and preparing it for a wide range of channels. He has also been a software developer in the media sector for nearly 20 years.",
+        "sonjaName": "Sonja Harter",
+        "sonjaBio": "Sonja Harter is a culture editor as well as a freelance poet and podcast host. Since 2020, she has been running \"Nord.Post,\" a monthly podcast for Vienna's Nordbahnviertel.",
+        "lisaName": "Lisa Vietze",
+        "lisaBio": "As an illustrator and graphic designer, Lisa loves creating characters, worlds, and visual concepts that not only look good but make you feel something."
+    },
+    "listen": {
+        "title": "Listen",
+        "subtitle": "Discover the latest RichPods — podcasts enriched with interactive content.",
+        "unverified": "Not from the original creator.",
+        "loadMore": "Show more",
+        "loading": "Loading…",
+        "empty": "No RichPods available yet. Check back soon!",
+        "loadError": "Could not load RichPods. Please try again later."
+    },
+    "contact": {
+        "title": "Contact",
+        "address": "Bruno-Marek-Allee 5/51, 1020 Vienna",
+        "photos": "Photos: {photographer}",
+        "privacyTitle": "Privacy Policy",
+        "privacyIntro": "Personal data is only stored when necessary for the operation and use of this service. Data is kept only as long as absolutely required. We take the greatest possible care to ensure that your personal data is never willfully disclosed to third parties.",
+        "privacyHosting": "This website uses Google Cloud for hosting. The provider creates web server logs containing the date and time, the requested URL path, any referrer, and the browser used; your IP address is anonymized as much as possible through IP masking so that only minimal personal data is present. More about Google Cloud's privacy can be found at {link}.",
+        "privacyHostingLink": "\"Cloud Data Processing Addendum\"",
+        "privacyNoTracking": "This website does not use any tracking or analytics.",
+        "embeddedTitle": "Embedded Content",
+        "embeddedContent": "In exceptional cases, this website may use embedded content (e.g., videos, images, posts, etc.). Embedded content from other websites behaves exactly as if the visitor had visited those websites. These websites may collect data about you, use cookies, embed additional third-party tracking services, and record your interaction with this embedded content, including if you have an account and are logged in to that website.",
+        "inquiriesTitle": "Inquiries",
+        "inquiriesText": "If you need more detailed information about data protection, please contact us at the following email address:"
+    }
+}

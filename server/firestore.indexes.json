@@ -1,0 +1,249 @@
+{
+    "indexes": [
+        {
+            "collectionGroup": "richpods",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "state",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "richpods",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "state",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "updatedAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "richpods",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "editor",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "state",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "updatedAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "chapters",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "version",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "verifications",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "user",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "state",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "verifications",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "user",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "feedUrl",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "verifications",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "user",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "feedUrl",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "verificationTimestamp",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "verifications",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "user",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "verifications",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "state",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "feedUrl",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "verificationTimestamp",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "verifications",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "user",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "state",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "uploads",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "user",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "byteSize",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "users",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "firebaseUid",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "state",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "hosted_podcasts",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "editor",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "updatedAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "hosted_episodes",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "hostedPodcast",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "hosted_episodes",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "hostedPodcast",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "validationStatus",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "publishedAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "hosted_episodes",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "richPod",
+                    "order": "ASCENDING"
+                }
+            ]
+        }
+    ],
+    "fieldOverrides": []
+}
