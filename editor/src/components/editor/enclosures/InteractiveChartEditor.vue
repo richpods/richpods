@@ -154,7 +154,6 @@
                     rows="12"
                     class="w-full px-3 py-2 border rounded-md text-sm font-mono"
                     :class="jsonError ? 'border-red-300' : 'border-gray-300'"
-                    :placeholder="t('chartEditor.echartsPlaceholder')"
                     @blur="handleJsonBlur"
                 ></textarea>
                 <p v-if="jsonError" class="text-xs text-red-600 mt-1">{{ jsonError }}</p>

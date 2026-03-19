@@ -420,7 +420,6 @@
         "removeRow": "- Row",
         "spreadsheetHint": "First row = series names, first column = category labels, rest = numbers.",
         "echartsConfigLabel": "ECharts Configuration (JSON)",
-        "echartsPlaceholder": "{\"series\": [...], \"xAxis\": {...}}",
         "uploadJsonFile": "Upload JSON File",
         "preview": "Preview",
         "advancedModeTitle": "Advanced Mode",

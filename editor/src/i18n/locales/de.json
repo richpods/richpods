@@ -420,7 +420,6 @@
         "removeRow": "- Zeile",
         "spreadsheetHint": "Erste Zeile = Seriennamen, erste Spalte = Kategoriebeschriftungen, Rest = Zahlen.",
         "echartsConfigLabel": "ECharts-Konfiguration (JSON)",
-        "echartsPlaceholder": "{\"series\": [...], \"xAxis\": {...}}",
         "uploadJsonFile": "JSON-Datei hochladen",
         "preview": "Vorschau",
         "advancedModeTitle": "Erweiterter Modus",
