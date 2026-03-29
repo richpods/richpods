@@ -61,6 +61,8 @@
                         :remove-current-chapter="removeCurrentChapter"
                         :move-current-chapter="moveCurrentChapter"
                         :move-current-chapter-to-beginning="moveCurrentChapterToBeginning"
+                        :move-current-chapter-by-seconds="moveCurrentChapterBySeconds"
+                        :can-move-current-chapter-by-seconds="canMoveCurrentChapterBySeconds"
                         :duplicate-current-chapter="duplicateCurrentChapter"
                         :move-to-current-time-state="moveToCurrentTimeState"
                         :move-to-beginning-state="moveToBeginningState"
@@ -622,6 +624,7 @@ function moveChapterToTime(idx: number, time: number) {
         enclosure: chapter.enclosure,
         _isNew: chapter._isNew,
     });
+    currentTime.value = time;
     saveNow();
 }
 
@@ -633,6 +636,27 @@ function moveCurrentChapter() {
 function moveCurrentChapterToBeginning() {
     if (moveToBeginningState.value.disabled) return;
     moveChapterToTime(0, 0);
+}
+
+function canMoveCurrentChapterBySeconds(offsetSeconds: number): boolean {
+    const idx = currentChapterIndexComputed.value;
+    if (idx < 0) return false;
+    const chapter = chapters.value[idx];
+    if (!chapter) return false;
+    const newTime = toSeconds(chapter.begin) + offsetSeconds;
+    if (newTime < 0) return false;
+    return !chapterAddStateFor(newTime, "", idx).disabled;
+}
+
+function moveCurrentChapterBySeconds(offsetSeconds: number) {
+    const idx = currentChapterIndexComputed.value;
+    if (idx < 0) return;
+    const chapter = chapters.value[idx];
+    if (!chapter) return;
+    const newTime = toSeconds(chapter.begin) + offsetSeconds;
+    if (newTime < 0) return;
+    if (chapterAddStateFor(newTime, "", idx).disabled) return;
+    moveChapterToTime(idx, newTime);
 }
 
 function duplicateCurrentChapter() {

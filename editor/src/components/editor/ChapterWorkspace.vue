@@ -45,11 +45,11 @@
                             :component-for="componentFor"
                         />
 
-                        <div v-else-if="activeTab === 'Actions'" class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-4 items-center pt-2">
+                        <fieldset v-else-if="activeTab === 'Actions'" :disabled="isSaving" class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-4 items-center pt-2">
                             <button
                                 class="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
                                 @click="moveCurrentChapter(); activeTab = 'Edit'"
-                                :disabled="moveToCurrentTimeState.disabled || isSaving"
+                                :disabled="moveToCurrentTimeState.disabled"
                                 :title="moveToCurrentTimeState.reason"
                             >
                                 {{ t("editor.moveToCurrentTime") }}
@@ -60,7 +60,7 @@
                                 <button
                                     class="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
                                     @click="moveCurrentChapterToBeginning(); activeTab = 'Edit'"
-                                    :disabled="moveToBeginningState.disabled || isSaving"
+                                    :disabled="moveToBeginningState.disabled"
                                     :title="moveToBeginningState.reason"
                                 >
                                     {{ t("editor.moveToBeginning") }}
@@ -68,10 +68,36 @@
                                 <p class="text-sm text-gray-500">{{ t("editor.moveToBeginningDescription") }}</p>
                             </template>
 
+                            <div class="flex items-center gap-2">
+                                <button
+                                    class="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                                    :disabled="!canMoveEarlier"
+                                    @click="moveCurrentChapterBySeconds(-moveBySeconds); activeTab = 'Edit'"
+                                >
+                                    &laquo;
+                                </button>
+                                <input
+                                    v-model.number="moveBySeconds"
+                                    type="number"
+                                    min="1"
+                                    class="w-20 px-2 py-1.5 text-sm text-center border border-gray-300 rounded-md"
+                                />
+                                <button
+                                    class="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                                    :disabled="!canMoveLater"
+                                    @click="moveCurrentChapterBySeconds(moveBySeconds); activeTab = 'Edit'"
+                                >
+                                    &raquo;
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-500">
+                                {{ t("editor.moveChapterBySecondsDescription") }}
+                            </p>
+
                             <button
                                 class="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
                                 @click="duplicateCurrentChapter(); activeTab = 'Edit'"
-                                :disabled="duplicateAtCurrentTimeState.disabled || isSaving"
+                                :disabled="duplicateAtCurrentTimeState.disabled"
                                 :title="duplicateAtCurrentTimeState.reason"
                             >
                                 {{ t("editor.duplicateAtCurrentTime") }}
@@ -83,13 +109,13 @@
                             <button
                                 class="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50 hover:border-red-400 disabled:opacity-40 disabled:cursor-not-allowed"
                                 @click="removeCurrentChapter(); activeTab = 'Edit'"
-                                :disabled="!currentChapter || isDeleting || isSaving || isLastChapterOfPublished"
+                                :disabled="!currentChapter || isDeleting || isLastChapterOfPublished"
                                 :title="isLastChapterOfPublished ? t('editor.cannotDeleteLastPublishedChapter') : currentChapter ? t('editor.removeThisChapter') : t('editor.noChapterToRemove')"
                             >
                                 {{ t("editor.deleteChapter") }}
                             </button>
                             <p class="text-sm text-gray-500">{{ t("editor.deleteChapterDescription") }}</p>
-                        </div>
+                        </fieldset>
                     </div>
                 </template>
                 <template v-else>
@@ -141,6 +167,8 @@ const props = defineProps<{
     removeCurrentChapter: () => void;
     moveCurrentChapter: () => void;
     moveCurrentChapterToBeginning: () => void;
+    moveCurrentChapterBySeconds: (offsetSeconds: number) => void;
+    canMoveCurrentChapterBySeconds: (offsetSeconds: number) => boolean;
     duplicateCurrentChapter: () => void;
     moveToCurrentTimeState: StartTimeAddState;
     moveToBeginningState: StartTimeAddState;
@@ -179,6 +207,8 @@ const {
     removeCurrentChapter,
     moveCurrentChapter,
     moveCurrentChapterToBeginning,
+    moveCurrentChapterBySeconds,
+    canMoveCurrentChapterBySeconds,
     duplicateCurrentChapter,
     addChapterAtCurrentTime,
     addChapterAtStart,
@@ -186,6 +216,15 @@ const {
 
 const richpodStore = useRichPodStore();
 const { currentChapter, chapters, state } = storeToRefs(richpodStore);
+
+const moveBySeconds = ref(5);
+
+const canMoveEarlier = computed(
+    () => moveBySeconds.value > 0 && canMoveCurrentChapterBySeconds(-moveBySeconds.value),
+);
+const canMoveLater = computed(
+    () => moveBySeconds.value > 0 && canMoveCurrentChapterBySeconds(moveBySeconds.value),
+);
 
 const isLastChapterOfPublished = computed(
     () => state.value === RichPodState.Published && chapters.value.length <= 1,
@@ -210,6 +249,12 @@ const tabIcons: Record<Tab, string> = {
     Preview: "ion:search-outline",
     Actions: "ion:ellipsis-horizontal",
 };
+
+watch(activeTab, (tab) => {
+    if (tab === "Actions") {
+        moveBySeconds.value = 5;
+    }
+});
 
 watch(currentChapter, (chapter) => {
     if (!chapter) {

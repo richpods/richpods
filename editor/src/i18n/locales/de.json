@@ -237,6 +237,7 @@
         "moveToCurrentTimeDescription": "Dieses Kapitel an die aktuelle Wiedergabeposition verschieben.",
         "moveToBeginning": "An den Anfang verschieben",
         "moveToBeginningDescription": "Dieses Kapitel an den Anfang der Episode verschieben.",
+        "moveChapterBySecondsDescription": "Dieses Kapitel um die angegebene Anzahl Sekunden verschieben.",
         "duplicateAtCurrentTime": "An aktueller Position duplizieren",
         "duplicateAtCurrentTimeDescription": "Eine Kopie dieses Kapitels an der aktuellen Wiedergabeposition erstellen.",
         "cannotDeleteLastPublishedChapter": "Ein veröffentlichter RichPod muss mindestens ein Kapitel haben."
