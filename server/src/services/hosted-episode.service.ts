@@ -131,6 +131,7 @@ export async function createHostedEpisode(
                 },
             },
             gcsFeedName: "",
+            verified: true,
         },
         isHosted: true,
         hostedEpisodeId: episodeId,
