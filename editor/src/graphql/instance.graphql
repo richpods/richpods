@@ -1,0 +1,13 @@
+query InstanceInfo {
+    instanceInfo {
+        version
+        serverVersion
+        commitHash
+        hosting {
+            mp3MinFileSizeBytes
+            mp3MaxFileSizeBytes
+            mp3MaxDurationMinutes
+            mp3MaxBitrateKbps
+        }
+    }
+}

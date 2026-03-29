@@ -274,7 +274,8 @@ type HostedPodcast {
 type HostedEpisode {
     id: ID!
     hostedPodcastId: ID!
-    richPodId: ID!
+    richPodId: ID
+    richPodTitle: String
     audioUrl: String!
     audioByteSize: Int!
     audioDurationSeconds: Float
@@ -284,8 +285,6 @@ type HostedEpisode {
     validationStatus: HostedEpisodeValidationStatus!
     validationError: String
     episodeCoverUrl: String
-    itunesExplicit: Boolean!
-    publishedAt: String
     createdAt: String!
     updatedAt: String!
 }
@@ -371,10 +370,18 @@ input UpdateProfileInput {
     editorLanguage: String
 }
 
+type HostingLimits {
+    mp3MinFileSizeBytes: Int!
+    mp3MaxFileSizeBytes: Int!
+    mp3MaxDurationMinutes: Int!
+    mp3MaxBitrateKbps: Int!
+}
+
 type InstanceInfo {
     version: String!
     serverVersion: String!
     commitHash: String!
+    hosting: HostingLimits!
 }
 
 type PaginatedRichPods {

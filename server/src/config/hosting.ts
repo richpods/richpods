@@ -1,9 +1,11 @@
 import { parseIntEnv } from "../utils/env.js";
 
 const ONE_MEGABYTE = 1024 * 1024;
+const ONE_KILOBYTE = 1024;
 
 export const hostingConfig = {
     bucketName: process.env.GCS_HOSTED_BUCKET_NAME || "",
+    mp3MinFileSizeBytes: 350 * ONE_KILOBYTE,
     mp3MaxFileSizeBytes: parseIntEnv("HOSTED_MP3_MAX_FILE_SIZE_BYTES", 50 * ONE_MEGABYTE, {
         min: ONE_MEGABYTE,
     }),

@@ -665,7 +665,19 @@
         "episodePlural": "episodes",
         "feedUrl": "RSS Feed URL",
         "copyFeedUrl": "Copy feed URL",
-        "feedUrlCopied": "Feed URL copied to clipboard"
+        "feedUrlCopied": "Feed URL copied to clipboard",
+        "episodesHeading": "Episodes"
+    },
+    "hostedEpisodes": {
+        "noEpisodes": "No episodes yet",
+        "existingEpisodes": "Existing Episodes",
+        "untitledEpisode": "Untitled Episode",
+        "valid": "Valid",
+        "invalid": "Invalid",
+        "pending": "Pending",
+        "recoverRichPod": "Create RichPod",
+        "deleteEpisode": "Delete episode",
+        "deleteConfirm": "Are you sure you want to delete this episode?"
     },
     "hostedForm": {
         "createTitle": "Create Hosted Podcast",
@@ -709,18 +721,21 @@
     },
     "addEpisode": {
         "title": "Add Episode",
-        "subtitle": "Upload an MP3 file to add a new episode to your podcast",
+        "subtitle": "Upload an MP3 file to create a new episode. You'll add the title and details in the RichPod editor.",
         "audioFileLabel": "MP3 Audio File",
         "dropOrChoose": "Drop an MP3 file here or click to browse",
         "audioHint": "MP3 format, max 50 MB. Recommended: 44.1 kHz, Mono, 96\u2013128 kbps",
-        "episodeTitleLabel": "Episode Title",
-        "episodeTitlePlaceholder": "Enter episode title",
-        "episodeDescriptionLabel": "Episode Description",
-        "episodeDescriptionPlaceholder": "Describe this episode\u2026",
+        "audioHintDynamic": "MP3 format, max {maxMB} MB, max {maxKbps} kbps. Recommended: 44.1 kHz, Mono",
         "episodeCoverLabel": "Episode Cover (optional)",
         "episodeCoverHint": "Optional episode-specific cover. Same requirements as podcast cover.",
         "uploading": "Uploading\u2026",
-        "uploadEpisode": "Upload and Create Episode",
+        "validating": "Validating your episode\u2026",
+        "validatingInfo": "Your MP3 is being validated. This may take a moment \u2014 we check the audio format, duration, and bitrate before publishing.",
+        "validationFailed": "Validation failed: {error}",
+        "validationTimeout": "Validation is taking longer than expected. Please check back later.",
+        "fileTooLarge": "This file exceeds the maximum size of {max}. Please choose a smaller file.",
+        "fileTooSmall": "This file is smaller than the minimum size of {min}. Please choose a valid MP3 file.",
+        "uploadEpisode": "Upload Episode",
         "uploadFailed": "Failed to upload episode"
     },
     "routes": {

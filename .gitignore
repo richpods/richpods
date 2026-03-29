@@ -151,3 +151,4 @@ pi-session-*.html
 plan-hostedrichpods-feature.md
 firestore-reader-key.json
 cloud-functions/check-verifications/build
+cloud-functions/validate-mp3/build

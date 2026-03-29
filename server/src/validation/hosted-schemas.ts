@@ -20,6 +20,10 @@ export const createHostedPodcastInputSchema = Joi.object({
     applePodcastsVerifyTxt: Joi.string().trim().max(500).optional().allow(null, ""),
 });
 
+export const createEpisodeSchema = Joi.object({
+    audioByteSize: Joi.number().integer().positive().required(),
+});
+
 export const updateHostedPodcastInputSchema = Joi.object({
     title: Joi.string().trim().min(1).max(500).optional(),
     description: Joi.string().trim().min(1).max(2000).optional(),

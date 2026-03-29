@@ -65,7 +65,7 @@
 
         <!-- Hosted RichPods Tab -->
         <div v-if="activeTab === 'hosted'">
-            <HostedPodcastsList />
+            <HostedPodcastsList :show-episodes="false" />
         </div>
 
         <!-- My Podcasts Tab -->

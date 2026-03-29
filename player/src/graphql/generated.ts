@@ -181,9 +181,7 @@ export type HostedEpisode = {
     episodeCoverUrl?: Maybe<Scalars["String"]["output"]>;
     hostedPodcastId: Scalars["ID"]["output"];
     id: Scalars["ID"]["output"];
-    itunesExplicit: Scalars["Boolean"]["output"];
-    publishedAt?: Maybe<Scalars["String"]["output"]>;
-    richPodId: Scalars["ID"]["output"];
+    richPodId?: Maybe<Scalars["ID"]["output"]>;
     updatedAt: Scalars["String"]["output"];
     validationError?: Maybe<Scalars["String"]["output"]>;
     validationStatus: HostedEpisodeValidationStatus;
@@ -429,7 +427,7 @@ export type Query = {
     instanceInfo: InstanceInfo;
     podcastEpisodeSearch: Array<PodcastEpisodeSearchResult>;
     podcastMetadata: PodcastMetadata;
-    recentPublishedRichPods: Array<RichPod>;
+    recentPublishedRichPods: PaginatedRichPods;
     richPod?: Maybe<RichPod>;
     user?: Maybe<User>;
     userRichPods: PaginatedRichPods;
@@ -471,7 +469,8 @@ export type QueryPodcastMetadataArgs = {
 };
 
 export type QueryRecentPublishedRichPodsArgs = {
-    limit?: InputMaybe<Scalars["Int"]["input"]>;
+    after?: InputMaybe<Scalars["String"]["input"]>;
+    first?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 export type QueryRichPodArgs = {

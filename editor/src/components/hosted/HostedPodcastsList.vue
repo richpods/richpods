@@ -59,6 +59,11 @@
                         {{ t("hosted.addEpisode") }}
                     </button>
                 </div>
+
+                <!-- Episode list -->
+                <div v-if="showEpisodes && podcast.episodeCount > 0" class="mt-3 border-t border-gray-100 pt-3">
+                    <HostedEpisodeList :podcast-id="podcast.id" mode="richpod-only" />
+                </div>
             </div>
             <!-- Load more -->
             <div v-if="hasMore" class="text-center py-4">
@@ -80,6 +85,14 @@ import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Icon } from "@iconify/vue";
 import { graphqlSdk, DEFAULT_PAGE_SIZE, type HostedPodcastsQuery } from "@/lib/graphql";
+import HostedEpisodeList from "./HostedEpisodeList.vue";
+
+withDefaults(
+    defineProps<{
+        showEpisodes?: boolean;
+    }>(),
+    { showEpisodes: true },
+);
 
 const { t } = useI18n();
 const router = useRouter();

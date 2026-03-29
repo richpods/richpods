@@ -15,7 +15,8 @@ import type {
 } from "../types/firestore.js";
 import { EnclosureType, RichPodState as FirestoreRichPodState, RichPodStateType } from "../types/firestore.js";
 import { RichPodState, ChartFormat, CardType as GraphQLCardType } from "../graphql.js";
-import { syncHostedEpisodePublishState } from "./hosted-episode.service.js";
+import { deleteEpisodeFiles } from "./hosted-storage.service.js";
+import { deleteAllEnclosures } from "./storage.service.js";
 import type {
     Chapter as GraphQLChapter,
     Enclosure as GraphQLEnclosure,
@@ -281,12 +282,12 @@ export async function updateRichPod(
         updatePayload.publishedAt = null;
     }
 
-    await docRef.update(updatePayload);
-
-    // Sync hosted episode publish state if this is a hosted RichPod
-    if (data.isHosted && updates.state) {
-        await syncHostedEpisodePublishState(id, updates.state);
+    // For hosted RichPods, keep origin.episode.title in sync with the RichPod title
+    if (data.isHosted && updates.title !== undefined) {
+        updatePayload["origin.episode.title"] = updates.title;
     }
+
+    await docRef.update(updatePayload);
 
     const updated = await docRef.get();
     const updatedData = updated.data() as RichPodDocument;
@@ -433,10 +434,32 @@ export async function deleteRichPod(id: string, editorUserId: string): Promise<b
         throw new Error("Unauthorized: You can only delete your own RichPods");
     }
 
+    // Soft-delete the RichPod
     await docRef.update({
         state: FirestoreRichPodState.DELETED,
         updatedAt: FieldValue.serverTimestamp(),
     });
+
+    // If this RichPod belongs to a hosted episode, cascade-delete the episode
+    // and its GCS files. The hosted episode cannot exist without its RichPod.
+    if (data.isHosted && data.hostedEpisodeId) {
+        const { HOSTED_EPISODES_COLLECTION, AUDIO_VALIDATIONS_COLLECTION } = await import(
+            "../config/firestore.js"
+        );
+        const episodeRef = db.collection(HOSTED_EPISODES_COLLECTION).doc(data.hostedEpisodeId);
+        const episodeDoc = await episodeRef.get();
+        if (episodeDoc.exists) {
+            const episodeData = episodeDoc.data()!;
+            const podcastId = episodeData.hostedPodcast?.id;
+            if (podcastId) {
+                await deleteEpisodeFiles(podcastId, data.hostedEpisodeId);
+            }
+            await episodeRef.delete();
+            console.info(`Cascade-deleted hosted episode ${data.hostedEpisodeId} for RichPod ${id}`);
+        }
+        await db.collection(AUDIO_VALIDATIONS_COLLECTION).doc(data.hostedEpisodeId).delete();
+        await deleteAllEnclosures(id);
+    }
 
     return true;
 }

@@ -174,9 +174,8 @@ export type HostedEpisode = {
   episodeCoverUrl?: Maybe<Scalars['String']['output']>;
   hostedPodcastId: Scalars['ID']['output'];
   id: Scalars['ID']['output'];
-  itunesExplicit: Scalars['Boolean']['output'];
-  publishedAt?: Maybe<Scalars['String']['output']>;
-  richPodId: Scalars['ID']['output'];
+  richPodId?: Maybe<Scalars['ID']['output']>;
+  richPodTitle?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
   validationError?: Maybe<Scalars['String']['output']>;
   validationStatus: HostedEpisodeValidationStatus;
@@ -208,9 +207,18 @@ export type HostedPodcast = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type HostingLimits = {
+  __typename?: 'HostingLimits';
+  mp3MaxBitrateKbps: Scalars['Int']['output'];
+  mp3MaxDurationMinutes: Scalars['Int']['output'];
+  mp3MaxFileSizeBytes: Scalars['Int']['output'];
+  mp3MinFileSizeBytes: Scalars['Int']['output'];
+};
+
 export type InstanceInfo = {
   __typename?: 'InstanceInfo';
   commitHash: Scalars['String']['output'];
+  hosting: HostingLimits;
   serverVersion: Scalars['String']['output'];
   version: Scalars['String']['output'];
 };
@@ -721,6 +729,7 @@ export type ResolversTypes = {
   HostedEpisode: ResolverTypeWrapper<HostedEpisode>;
   HostedEpisodeValidationStatus: HostedEpisodeValidationStatus;
   HostedPodcast: ResolverTypeWrapper<HostedPodcast>;
+  HostingLimits: ResolverTypeWrapper<HostingLimits>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   InstanceInfo: ResolverTypeWrapper<InstanceInfo>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -779,6 +788,7 @@ export type ResolversParentTypes = {
   GeoMap: GeoMap;
   HostedEpisode: HostedEpisode;
   HostedPodcast: HostedPodcast;
+  HostingLimits: HostingLimits;
   ID: Scalars['ID']['output'];
   InstanceInfo: InstanceInfo;
   Int: Scalars['Int']['output'];
@@ -916,9 +926,8 @@ export type HostedEpisodeResolvers<ContextType = any, ParentType extends Resolve
   episodeCoverUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hostedPodcastId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  itunesExplicit?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  publishedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  richPodId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  richPodId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  richPodTitle?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   validationError?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   validationStatus?: Resolver<ResolversTypes['HostedEpisodeValidationStatus'], ParentType, ContextType>;
@@ -945,8 +954,17 @@ export type HostedPodcastResolvers<ContextType = any, ParentType extends Resolve
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type HostingLimitsResolvers<ContextType = any, ParentType extends ResolversParentTypes['HostingLimits'] = ResolversParentTypes['HostingLimits']> = {
+  mp3MaxBitrateKbps?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  mp3MaxDurationMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  mp3MaxFileSizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  mp3MinFileSizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type InstanceInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['InstanceInfo'] = ResolversParentTypes['InstanceInfo']> = {
   commitHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  hosting?: Resolver<ResolversTypes['HostingLimits'], ParentType, ContextType>;
   serverVersion?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -1159,6 +1177,7 @@ export type Resolvers<ContextType = any> = {
   GeoMap?: GeoMapResolvers<ContextType>;
   HostedEpisode?: HostedEpisodeResolvers<ContextType>;
   HostedPodcast?: HostedPodcastResolvers<ContextType>;
+  HostingLimits?: HostingLimitsResolvers<ContextType>;
   InstanceInfo?: InstanceInfoResolvers<ContextType>;
   InteractiveChart?: InteractiveChartResolvers<ContextType>;
   JSON?: GraphQLScalarType;

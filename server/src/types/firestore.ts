@@ -221,9 +221,22 @@ export interface HostedPodcastDocument {
     updatedAt: Timestamp;
 }
 
+export type AudioValidationStatus = "valid" | "invalid";
+
+export interface AudioValidationDocument {
+    gcsAudioName: string;
+    status: AudioValidationStatus;
+    error: string | null;
+    audioDurationSeconds: number | null;
+    audioBitrate: number | null;
+    audioSampleRate: number | null;
+    audioChannels: number | null;
+    createdAt: Timestamp;
+}
+
 export interface HostedEpisodeDocument {
     hostedPodcast: DocumentReference;
-    richPod: DocumentReference;
+    richPod: DocumentReference | null;
     gcsAudioName: string;
     audioMimeType: string;
     audioByteSize: number;
@@ -235,8 +248,6 @@ export interface HostedEpisodeDocument {
     validationError: string | null;
     gcsEpisodeCoverName: string | null;
     episodeCoverMimeType: string | null;
-    itunesExplicit: boolean;
-    publishedAt: Timestamp | null;
     editor: DocumentReference;
     createdAt: Timestamp;
     updatedAt: Timestamp;

@@ -181,9 +181,8 @@ export type HostedEpisode = {
     episodeCoverUrl?: Maybe<Scalars["String"]["output"]>;
     hostedPodcastId: Scalars["ID"]["output"];
     id: Scalars["ID"]["output"];
-    itunesExplicit: Scalars["Boolean"]["output"];
-    publishedAt?: Maybe<Scalars["String"]["output"]>;
-    richPodId: Scalars["ID"]["output"];
+    richPodId?: Maybe<Scalars["ID"]["output"]>;
+    richPodTitle?: Maybe<Scalars["String"]["output"]>;
     updatedAt: Scalars["String"]["output"];
     validationError?: Maybe<Scalars["String"]["output"]>;
     validationStatus: HostedEpisodeValidationStatus;
@@ -217,9 +216,18 @@ export type HostedPodcast = {
     updatedAt: Scalars["String"]["output"];
 };
 
+export type HostingLimits = {
+    __typename?: "HostingLimits";
+    mp3MaxBitrateKbps: Scalars["Int"]["output"];
+    mp3MaxDurationMinutes: Scalars["Int"]["output"];
+    mp3MaxFileSizeBytes: Scalars["Int"]["output"];
+    mp3MinFileSizeBytes: Scalars["Int"]["output"];
+};
+
 export type InstanceInfo = {
     __typename?: "InstanceInfo";
     commitHash: Scalars["String"]["output"];
+    hosting: HostingLimits;
     serverVersion: Scalars["String"]["output"];
     version: Scalars["String"]["output"];
 };
@@ -866,7 +874,8 @@ export type HostedEpisodesQuery = {
             __typename?: "HostedEpisode";
             id: string;
             hostedPodcastId: string;
-            richPodId: string;
+            richPodId?: string | null;
+            richPodTitle?: string | null;
             audioUrl: string;
             audioByteSize: number;
             audioDurationSeconds?: number | null;
@@ -876,8 +885,6 @@ export type HostedEpisodesQuery = {
             validationStatus: HostedEpisodeValidationStatus;
             validationError?: string | null;
             episodeCoverUrl?: string | null;
-            itunesExplicit: boolean;
-            publishedAt?: string | null;
             createdAt: string;
             updatedAt: string;
         }>;
@@ -894,7 +901,7 @@ export type HostedEpisodeQuery = {
         __typename?: "HostedEpisode";
         id: string;
         hostedPodcastId: string;
-        richPodId: string;
+        richPodId?: string | null;
         audioUrl: string;
         audioByteSize: number;
         audioDurationSeconds?: number | null;
@@ -904,8 +911,6 @@ export type HostedEpisodeQuery = {
         validationStatus: HostedEpisodeValidationStatus;
         validationError?: string | null;
         episodeCoverUrl?: string | null;
-        itunesExplicit: boolean;
-        publishedAt?: string | null;
         createdAt: string;
         updatedAt: string;
     } | null;
@@ -950,6 +955,25 @@ export type DeleteHostedEpisodeMutationVariables = Exact<{
 }>;
 
 export type DeleteHostedEpisodeMutation = { __typename?: "Mutation"; deleteHostedEpisode: boolean };
+
+export type InstanceInfoQueryVariables = Exact<{ [key: string]: never }>;
+
+export type InstanceInfoQuery = {
+    __typename?: "Query";
+    instanceInfo: {
+        __typename?: "InstanceInfo";
+        version: string;
+        serverVersion: string;
+        commitHash: string;
+        hosting: {
+            __typename?: "HostingLimits";
+            mp3MinFileSizeBytes: number;
+            mp3MaxFileSizeBytes: number;
+            mp3MaxDurationMinutes: number;
+            mp3MaxBitrateKbps: number;
+        };
+    };
+};
 
 export type PodcastEpisodeSearchQueryVariables = Exact<{
     query: Scalars["String"]["input"];
@@ -1812,6 +1836,7 @@ export const HostedEpisodesDocument = gql`
                 id
                 hostedPodcastId
                 richPodId
+                richPodTitle
                 audioUrl
                 audioByteSize
                 audioDurationSeconds
@@ -1821,8 +1846,6 @@ export const HostedEpisodesDocument = gql`
                 validationStatus
                 validationError
                 episodeCoverUrl
-                itunesExplicit
-                publishedAt
                 createdAt
                 updatedAt
             }
@@ -1845,8 +1868,6 @@ export const HostedEpisodeDocument = gql`
             validationStatus
             validationError
             episodeCoverUrl
-            itunesExplicit
-            publishedAt
             createdAt
             updatedAt
         }
@@ -1882,6 +1903,21 @@ export const DeleteHostedPodcastDocument = gql`
 export const DeleteHostedEpisodeDocument = gql`
     mutation DeleteHostedEpisode($id: ID!) {
         deleteHostedEpisode(id: $id)
+    }
+`;
+export const InstanceInfoDocument = gql`
+    query InstanceInfo {
+        instanceInfo {
+            version
+            serverVersion
+            commitHash
+            hosting {
+                mp3MinFileSizeBytes
+                mp3MaxFileSizeBytes
+                mp3MaxDurationMinutes
+                mp3MaxBitrateKbps
+            }
+        }
     }
 `;
 export const PodcastEpisodeSearchDocument = gql`
@@ -2312,6 +2348,21 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
                     ),
                 "DeleteHostedEpisode",
                 "mutation",
+                variables,
+            );
+        },
+        InstanceInfo(
+            variables?: InstanceInfoQueryVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+        ): Promise<InstanceInfoQuery> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<InstanceInfoQuery>(InstanceInfoDocument, variables, {
+                        ...requestHeaders,
+                        ...wrappedRequestHeaders,
+                    }),
+                "InstanceInfo",
+                "query",
                 variables,
             );
         },

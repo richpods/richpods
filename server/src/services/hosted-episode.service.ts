@@ -1,9 +1,10 @@
-import { FieldValue } from "@google-cloud/firestore";
+import { DocumentReference, FieldValue, Timestamp } from "@google-cloud/firestore";
 import {
     db,
     HOSTED_PODCASTS_COLLECTION,
     HOSTED_EPISODES_COLLECTION,
     RICHPODS_COLLECTION,
+    AUDIO_VALIDATIONS_COLLECTION,
 } from "../config/firestore.js";
 import type {
     HostedEpisodeDocument,
@@ -13,7 +14,6 @@ import type {
 import { ValidationStatus, RichPodState } from "../types/firestore.js";
 import { getUserReference } from "./user.service.js";
 import { deleteEpisodeFiles, getHostedPublicUrl } from "./hosted-storage.service.js";
-import { deleteAllEnclosures } from "./storage.service.js";
 import type { HostedEpisode } from "../graphql.js";
 import { HostedEpisodeValidationStatus } from "../graphql.js";
 import type { PaginatedResult } from "../utils/pagination.js";
@@ -30,11 +30,16 @@ function mapValidationStatus(status: string): HostedEpisodeValidationStatus {
     }
 }
 
-function mapToGraphQL(id: string, data: HostedEpisodeDocument): HostedEpisode {
+function mapToGraphQL(
+    id: string,
+    data: HostedEpisodeDocument,
+    richPodTitle?: string | null,
+): HostedEpisode {
     return {
         id,
         hostedPodcastId: data.hostedPodcast.id,
-        richPodId: data.richPod.id,
+        richPodId: data.richPod?.id ?? null,
+        richPodTitle: richPodTitle ?? null,
         audioUrl: getHostedPublicUrl(data.gcsAudioName),
         audioByteSize: data.audioByteSize,
         audioDurationSeconds: data.audioDurationSeconds,
@@ -46,8 +51,6 @@ function mapToGraphQL(id: string, data: HostedEpisodeDocument): HostedEpisode {
         episodeCoverUrl: data.gcsEpisodeCoverName
             ? getHostedPublicUrl(data.gcsEpisodeCoverName)
             : null,
-        itunesExplicit: data.itunesExplicit,
-        publishedAt: data.publishedAt?.toDate().toISOString() || null,
         createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         updatedAt: data.updatedAt?.toDate().toISOString() || new Date().toISOString(),
     };
@@ -58,36 +61,17 @@ type CreateHostedEpisodeParams = {
     podcastId: string;
     gcsAudioName: string;
     audioByteSize: number;
-    gcsEpisodeCoverName: string | null;
-    episodeCoverMimeType: string | null;
-    richPodTitle: string;
-    richPodDescription: string;
     editorUserId: string;
 };
 
-export async function updateHostedEpisodeChecksum(
-    richPodId: string,
-    checksum: string,
-): Promise<void> {
-    const richPodRef = db.collection(RICHPODS_COLLECTION).doc(richPodId);
-    await richPodRef.update({
-        "origin.episode.media.checksum": checksum,
-        updatedAt: FieldValue.serverTimestamp(),
-    });
-}
-
 export async function createHostedEpisode(
     params: CreateHostedEpisodeParams,
-): Promise<{ episode: HostedEpisode; richPodId: string }> {
+): Promise<{ episode: HostedEpisode }> {
     const {
         episodeId,
         podcastId,
         gcsAudioName,
         audioByteSize,
-        gcsEpisodeCoverName,
-        episodeCoverMimeType,
-        richPodTitle,
-        richPodDescription,
         editorUserId,
     } = params;
 
@@ -104,51 +88,11 @@ export async function createHostedEpisode(
         throw new Error("Unauthorized: You can only add episodes to your own hosted podcasts");
     }
 
-    const richPodId = db.collection(RICHPODS_COLLECTION).doc().id;
-    const audioUrl = getHostedPublicUrl(gcsAudioName);
+    const episodeRef = db.collection(HOSTED_EPISODES_COLLECTION).doc(episodeId);
 
-    // Create the RichPod document for this hosted episode
-    const richPodData = {
-        title: richPodTitle,
-        description: richPodDescription,
-        state: RichPodState.DRAFT,
-        origin: {
-            id: podcastId,
-            title: podcastData.title,
-            link: podcastData.link || null,
-            feedUrl: `hosted-richpod://${podcastId}`,
-            artworkUrl: getHostedPublicUrl(podcastData.gcsCoverImageName),
-            episode: {
-                guid: episodeId,
-                title: richPodTitle,
-                artworkUrl: gcsEpisodeCoverName ? getHostedPublicUrl(gcsEpisodeCoverName) : null,
-                link: null,
-                media: {
-                    url: audioUrl,
-                    type: "audio/mpeg",
-                    length: audioByteSize,
-                    checksum: "",
-                },
-            },
-            gcsFeedName: "",
-            verified: true,
-        },
-        isHosted: true,
-        hostedEpisodeId: episodeId,
-        publishedAt: null,
-        explicit: false,
-        editor: getUserReference(editorUserId),
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-    };
-
-    const richPodRef = db.collection(RICHPODS_COLLECTION).doc(richPodId);
-    await richPodRef.create(richPodData);
-
-    // Create the hosted episode document
     const episodeData = {
         hostedPodcast: podcastRef,
-        richPod: richPodRef,
+        richPod: null,
         gcsAudioName,
         audioMimeType: "audio/mpeg",
         audioByteSize,
@@ -158,16 +102,13 @@ export async function createHostedEpisode(
         audioChannels: null,
         validationStatus: ValidationStatus.PENDING,
         validationError: null,
-        gcsEpisodeCoverName,
-        episodeCoverMimeType,
-        itunesExplicit: false,
-        publishedAt: null,
+        gcsEpisodeCoverName: null,
+        episodeCoverMimeType: null,
         editor: getUserReference(editorUserId),
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
     };
 
-    const episodeRef = db.collection(HOSTED_EPISODES_COLLECTION).doc(episodeId);
     await episodeRef.create(episodeData);
 
     const created = await episodeRef.get();
@@ -175,8 +116,100 @@ export async function createHostedEpisode(
 
     return {
         episode: mapToGraphQL(episodeId, createdData),
-        richPodId,
     };
+}
+
+/**
+ * Create a RichPod for a validated hosted episode. Only episodes with
+ * validationStatus === "valid" can have a RichPod created. If a RichPod
+ * already exists, returns the existing one (idempotent).
+ *
+ * Uses a Firestore transaction to prevent duplicate RichPods when two
+ * concurrent requests (e.g. browser retry, double-click) race.
+ */
+export async function createRichPodForEpisode(
+    episodeId: string,
+    editorUserId: string,
+): Promise<{ richPodId: string }> {
+    const episodeRef = db.collection(HOSTED_EPISODES_COLLECTION).doc(episodeId);
+
+    return db.runTransaction(async (tx) => {
+        const episodeDoc = await tx.get(episodeRef);
+
+        if (!episodeDoc.exists) {
+            throw new Error("Hosted episode not found");
+        }
+
+        const episodeData = episodeDoc.data() as HostedEpisodeDocument;
+
+        if (episodeData.editor.id !== editorUserId) {
+            throw new Error("Unauthorized: You can only create RichPods for your own episodes");
+        }
+
+        // Idempotent: return existing RichPod if already created
+        if (episodeData.richPod) {
+            return { richPodId: episodeData.richPod.id };
+        }
+
+        if (episodeData.validationStatus !== ValidationStatus.VALID) {
+            throw new Error("Cannot create a RichPod for an episode that has not passed validation");
+        }
+
+        const podcastRef = episodeData.hostedPodcast;
+        const podcastDoc = await tx.get(podcastRef);
+        if (!podcastDoc.exists) {
+            throw new Error("Hosted podcast not found");
+        }
+
+        const podcastData = podcastDoc.data() as HostedPodcastDocument;
+        const audioUrl = getHostedPublicUrl(episodeData.gcsAudioName);
+        const richPodId = db.collection(RICHPODS_COLLECTION).doc().id;
+        const richPodRef = db.collection(RICHPODS_COLLECTION).doc(richPodId);
+
+        const richPodData = {
+            title: "",
+            description: "",
+            state: RichPodState.DRAFT,
+            origin: {
+                id: podcastRef.id,
+                title: podcastData.title,
+                link: podcastData.link || null,
+                feedUrl: `hosted-richpod://${podcastRef.id}`,
+                artworkUrl: getHostedPublicUrl(podcastData.gcsCoverImageName),
+                episode: {
+                    guid: episodeId,
+                    title: "",
+                    artworkUrl: episodeData.gcsEpisodeCoverName
+                        ? getHostedPublicUrl(episodeData.gcsEpisodeCoverName)
+                        : null,
+                    link: null,
+                    media: {
+                        url: audioUrl,
+                        type: "audio/mpeg",
+                        length: episodeData.audioByteSize,
+                        checksum: "",
+                    },
+                },
+                gcsFeedName: "",
+                verified: true,
+            },
+            isHosted: true,
+            hostedEpisodeId: episodeId,
+            publishedAt: null,
+            explicit: false,
+            editor: getUserReference(editorUserId),
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+        };
+
+        tx.create(richPodRef, richPodData);
+        tx.update(episodeRef, {
+            richPod: richPodRef,
+            updatedAt: FieldValue.serverTimestamp(),
+        });
+
+        return { richPodId };
+    });
 }
 
 export async function getHostedEpisode(
@@ -194,7 +227,15 @@ export async function getHostedEpisode(
         throw new Error("Unauthorized: You can only access your own hosted episodes");
     }
 
-    return mapToGraphQL(doc.id, data);
+    let richPodTitle: string | null = null;
+    if (data.richPod) {
+        const richPodDoc = await data.richPod.get();
+        if (richPodDoc.exists) {
+            richPodTitle = (richPodDoc.data() as RichPodDocument).title || null;
+        }
+    }
+
+    return mapToGraphQL(doc.id, data, richPodTitle);
 }
 
 export async function getHostedEpisodeDoc(
@@ -243,12 +284,28 @@ export async function getHostedEpisodesForPodcast(
     const hasNextPage = snapshot.docs.length > pageSize;
     const docs = hasNextPage ? snapshot.docs.slice(0, pageSize) : snapshot.docs;
 
+    // Batch-load linked RichPod titles in a single round-trip
+    const richPodRefs = docs
+        .map((doc) => (doc.data() as HostedEpisodeDocument).richPod)
+        .filter((ref): ref is DocumentReference => ref !== null);
+
+    const richPodTitleMap = new Map<string, string>();
+    if (richPodRefs.length > 0) {
+        const richPodDocs = await db.getAll(...richPodRefs);
+        for (const rpDoc of richPodDocs) {
+            if (rpDoc.exists) {
+                richPodTitleMap.set(rpDoc.id, (rpDoc.data() as RichPodDocument).title || "");
+            }
+        }
+    }
+
     const items = docs.map((doc) => {
         const data = doc.data() as HostedEpisodeDocument;
         if (data.editor.id !== editorUserId) {
             throw new Error("Unauthorized: You can only access your own hosted episodes");
         }
-        return mapToGraphQL(doc.id, data);
+        const title = data.richPod ? richPodTitleMap.get(data.richPod.id) ?? null : null;
+        return mapToGraphQL(doc.id, data, title);
     });
 
     const nextCursor = hasNextPage && docs.length > 0 ? docs[docs.length - 1].id : null;
@@ -256,26 +313,80 @@ export async function getHostedEpisodesForPodcast(
     return { items, nextCursor };
 }
 
+export type PublishedEpisodeData = {
+    richPodId: string;
+    title: string;
+    description: string;
+    publishedAt: Timestamp;
+    explicit: boolean;
+    audioGcsName: string;
+    audioByteSize: number;
+    audioDurationSeconds: number | null;
+    episodeCoverGcsName: string | null;
+    episodeId: string;
+};
+
+/**
+ * Get published episodes for a podcast by finding hosted episodes whose
+ * linked RichPod is in "published" state. The RichPod is the single source
+ * of truth for title, description, publishedAt, and explicit.
+ */
 export async function getPublishedEpisodesForPodcast(
     podcastId: string,
-): Promise<Array<{ data: HostedEpisodeDocument; id: string }>> {
+): Promise<PublishedEpisodeData[]> {
     const podcastRef = db.collection(HOSTED_PODCASTS_COLLECTION).doc(podcastId);
     const snapshot = await db
         .collection(HOSTED_EPISODES_COLLECTION)
         .where("hostedPodcast", "==", podcastRef)
-        .where("validationStatus", "==", ValidationStatus.VALID)
-        .orderBy("publishedAt", "desc")
         .get();
 
-    return snapshot.docs
-        .filter((doc) => {
-            const data = doc.data() as HostedEpisodeDocument;
-            return data.publishedAt !== null;
-        })
-        .map((doc) => ({
-            data: doc.data() as HostedEpisodeDocument,
-            id: doc.id,
-        }));
+    // Filter to valid episodes with a linked RichPod
+    const candidateEpisodes = snapshot.docs
+        .map((doc) => ({ id: doc.id, data: doc.data() as HostedEpisodeDocument }))
+        .filter((e) => e.data.validationStatus === ValidationStatus.VALID && e.data.richPod);
+
+    if (candidateEpisodes.length === 0) {
+        return [];
+    }
+
+    // Batch-read all linked RichPod documents in a single round-trip
+    const richPodRefs = candidateEpisodes.map((e) => e.data.richPod!);
+    const richPodDocs = await db.getAll(...richPodRefs);
+
+    const richPodMap = new Map<string, RichPodDocument>();
+    for (const doc of richPodDocs) {
+        if (doc.exists) {
+            richPodMap.set(doc.id, doc.data() as RichPodDocument);
+        }
+    }
+
+    const results: PublishedEpisodeData[] = [];
+
+    for (const episode of candidateEpisodes) {
+        const richPodId = episode.data.richPod!.id;
+        const richPodData = richPodMap.get(richPodId);
+        if (!richPodData) continue;
+        if (richPodData.state !== RichPodState.PUBLISHED) continue;
+        if (!richPodData.publishedAt) continue;
+
+        results.push({
+            richPodId,
+            title: richPodData.title,
+            description: richPodData.description,
+            publishedAt: richPodData.publishedAt,
+            explicit: richPodData.explicit ?? false,
+            audioGcsName: episode.data.gcsAudioName,
+            audioByteSize: episode.data.audioByteSize,
+            audioDurationSeconds: episode.data.audioDurationSeconds,
+            episodeCoverGcsName: episode.data.gcsEpisodeCoverName,
+            episodeId: episode.id,
+        });
+    }
+
+    // Sort by publishedAt descending
+    results.sort((a, b) => b.publishedAt.toMillis() - a.publishedAt.toMillis());
+
+    return results;
 }
 
 export async function deleteHostedEpisode(
@@ -295,70 +406,25 @@ export async function deleteHostedEpisode(
         throw new Error("Unauthorized: You can only delete your own hosted episodes");
     }
 
-    if (episodeData.publishedAt !== null) {
-        console.info(`Rejected deletion of published episode ${episodeId} by user ${editorUserId}`);
-        throw new Error("Cannot delete a published episode. Unpublish it first.");
+    // Episodes with a linked RichPod must be deleted through deleteRichPod (cascade).
+    if (episodeData.richPod) {
+        throw new Error(
+            "Cannot delete an episode with a linked RichPod. Delete the RichPod instead.",
+        );
     }
 
     const podcastId = episodeData.hostedPodcast.id;
-    const richPodId = episodeData.richPod.id;
 
     // Delete GCS files for this episode
     await deleteEpisodeFiles(podcastId, episodeId);
 
-    // Delete enclosure GCS files for the associated RichPod
-    await deleteAllEnclosures(richPodId);
-
-    // Soft-delete the RichPod
-    const richPodRef = db.collection(RICHPODS_COLLECTION).doc(richPodId);
-    await richPodRef.update({
-        state: RichPodState.DELETED,
-        updatedAt: FieldValue.serverTimestamp(),
-    });
-
-    // Delete the hosted episode doc
+    // Delete the hosted episode doc and its validation record
     await episodeRef.delete();
+    await db.collection(AUDIO_VALIDATIONS_COLLECTION).doc(episodeId).delete();
 
     console.info(
-        `Deleted hosted episode: episodeId=${episodeId}, richPodId=${richPodId}, podcastId=${podcastId}, user=${editorUserId}`,
+        `Deleted hosted episode: episodeId=${episodeId}, podcastId=${podcastId}, user=${editorUserId}`,
     );
     return true;
 }
 
-/**
- * Sync hosted episode publish state with RichPod state.
- * Called when a RichPod's state changes.
- */
-export async function syncHostedEpisodePublishState(
-    richPodId: string,
-    newState: string,
-): Promise<void> {
-    // Find the hosted episode linked to this RichPod
-    const richPodRef = db.collection(RICHPODS_COLLECTION).doc(richPodId);
-    const snapshot = await db
-        .collection(HOSTED_EPISODES_COLLECTION)
-        .where("richPod", "==", richPodRef)
-        .limit(1)
-        .get();
-
-    if (snapshot.empty) {
-        return; // Not a hosted episode
-    }
-
-    const episodeDoc = snapshot.docs[0];
-    const episodeData = episodeDoc.data() as HostedEpisodeDocument;
-
-    if (newState === "published" && episodeData.publishedAt === null) {
-        // Publishing: set publishedAt
-        await episodeDoc.ref.update({
-            publishedAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
-        });
-    } else if (newState === "draft" && episodeData.publishedAt !== null) {
-        // Unpublishing: clear publishedAt
-        await episodeDoc.ref.update({
-            publishedAt: null,
-            updatedAt: FieldValue.serverTimestamp(),
-        });
-    }
-}

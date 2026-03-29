@@ -47,16 +47,6 @@
             ]
         },
         {
-            "collectionGroup": "chapters",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "version",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
             "collectionGroup": "verifications",
             "queryScope": "COLLECTION",
             "fields": [
@@ -226,20 +216,6 @@
                 },
                 {
                     "fieldPath": "validationStatus",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "publishedAt",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "hosted_episodes",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "richPod",
                     "order": "ASCENDING"
                 }
             ]

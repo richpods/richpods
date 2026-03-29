@@ -7,6 +7,8 @@ const storage = new Storage({
     projectId: process.env.GOOGLE_CLOUD_PROJECT,
 });
 
+const SIGNED_UPLOAD_MULTIPART_OVERHEAD_BYTES = 16 * 1024;
+
 if (!hostingConfig.bucketName) {
     console.error(
         "GCS_HOSTED_BUCKET_NAME is not set. Hosted podcast features will not work.",
@@ -51,23 +53,77 @@ export function generateEpisodeAudioName(
     return `${podcastId}/${episodeId}/${fileName}`;
 }
 
-export async function saveEpisodeAudio(
+export type SignedUploadPolicy = {
+    url: string;
+    fields: Record<string, string>;
+};
+
+/**
+ * GCS evaluates content-length-range against the full multipart/form-data
+ * request body. Leave room for the signed policy fields, MIME headers, and
+ * multipart boundaries so uploads close to the advertised MP3 limit still pass.
+ */
+export function getSignedUploadMaxRequestBytes(maxFileBytes: number): number {
+    return maxFileBytes + SIGNED_UPLOAD_MULTIPART_OVERHEAD_BYTES;
+}
+
+/**
+ * Creates a signed POST policy for direct browser uploads to GCS.
+ * The policy enforces content-length-range and content type at the GCS level.
+ * The maximum must include multipart/form-data overhead because GCS validates
+ * the full POST body length rather than the MP3 bytes alone.
+ */
+export async function createSignedUploadPolicy(
     gcsName: string,
-    buffer: Buffer,
-): Promise<{ md5Hash: string }> {
+    contentType: string,
+    minBytes: number,
+    maxBytes: number,
+    expiresInMinutes: number,
+): Promise<SignedUploadPolicy> {
     const bucket = getBucket();
     const file = bucket.file(gcsName);
+    const maxRequestBytes = getSignedUploadMaxRequestBytes(maxBytes);
 
-    await file.save(buffer, {
-        resumable: false,
-        metadata: {
-            contentType: "audio/mpeg",
-            cacheControl: GCS_IMMUTABLE_CACHE_CONTROL,
+    const [policy] = await file.generateSignedPostPolicyV4({
+        expires: Date.now() + expiresInMinutes * 60 * 1000,
+        conditions: [
+            ["content-length-range", minBytes, maxRequestBytes],
+            ["eq", "$Content-Type", contentType],
+        ],
+        fields: {
+            "Content-Type": contentType,
+            "Cache-Control": GCS_IMMUTABLE_CACHE_CONTROL,
+            "success_action_status": "204",
         },
     });
 
+    return { url: policy.url, fields: policy.fields };
+}
+
+export type GcsObjectInfo = {
+    size: number;
+    contentType: string;
+    md5Hash: string;
+};
+
+/**
+ * Reads metadata from an existing GCS object. Returns null if the object
+ * does not exist, allowing the caller to distinguish "missing" from "error".
+ */
+export async function getGcsObjectInfo(gcsName: string): Promise<GcsObjectInfo | null> {
+    const bucket = getBucket();
+    const file = bucket.file(gcsName);
+    const [exists] = await file.exists();
+    if (!exists) return null;
     const [metadata] = await file.getMetadata();
-    return { md5Hash: metadata.md5Hash as string };
+    return {
+        size:
+            typeof metadata.size === "string"
+                ? Number.parseInt(metadata.size, 10)
+                : Number(metadata.size),
+        contentType: (metadata.contentType as string) || "",
+        md5Hash: (metadata.md5Hash as string) || "",
+    };
 }
 
 export async function saveEpisodeCover(
@@ -92,6 +148,20 @@ export async function saveEpisodeCover(
     });
 
     return gcsName;
+}
+
+/**
+ * Deletes a single GCS object. Used to clean up uploads that fail validation
+ * in /complete (oversized, wrong content type) so rejected files don't persist.
+ */
+export async function deleteGcsObject(gcsName: string): Promise<void> {
+    try {
+        const bucket = getBucket();
+        await bucket.file(gcsName).delete();
+        console.info(`Deleted GCS object: ${gcsName}`);
+    } catch (error) {
+        console.error(`Failed to delete GCS object ${gcsName}:`, error);
+    }
 }
 
 export async function deleteEpisodeFiles(

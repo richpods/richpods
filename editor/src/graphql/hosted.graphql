@@ -49,6 +49,7 @@ query HostedEpisodes($podcastId: ID!, $first: Int, $after: String) {
             id
             hostedPodcastId
             richPodId
+            richPodTitle
             audioUrl
             audioByteSize
             audioDurationSeconds
@@ -58,8 +59,6 @@ query HostedEpisodes($podcastId: ID!, $first: Int, $after: String) {
             validationStatus
             validationError
             episodeCoverUrl
-            itunesExplicit
-            publishedAt
             createdAt
             updatedAt
         }
@@ -81,8 +80,6 @@ query HostedEpisode($id: ID!) {
         validationStatus
         validationError
         episodeCoverUrl
-        itunesExplicit
-        publishedAt
         createdAt
         updatedAt
     }

@@ -12,6 +12,7 @@ import { uploadRouter } from "./routes/upload.router.js";
 import { hostedRouter } from "./routes/hosted.router.js";
 import { ogRouter } from "./routes/og.router.js";
 import { parseIntEnv } from "./utils/env.js";
+import { hostingConfig } from "./config/hosting.js";
 
 // Validate required environment variables at startup
 const requiredEnvVars = [
@@ -61,6 +62,12 @@ const instanceInfo = {
     version: readPackageVersion("../../../package.json"),
     serverVersion: readPackageVersion("../../package.json"),
     commitHash: readBuildCommitHash(),
+    hosting: {
+        mp3MinFileSizeBytes: hostingConfig.mp3MinFileSizeBytes,
+        mp3MaxFileSizeBytes: hostingConfig.mp3MaxFileSizeBytes,
+        mp3MaxDurationMinutes: hostingConfig.mp3MaxDurationMinutes,
+        mp3MaxBitrateKbps: hostingConfig.mp3MaxBitrateKbps,
+    },
 };
 const app = express();
 
@@ -86,7 +93,7 @@ const corsOptions: CorsOptions = {
 
         callback(new Error("Not allowed by CORS"));
     },
-    methods: ["GET", "POST", "OPTIONS"],
+    methods: ["GET", "POST", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
     maxAge: 86400,

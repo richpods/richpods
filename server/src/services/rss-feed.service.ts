@@ -2,8 +2,6 @@ import { encodeXML } from "entities";
 import { getHostedPodcastDocById } from "./hosted-podcast.service.js";
 import { getPublishedEpisodesForPodcast } from "./hosted-episode.service.js";
 import { getHostedPublicUrl } from "./hosted-storage.service.js";
-import { db, RICHPODS_COLLECTION } from "../config/firestore.js";
-import type { RichPodDocument, HostedEpisodeDocument } from "../types/firestore.js";
 
 const GENERATOR = "RichPods.org";
 
@@ -60,29 +58,25 @@ export async function generateRssFeed(podcastId: string): Promise<string | null>
     const coverUrl = getHostedPublicUrl(podcast.gcsCoverImageName);
     const feedLink = `${process.env.API_BASE_URL || "http://localhost:4000"}/api/v1/hosted/podcast/${podcastId}/feed.xml`;
 
-    // Build episode items
+    // Build episode items — all metadata comes from the RichPod (single source of truth)
     const items: string[] = [];
-    for (const { data: episode, id: episodeId } of episodes) {
-        const richPodDoc = await db.collection(RICHPODS_COLLECTION).doc(episode.richPod.id).get();
-        const richPod = richPodDoc.exists ? (richPodDoc.data() as RichPodDocument) : null;
-
-        const episodeTitle = richPod?.title || "Untitled";
-        const episodeDescription = richPod?.description || "";
-        const audioUrl = getHostedPublicUrl(episode.gcsAudioName);
-        const playerLink = buildPlayerUrl(episode.richPod.id);
-        const pubDate = episode.publishedAt
-            ? formatRfc2822Date(episode.publishedAt.toDate())
-            : formatRfc2822Date(new Date());
+    for (const episode of episodes) {
+        const episodeTitle = episode.title || "Untitled";
+        const episodeDescription = episode.description || "";
+        const audioUrl = getHostedPublicUrl(episode.audioGcsName);
+        const pubDate = formatRfc2822Date(episode.publishedAt.toDate());
         const duration = episode.audioDurationSeconds
             ? formatDuration(episode.audioDurationSeconds)
             : null;
-        const episodeCoverUrl = episode.gcsEpisodeCoverName
-            ? getHostedPublicUrl(episode.gcsEpisodeCoverName)
+        const episodeCoverUrl = episode.episodeCoverGcsName
+            ? getHostedPublicUrl(episode.episodeCoverGcsName)
             : null;
-        const explicit = richPod?.explicit ? "true" : "false";
+        const explicit = episode.explicit ? "true" : "false";
+
+        const playerLink = buildPlayerUrl(episode.richPodId);
 
         let itemXml = `    <item>
-      <guid isPermaLink="false">${escapeXml(episodeId)}</guid>
+      <guid isPermaLink="false">${escapeXml(episode.episodeId)}</guid>
       <title>${escapeXml(episodeTitle)}</title>
       <enclosure url="${escapeXml(audioUrl)}" type="audio/mpeg" length="${episode.audioByteSize}"/>
       <link>${escapeXml(playerLink)}</link>

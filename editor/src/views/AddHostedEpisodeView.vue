@@ -65,37 +65,9 @@
                                 {{ t("addEpisode.dropOrChoose") }}
                             </p>
                             <p class="text-xs text-gray-500 mt-1">
-                                {{ t("addEpisode.audioHint") }}
+                                {{ audioHint }}
                             </p>
                         </div>
-                    </div>
-
-                    <!-- Episode title -->
-                    <div>
-                        <label for="episode-title" class="block text-sm font-medium text-gray-700 mb-1">
-                            {{ t("addEpisode.episodeTitleLabel") }}
-                        </label>
-                        <input
-                            id="episode-title"
-                            v-model="episodeTitle"
-                            type="text"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            :placeholder="t('addEpisode.episodeTitlePlaceholder')"
-                        />
-                    </div>
-
-                    <!-- Episode description -->
-                    <div>
-                        <label for="episode-description" class="block text-sm font-medium text-gray-700 mb-1">
-                            {{ t("addEpisode.episodeDescriptionLabel") }}
-                        </label>
-                        <textarea
-                            id="episode-description"
-                            v-model="episodeDescription"
-                            rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            :placeholder="t('addEpisode.episodeDescriptionPlaceholder')"
-                        />
                     </div>
 
                     <!-- Optional cover image -->
@@ -148,6 +120,17 @@
                         </div>
                     </div>
 
+                    <!-- Validation in progress -->
+                    <div v-if="validating" class="flex items-start gap-3 py-4 px-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <Icon icon="ion:sync-outline" class="w-5 h-5 text-blue-600 animate-spin flex-shrink-0 mt-0.5" />
+                        <p class="text-sm text-blue-800">{{ t("addEpisode.validatingInfo") }}</p>
+                    </div>
+
+                    <!-- File size error -->
+                    <div v-if="fileSizeError" class="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <p class="text-red-800 text-sm">{{ fileSizeError }}</p>
+                    </div>
+
                     <!-- Upload error -->
                     <div v-if="uploadError" class="bg-red-50 border border-red-200 rounded-lg p-3">
                         <p class="text-red-800 text-sm">{{ uploadError }}</p>
@@ -156,41 +139,44 @@
                     <!-- Submit -->
                     <button
                         @click="handleUpload"
-                        :disabled="!audioFile || uploading"
+                        :disabled="!audioFile || !!fileSizeError || uploading || validating"
                         class="w-full px-6 py-2.5 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Icon
-                            v-if="uploading"
+                            v-if="uploading || validating"
                             icon="ion:sync-outline"
                             class="w-5 h-5 mr-2 inline animate-spin"
                         />
                         <Icon v-else icon="ion:cloud-upload-outline" class="w-5 h-5 mr-2 inline" />
-                        {{ uploading ? t("addEpisode.uploading") : t("addEpisode.uploadEpisode") }}
+                        {{ uploading ? t("addEpisode.uploading") : validating ? t("addEpisode.validating") : t("addEpisode.uploadEpisode") }}
                     </button>
                 </div>
             </div>
+
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Icon } from "@iconify/vue";
-import { graphqlSdk, type HostedPodcastQuery } from "@/lib/graphql";
+import { graphqlSdk, type HostedPodcastQuery, type InstanceInfoQuery } from "@/lib/graphql";
 import { useHostedUpload } from "@/composables/useHostedUpload";
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const { uploading, uploadProgress, uploadError, uploadEpisode } = useHostedUpload();
+const { uploading, validating, uploadProgress, uploadError, uploadEpisode } = useHostedUpload();
 
 type HostedPodcast = NonNullable<HostedPodcastQuery["hostedPodcast"]>;
+type HostingLimits = InstanceInfoQuery["instanceInfo"]["hosting"];
 
 const podcastId = route.params.id as string;
 
 const podcast = ref<HostedPodcast | null>(null);
+const hostingLimits = ref<HostingLimits | null>(null);
 const loading = ref(true);
 
 const audioInputRef = ref<HTMLInputElement | null>(null);
@@ -198,9 +184,28 @@ const coverInputRef = ref<HTMLInputElement | null>(null);
 const audioFile = ref<File | null>(null);
 const episodeCoverFile = ref<File | null>(null);
 const episodeCoverPreview = ref<string | null>(null);
-const episodeTitle = ref("");
-const episodeDescription = ref("");
 const dragOver = ref(false);
+
+const audioHint = computed(() => {
+    if (!hostingLimits.value) return "";
+    const maxMB = Math.round(hostingLimits.value.mp3MaxFileSizeBytes / (1024 * 1024));
+    const maxKbps = hostingLimits.value.mp3MaxBitrateKbps;
+    return t("addEpisode.audioHintDynamic", { maxMB, maxKbps });
+});
+
+const fileSizeError = computed<string | null>(() => {
+    if (!audioFile.value || !hostingLimits.value) return null;
+    const size = audioFile.value.size;
+    if (size > hostingLimits.value.mp3MaxFileSizeBytes) {
+        const maxMB = Math.round(hostingLimits.value.mp3MaxFileSizeBytes / (1024 * 1024));
+        return t("addEpisode.fileTooLarge", { max: `${maxMB} MB` });
+    }
+    if (size < hostingLimits.value.mp3MinFileSizeBytes) {
+        const minKB = Math.round(hostingLimits.value.mp3MinFileSizeBytes / 1024);
+        return t("addEpisode.fileTooSmall", { min: `${minKB} KB` });
+    }
+    return null;
+});
 
 function formatFileSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
@@ -242,12 +247,14 @@ async function handleUpload() {
         const result = await uploadEpisode({
             podcastId,
             audioFile: audioFile.value,
-            title: episodeTitle.value,
-            description: episodeDescription.value,
             coverFile: episodeCoverFile.value,
         });
 
-        router.push(`/edit/${result.richPodId}`);
+        if (result.richPodId) {
+            router.push(`/edit/${result.richPodId}`);
+        } else {
+            router.push(`/hosted`);
+        }
     } catch (err: unknown) {
         console.error("Upload error:", err);
     }
@@ -255,8 +262,14 @@ async function handleUpload() {
 
 onMounted(async () => {
     try {
-        const response = await graphqlSdk.HostedPodcast({ id: podcastId });
-        podcast.value = response.hostedPodcast ?? null;
+        const [podcastResponse, instanceResponse] = await Promise.all([
+            graphqlSdk.HostedPodcast({ id: podcastId }),
+            graphqlSdk.InstanceInfo(),
+        ]);
+
+        podcast.value = podcastResponse.hostedPodcast ?? null;
+        hostingLimits.value = instanceResponse.instanceInfo.hosting;
+
         if (!podcast.value) {
             router.push("/hosted");
         }

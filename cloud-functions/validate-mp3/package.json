@@ -11,6 +11,7 @@
         "gcp-build": "tsc",
         "build": "tsc",
         "clean": "rimraf build",
+        "dev": "npm run build && set -a; . ./.env.development; set +a; npx @google-cloud/functions-framework --target=validateMp3 --signature-type=cloudevent --port=8081",
         "start": "npx @google-cloud/functions-framework --target=validateMp3 --signature-type=cloudevent"
     },
     "dependencies": {

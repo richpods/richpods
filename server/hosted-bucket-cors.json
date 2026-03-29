@@ -1,0 +1,17 @@
+[
+    {
+        "origin": [
+            "https://richpods.org",
+            "https://www.richpods.org",
+            "https://code.richpods.org",
+            "https://api.richpods.org",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:8000",
+            "http://localhost:8080"
+        ],
+        "method": ["POST", "OPTIONS"],
+        "responseHeader": ["Content-Type", "Content-Length"],
+        "maxAgeSeconds": 3600
+    }
+]

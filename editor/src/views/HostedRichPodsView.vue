@@ -100,6 +100,15 @@
                         </button>
                     </div>
 
+                    <!-- Episodes -->
+                    <div v-if="podcast.episodeCount > 0" class="mt-4 border-t border-gray-100 pt-4">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">{{ t("hosted.episodesHeading") }}</h3>
+                        <HostedEpisodeList
+                            :podcast-id="podcast.id"
+                            @episode-count-changed="loadPodcasts"
+                        />
+                    </div>
+
                     <!-- Actions -->
                     <div class="mt-4 flex flex-wrap gap-2">
                         <button
@@ -149,6 +158,7 @@ import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Icon } from "@iconify/vue";
 import { graphqlSdk, DEFAULT_PAGE_SIZE, type HostedPodcastsQuery } from "@/lib/graphql";
+import HostedEpisodeList from "@/components/hosted/HostedEpisodeList.vue";
 
 const { t } = useI18n();
 const router = useRouter();

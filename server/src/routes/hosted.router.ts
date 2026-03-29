@@ -7,14 +7,18 @@ import { hostingConfig, allowedCoverMimeTypes } from "../config/hosting.js";
 import { getUserFromToken } from "../services/auth.service.js";
 import { isPrivilegedRole } from "@richpods/shared/utils/roles";
 import { validate } from "../validation/validator.js";
-import { createHostedPodcastInputSchema } from "../validation/hosted-schemas.js";
+import {
+    createHostedPodcastInputSchema,
+    createEpisodeSchema,
+} from "../validation/hosted-schemas.js";
 import { createHostedPodcast, getHostedPodcastById } from "../services/hosted-podcast.service.js";
-import { createHostedEpisode, updateHostedEpisodeChecksum } from "../services/hosted-episode.service.js";
+import { createHostedEpisode, getHostedEpisodeDoc, createRichPodForEpisode } from "../services/hosted-episode.service.js";
 import {
     savePodcastCover,
     generateEpisodeAudioName,
-    saveEpisodeAudio,
+    createSignedUploadPolicy,
     saveEpisodeCover,
+    getHostedPublicUrl,
 } from "../services/hosted-storage.service.js";
 import { generateRssFeed } from "../services/rss-feed.service.js";
 import type { CreateHostedPodcastInput } from "../graphql.js";
@@ -53,12 +57,12 @@ const podcastUpload = multer({
     },
 });
 
-// Multer for episode creation: MP3 + optional cover image
-const episodeUpload = multer({
+// Multer for episode cover upload
+const episodeCoverUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
-        files: 2,
-        fileSize: hostingConfig.mp3MaxFileSizeBytes,
+        files: 1,
+        fileSize: hostingConfig.imageMaxFileSizeBytes,
     },
 });
 
@@ -310,17 +314,17 @@ hostedRouter.post(
 );
 
 /**
- * POST /api/v1/hosted/podcast/:podcastId/episode
- * Upload a new episode (MP3 file + optional cover image).
- * Multipart form: "audio" (MP3 file) + optional "cover" (image file) + "title" + "description"
+ * POST /api/v1/hosted/podcast/:podcastId/episode/create
+ * Create a new hosted episode with PENDING validation status and a GCS
+ * resumable upload session for the MP3 file. No RichPod is created yet —
+ * that happens later via POST /episode/:id/richpod after validation passes.
+ *
+ * JSON body: { audioByteSize, title, description }
+ * Returns: { episodeId, gcsAudioName, uploadUrl }
  */
 hostedRouter.post(
-    "/podcast/:podcastId/episode",
+    "/podcast/:podcastId/episode/create",
     requirePrivileged,
-    episodeUpload.fields([
-        { name: "audio", maxCount: 1 },
-        { name: "cover", maxCount: 1 },
-    ]),
     async (req: Request, res: Response) => {
         try {
             const auth = getHostedAuthOrReject(req, res);
@@ -335,87 +339,227 @@ hostedRouter.post(
                 return;
             }
 
-            const files = (req as unknown as { files?: Record<string, UploadedFile[]> }).files;
-            const audioFile = files?.audio?.[0];
-            const coverFile = files?.cover?.[0];
+            const input = validate<{
+                audioByteSize: number;
+            }>(createEpisodeSchema, req.body);
 
-            if (!audioFile) {
-                res.status(400).json({ error: "MP3 audio file is required" });
-                return;
-            }
-
-            // Validate MP3 file size
-            if (audioFile.buffer.length > hostingConfig.mp3MaxFileSizeBytes) {
-                res.status(413).json({
-                    error: `MP3 file exceeds maximum size of ${Math.round(hostingConfig.mp3MaxFileSizeBytes / 1024 / 1024)} MB`,
+            if (input.audioByteSize < hostingConfig.mp3MinFileSizeBytes) {
+                const minKB = Math.round(hostingConfig.mp3MinFileSizeBytes / 1024);
+                res.status(400).json({
+                    error: `MP3 file is smaller than the minimum size of ${minKB} KB`,
                 });
                 return;
             }
 
-            // Basic MP3 validation: check file magic bytes
-            const audioType = await fileTypeFromBuffer(audioFile.buffer);
-            if (!audioType || audioType.mime !== "audio/mpeg") {
-                res.status(415).json({ error: "File must be a valid MP3 (audio/mpeg)" });
+            if (input.audioByteSize > hostingConfig.mp3MaxFileSizeBytes) {
+                const maxMB = Math.round(hostingConfig.mp3MaxFileSizeBytes / 1024 / 1024);
+                res.status(413).json({
+                    error: `MP3 file exceeds maximum size of ${maxMB} MB`,
+                });
                 return;
             }
 
-            const title = req.body.title?.trim() || "Untitled Episode";
-            const description = req.body.description?.trim() || "";
-
-            // Generate episode UUID for GCS path
             const { v4: uuidv4 } = await import("uuid");
             const episodeId = uuidv4();
-
-            // Pre-compute the GCS audio name before uploading
             const gcsAudioName = generateEpisodeAudioName(podcastId, episodeId);
 
-            // Handle optional cover image (upload before MP3 so it's ready)
-            let gcsEpisodeCoverName: string | null = null;
-            let episodeCoverMimeType: string | null = null;
-
-            if (coverFile) {
-                const coverResult = await validateCoverImage(coverFile.buffer);
-                if ("error" in coverResult) {
-                    res.status(400).json({ error: `Episode cover: ${coverResult.error}` });
-                    return;
-                }
-
-                gcsEpisodeCoverName = await saveEpisodeCover(
-                    podcastId,
-                    episodeId,
-                    coverResult.processedBuffer,
-                    coverResult.extension,
-                    coverResult.mimeType,
-                );
-                episodeCoverMimeType = coverResult.mimeType;
-            }
-
-            // Create the Firestore documents BEFORE uploading the MP3,
-            // because the GCS upload triggers the validation cloud function
-            // which needs the Firestore document to already exist.
-            const result = await createHostedEpisode({
+            await createHostedEpisode({
                 episodeId,
                 podcastId,
                 gcsAudioName,
-                audioByteSize: audioFile.buffer.length,
-                gcsEpisodeCoverName,
-                episodeCoverMimeType,
-                richPodTitle: title,
-                richPodDescription: description,
+                audioByteSize: input.audioByteSize,
                 editorUserId: auth.userId,
             });
 
-            // Now upload the MP3 to GCS (triggers the validation cloud function)
-            const { md5Hash } = await saveEpisodeAudio(gcsAudioName, audioFile.buffer);
-            await updateHostedEpisodeChecksum(result.richPodId, `md5:${md5Hash}`);
+            const uploadPolicy = await createSignedUploadPolicy(
+                gcsAudioName,
+                "audio/mpeg",
+                hostingConfig.mp3MinFileSizeBytes,
+                hostingConfig.mp3MaxFileSizeBytes,
+                30,
+            );
 
             res.status(201).json({
-                episode: result.episode,
-                richPodId: result.richPodId,
+                episodeId,
+                gcsAudioName,
+                uploadPolicy,
             });
         } catch (error) {
             console.error("Error creating hosted episode:", error);
-            const message = error instanceof Error ? error.message : "Failed to create episode";
+            const message =
+                error instanceof Error ? error.message : "Failed to create episode";
+            res.status(500).json({ error: message });
+        }
+    },
+);
+
+/**
+ * GET /api/v1/hosted/episode/:episodeId/validation
+ * Poll for the async MP3 validation result. The Cloud Function writes to the
+ * audio_validations collection after validating the uploaded file. Returns
+ * { status: "pending" } if validation has not completed yet.
+ */
+hostedRouter.get(
+    "/episode/:episodeId/validation",
+    requirePrivileged,
+    async (req: Request, res: Response) => {
+        try {
+            const auth = getHostedAuthOrReject(req, res);
+            if (!auth) {
+                return;
+            }
+
+            const episodeId = req.params.episodeId as string;
+            const episode = await getHostedEpisodeDoc(episodeId);
+            if (!episode) {
+                res.status(404).json({ error: "Hosted episode not found" });
+                return;
+            }
+
+            if (episode.data.editor.id !== auth.userId) {
+                res.status(403).json({ error: "You can only check validation for your own episodes" });
+                return;
+            }
+
+            const { db, AUDIO_VALIDATIONS_COLLECTION } = await import("../config/firestore.js");
+            const validationDoc = await db
+                .collection(AUDIO_VALIDATIONS_COLLECTION)
+                .doc(episodeId)
+                .get();
+
+            if (!validationDoc.exists) {
+                res.status(200).json({ status: "pending" });
+                return;
+            }
+
+            const data = validationDoc.data()!;
+            res.status(200).json({
+                status: data.status,
+                error: data.error || null,
+                audioDurationSeconds: data.audioDurationSeconds ?? null,
+                audioBitrate: data.audioBitrate ?? null,
+                audioSampleRate: data.audioSampleRate ?? null,
+                audioChannels: data.audioChannels ?? null,
+            });
+        } catch (error) {
+            console.error("Error checking episode validation:", error);
+            const message =
+                error instanceof Error ? error.message : "Failed to check validation status";
+            res.status(500).json({ error: message });
+        }
+    },
+);
+
+/**
+ * POST /api/v1/hosted/episode/:episodeId/richpod
+ * Create a RichPod for a validated hosted episode. Only episodes with
+ * validationStatus "valid" can have a RichPod created. Idempotent — returns
+ * the existing RichPod ID if one was already created.
+ *
+ * Returns: { richPodId }
+ */
+hostedRouter.post(
+    "/episode/:episodeId/richpod",
+    requirePrivileged,
+    async (req: Request, res: Response) => {
+        try {
+            const auth = getHostedAuthOrReject(req, res);
+            if (!auth) {
+                return;
+            }
+
+            const episodeId = req.params.episodeId as string;
+            const result = await createRichPodForEpisode(episodeId, auth.userId);
+
+            res.status(201).json({ richPodId: result.richPodId });
+        } catch (error) {
+            console.error("Error creating RichPod for episode:", error);
+            const message =
+                error instanceof Error ? error.message : "Failed to create RichPod";
+            const status = message.includes("Unauthorized") ? 403
+                : message.includes("not found") ? 404
+                : message.includes("not passed validation") ? 409
+                : 500;
+            res.status(status).json({ error: message });
+        }
+    },
+);
+
+/**
+ * POST /api/v1/hosted/episode/:episodeId/cover
+ * Upload or replace an episode cover image.
+ * Multipart form: "cover" (image file)
+ */
+hostedRouter.post(
+    "/episode/:episodeId/cover",
+    requirePrivileged,
+    episodeCoverUpload.single("cover"),
+    async (req: Request, res: Response) => {
+        try {
+            const auth = getHostedAuthOrReject(req, res);
+            if (!auth) {
+                return;
+            }
+
+            const episodeId = req.params.episodeId as string;
+            const episodeResult = await getHostedEpisodeDoc(episodeId);
+            if (!episodeResult) {
+                res.status(404).json({ error: "Hosted episode not found" });
+                return;
+            }
+
+            if (episodeResult.data.editor.id !== auth.userId) {
+                res.status(403).json({ error: "You can only upload covers to your own episodes" });
+                return;
+            }
+
+            const file = (req as unknown as { file?: UploadedFile }).file;
+            if (!file) {
+                res.status(400).json({ error: "Cover image is required" });
+                return;
+            }
+
+            const coverResult = await validateCoverImage(file.buffer);
+            if ("error" in coverResult) {
+                res.status(400).json({ error: coverResult.error });
+                return;
+            }
+
+            const podcastId = episodeResult.data.hostedPodcast.id;
+            const gcsEpisodeCoverName = await saveEpisodeCover(
+                podcastId,
+                episodeId,
+                coverResult.processedBuffer,
+                coverResult.extension,
+                coverResult.mimeType,
+            );
+
+            const { db, HOSTED_EPISODES_COLLECTION, RICHPODS_COLLECTION } = await import(
+                "../config/firestore.js"
+            );
+            const { FieldValue } = await import("@google-cloud/firestore");
+
+            await db.collection(HOSTED_EPISODES_COLLECTION).doc(episodeId).update({
+                gcsEpisodeCoverName,
+                episodeCoverMimeType: coverResult.mimeType,
+                updatedAt: FieldValue.serverTimestamp(),
+            });
+
+            const episodeCoverUrl = getHostedPublicUrl(gcsEpisodeCoverName);
+
+            // Update the RichPod's episode artwork URL if a RichPod exists
+            if (episodeResult.data.richPod) {
+                const richPodId = episodeResult.data.richPod.id;
+                await db.collection(RICHPODS_COLLECTION).doc(richPodId).update({
+                    "origin.episode.artworkUrl": episodeCoverUrl,
+                    updatedAt: FieldValue.serverTimestamp(),
+                });
+            }
+
+            res.status(200).json({ episodeCoverUrl });
+        } catch (error) {
+            console.error("Error uploading episode cover:", error);
+            const message = error instanceof Error ? error.message : "Failed to upload cover";
             res.status(500).json({ error: message });
         }
     },

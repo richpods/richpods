@@ -665,7 +665,19 @@
         "episodePlural": "Episoden",
         "feedUrl": "RSS-Feed-URL",
         "copyFeedUrl": "Feed-URL kopieren",
-        "feedUrlCopied": "Feed-URL in die Zwischenablage kopiert"
+        "feedUrlCopied": "Feed-URL in die Zwischenablage kopiert",
+        "episodesHeading": "Episoden"
+    },
+    "hostedEpisodes": {
+        "noEpisodes": "Noch keine Episoden",
+        "existingEpisodes": "Vorhandene Episoden",
+        "untitledEpisode": "Unbenannte Episode",
+        "valid": "G\u00fcltig",
+        "invalid": "Ung\u00fcltig",
+        "pending": "Ausstehend",
+        "recoverRichPod": "RichPod erstellen",
+        "deleteEpisode": "Episode l\u00f6schen",
+        "deleteConfirm": "M\u00f6chtest du diese Episode wirklich l\u00f6schen?"
     },
     "hostedForm": {
         "createTitle": "Gehosteten Podcast erstellen",
@@ -708,19 +720,22 @@
         "coverUploadFailed": "Coverbild konnte nicht hochgeladen werden"
     },
     "addEpisode": {
-        "title": "Episode hinzufügen",
-        "subtitle": "Lade eine MP3-Datei hoch, um eine neue Episode zu deinem Podcast hinzuzufügen",
+        "title": "Episode hinzuf\u00fcgen",
+        "subtitle": "Lade eine MP3-Datei hoch, um eine neue Episode zu erstellen. Titel und Details kannst du anschlie\u00dfend im RichPod-Editor hinzuf\u00fcgen.",
         "audioFileLabel": "MP3-Audiodatei",
         "dropOrChoose": "MP3-Datei hierher ziehen oder klicken zum Durchsuchen",
         "audioHint": "MP3-Format, max. 50 MB. Empfohlen: 44,1 kHz, Mono, 96\u2013128 kbps",
-        "episodeTitleLabel": "Episodentitel",
-        "episodeTitlePlaceholder": "Episodentitel eingeben",
-        "episodeDescriptionLabel": "Episodenbeschreibung",
-        "episodeDescriptionPlaceholder": "Beschreibe diese Episode\u2026",
+        "audioHintDynamic": "MP3-Format, max. {maxMB} MB, max. {maxKbps} kbps. Empfohlen: 44,1 kHz, Mono",
         "episodeCoverLabel": "Episodencover (optional)",
         "episodeCoverHint": "Optionales episodenspezifisches Cover. Gleiche Anforderungen wie Podcast-Cover.",
         "uploading": "Wird hochgeladen\u2026",
-        "uploadEpisode": "Episode hochladen und erstellen",
+        "validating": "Episode wird \u00fcberpr\u00fcft\u2026",
+        "validatingInfo": "Deine MP3-Datei wird \u00fcberpr\u00fcft. Das kann einen Moment dauern \u2014 wir pr\u00fcfen Audioformat, Dauer und Bitrate vor der Ver\u00f6ffentlichung.",
+        "validationFailed": "Validierung fehlgeschlagen: {error}",
+        "validationTimeout": "Die Validierung dauert l\u00e4nger als erwartet. Bitte versuche es sp\u00e4ter erneut.",
+        "fileTooLarge": "Diese Datei \u00fcberschreitet die maximale Gr\u00f6\u00dfe von {max}. Bitte w\u00e4hle eine kleinere Datei.",
+        "fileTooSmall": "Diese Datei ist kleiner als die Mindestgr\u00f6\u00dfe von {min}. Bitte w\u00e4hle eine g\u00fcltige MP3-Datei.",
+        "uploadEpisode": "Episode hochladen",
         "uploadFailed": "Episode konnte nicht hochgeladen werden"
     },
     "routes": {
