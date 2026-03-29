@@ -85,6 +85,7 @@ import ChapterFlow from "@/components/ChapterFlow.vue";
 import { useRichPod } from "@/composables/useRichPod.ts";
 import { useAudio } from "@/composables/useAudio.ts";
 import { usePlaybackProgress } from "@/composables/usePlaybackProgress.ts";
+import { useDeepLink } from "@/composables/useDeepLink.ts";
 import { useMediaSession } from "@/composables/useMediaSession.ts";
 import PlayerControls from "@/components/PlayerControls.vue";
 import InfoDialog from "@/components/InfoDialog.vue";
@@ -114,6 +115,7 @@ watch(mobileBannerRef, (el, _old, onCleanup) => {
 
 const richPodId = computed(() => richPod.value?.id);
 usePlaybackProgress(richPodId);
+useDeepLink();
 
 const {
     currentTime,
@@ -126,8 +128,8 @@ const fallbackArtwork =
     "https://www.nordpost.at/wp-content/uploads/2022/09/631e68da6aae2438b76bf4ff_feed-768x768.jpg";
 const artworkUrl = computed(
     () =>
-        richPod.value?.origin.artworkUrl ||
         richPod.value?.origin.episode.artworkUrl ||
+        richPod.value?.origin.artworkUrl ||
         fallbackArtwork,
 );
 

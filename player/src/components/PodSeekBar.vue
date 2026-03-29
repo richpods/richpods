@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch, computed } from "vue";
 import type { Chapter, Poll } from "../graphql/generated.ts";
-import { chapterKey, sortedChapters as buildSortedChapters, currentChapterIndex as findCurrentChapterIndex } from "../utils.ts";
+import { chapterKey, sortedChapters as buildSortedChapters, currentChapterIndex as findCurrentChapterIndex, visibleChapters } from "../utils.ts";
 import type { SortedChapter } from "../types/player.ts";
 import { usePollTitles } from "../composables/usePollTitles.ts";
 
@@ -46,7 +46,7 @@ function isInvisibleCard(ch: SortedChapter): boolean {
 const sortedChapters = computed<SortedChapter[]>(() =>
     props.showInvisibleChapters
         ? allSortedChapters.value
-        : allSortedChapters.value.filter((ch) => !isInvisibleCard(ch)),
+        : visibleChapters(allSortedChapters.value),
 );
 
 const { loadPollTitle, getPollTitle } = usePollTitles();

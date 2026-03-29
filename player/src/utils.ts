@@ -76,3 +76,16 @@ export function currentChapter(chapters: SortedChapter[], timeSeconds: number): 
     const idx = currentChapterIndex(chapters, timeSeconds);
     return idx >= 0 ? chapters[idx] : null;
 }
+
+/**
+ * Returns only the chapters that are visible in the chapter list.
+ * Card enclosures with visibleAsChapter === false are excluded.
+ */
+export function visibleChapters(chapters: SortedChapter[]): SortedChapter[] {
+    return chapters.filter((ch) => {
+        if (ch.enclosure.__typename === "Card") {
+            return (ch.enclosure as { visibleAsChapter?: boolean }).visibleAsChapter !== false;
+        }
+        return true;
+    });
+}

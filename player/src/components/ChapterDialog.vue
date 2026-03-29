@@ -19,7 +19,7 @@ import { useTemplateRef, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import type { Chapter, Poll } from "../graphql/generated.ts";
 import type { SortedChapter } from "../types/player.ts";
-import { chapterKey, sortedChapters as buildSortedChapters } from "../utils.ts";
+import { chapterKey, sortedChapters as buildSortedChapters, visibleChapters } from "../utils.ts";
 import { useAudio } from "../composables/useAudio.ts";
 import { usePollTitles } from "../composables/usePollTitles.ts";
 import ModalDialog from "./ModalDialog.vue";
@@ -34,15 +34,7 @@ const props = defineProps<{
 
 const allSortedChapters = computed(() => buildSortedChapters(props.chapters || []));
 
-// Filter out invisible Card chapters from the chapter list
-const sortedChapters = computed(() =>
-    allSortedChapters.value.filter((ch) => {
-        if (ch.enclosure.__typename === "Card") {
-            return (ch.enclosure as { visibleAsChapter?: boolean }).visibleAsChapter !== false;
-        }
-        return true;
-    }),
-);
+const sortedChapters = computed(() => visibleChapters(allSortedChapters.value));
 
 const { audioElement } = useAudio();
 const { loadPollTitle, getPollTitle } = usePollTitles();
