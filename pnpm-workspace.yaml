@@ -6,6 +6,7 @@ packages:
     - website
     - cloud-functions/validate-mp3
     - cloud-functions/check-verifications
+    - cloud-functions/check-media
 
 catalog:
     "@graphql-codegen/cli": "5.0.5"

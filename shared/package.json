@@ -21,12 +21,28 @@
             "types": "./dist/utils/itunesCategories.d.ts",
             "import": "./dist/utils/itunesCategories.js"
         },
+        "./media/types": {
+            "types": "./dist/media/types.d.ts",
+            "import": "./dist/media/types.js"
+        },
+        "./media/check": {
+            "types": "./dist/media/check.d.ts",
+            "import": "./dist/media/check.js"
+        },
+        "./media/feed": {
+            "types": "./dist/media/feed.d.ts",
+            "import": "./dist/media/feed.js"
+        },
         "./assets/*": "./assets/*"
     },
     "scripts": {
         "build": "tsc -p tsconfig.json"
     },
+    "dependencies": {
+        "xml2js": "0.6.2"
+    },
     "devDependencies": {
+        "@types/xml2js": "0.4.14",
         "typescript": "catalog:"
     }
 }

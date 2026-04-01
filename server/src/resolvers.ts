@@ -7,6 +7,7 @@ import {
     deleteRichPod,
     setChaptersForRichPod,
 } from "./services/richpod.service.js";
+import { refreshRichPodMediaForEditor } from "./services/media-check.service.js";
 import { uploadEnclosure } from "./services/storage.service.js";
 import { RichPodState, type Enclosure } from "./types/firestore.js";
 import {
@@ -77,6 +78,7 @@ import {
     PaginatedRichPods,
     PaginatedHostedPodcasts,
     PaginatedHostedEpisodes,
+    PodcastMedia,
 } from "./graphql.js";
 import { Request } from "express";
 import { parseAcceptLanguageHeader, type SupportedLanguage } from "@richpods/shared/i18n/language";
@@ -274,6 +276,7 @@ export function createResolvers(req: Request, auth: AuthContext) {
                             title: validatedInput.origin.episode.title,
                             artworkUrl: validatedInput.origin.episode.artworkUrl || undefined,
                             link: validatedInput.origin.episode.link || undefined,
+                            pubDate: validatedInput.origin.episode.pubDate || undefined,
                             media: {
                                 url: validatedInput.origin.episode.media.url,
                                 type: validatedInput.origin.episode.media.type,
@@ -442,6 +445,16 @@ export function createResolvers(req: Request, auth: AuthContext) {
             const userId = requirePrivilegedAuth(auth);
             const validatedId = validateField<string>(idSchema, id, "id");
             return deleteHostedEpisode(validatedId, userId);
+        },
+
+        refreshEpisodeMedia: async ({
+            richPodId,
+        }: {
+            richPodId: string;
+        }): Promise<PodcastMedia> => {
+            const userId = requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, richPodId, "richPodId");
+            return refreshRichPodMediaForEditor(validatedId, userId);
         },
     };
 }

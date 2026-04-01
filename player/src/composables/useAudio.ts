@@ -1,6 +1,7 @@
 import { ref, watch } from "vue";
 
 const audioElement = ref<HTMLAudioElement | null>(null);
+const audioError = ref<MediaError | null>(null);
 const canPlay = ref(false);
 const isPaused = ref(false);
 const currentTime = ref(0);
@@ -25,6 +26,10 @@ const onCanPlay = () => {
         mediaDuration.value = audio.duration;
     }
 };
+const onError = () => {
+    const audio = audioElement.value;
+    if (audio) audioError.value = audio.error;
+};
 const onCanPlayThrough = () => {
     const audio = audioElement.value;
     canPlay.value = true;
@@ -48,6 +53,7 @@ function setAudio(url: string) {
         audio.addEventListener("timeupdate", onTimeUpdate);
         audio.addEventListener("canplay", onCanPlay);
         audio.addEventListener("canplaythrough", onCanPlayThrough);
+        audio.addEventListener("error", onError);
 
         stopWatchVolume = watch(volume, (v) => {
             audio.volume = v;
@@ -67,6 +73,7 @@ function setAudio(url: string) {
     audio.playbackRate = playbackRate.value;
 
     canPlay.value = false;
+    audioError.value = null;
 
     isPaused.value = audio.paused;
 }
@@ -88,6 +95,7 @@ export function useAudio(url?: string) {
 
     return {
         audioElement,
+        audioError,
         canPlay,
         isPaused,
         currentTime,
@@ -108,6 +116,7 @@ export function useAudio(url?: string) {
                 audio.removeEventListener("timeupdate", onTimeUpdate);
                 audio.removeEventListener("canplay", onCanPlay);
                 audio.removeEventListener("canplaythrough", onCanPlayThrough);
+                audio.removeEventListener("error", onError);
                 audio.src = "";
                 audio.load();
                 if (audio.parentNode) {
@@ -123,6 +132,7 @@ export function useAudio(url?: string) {
                 stopWatchPlaybackRate = null;
             }
             audioElement.value = null;
+            audioError.value = null;
             canPlay.value = false;
             isPaused.value = false;
             currentTime.value = 0;

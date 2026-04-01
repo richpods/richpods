@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Do not rewrite requests for real files in media/
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Route everything else through index.php
+RewriteRule ^ index.php [QSA,L]

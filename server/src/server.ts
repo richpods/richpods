@@ -11,6 +11,7 @@ import { createAuthContext } from "./middleware/auth.js";
 import { uploadRouter } from "./routes/upload.router.js";
 import { hostedRouter } from "./routes/hosted.router.js";
 import { ogRouter } from "./routes/og.router.js";
+import { audioRouter } from "./routes/audio.router.js";
 import { parseIntEnv } from "./utils/env.js";
 import { hostingConfig } from "./config/hosting.js";
 
@@ -119,6 +120,7 @@ app.use(express.json({ limit: jsonBodyLimitBytes }));
 app.use("/api/v1/upload", uploadRouter);
 app.use("/api/v1/hosted", hostedRouter);
 app.use("/api/v1/og", ogRouter);
+app.use("/api/v1/audio", audioRouter);
 
 app.all(
     "/graphql",

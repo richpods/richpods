@@ -152,3 +152,7 @@ plan-hostedrichpods-feature.md
 firestore-reader-key.json
 cloud-functions/check-verifications/build
 cloud-functions/validate-mp3/build
+cloud-functions/check-media/build
+
+*serviceaccount.json
+*key*.json

@@ -117,3 +117,12 @@ query GetRichPod($id: ID!) {
     }
   }
 }
+
+mutation RefreshEpisodeMedia($richPodId: ID!) {
+  refreshEpisodeMedia(richPodId: $richPodId) {
+    url
+    type
+    length
+    checksum
+  }
+}

@@ -11,5 +11,5 @@
         "resolveJsonModule": true,
         "skipLibCheck": true
     },
-    "include": ["i18n/**/*.ts", "utils/**/*.ts"]
+    "include": ["i18n/**/*.ts", "utils/**/*.ts", "media/**/*.ts"]
 }

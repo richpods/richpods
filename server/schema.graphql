@@ -128,11 +128,22 @@ input ChapterInput {
     enclosure: JSON!
 }
 
+type PodcastMediaCheck {
+    checkedAt: String!
+    checkedUrl: String!
+    status: String!
+    httpStatus: Int
+    etag: String
+    lastModified: String
+    contentLength: Int
+}
+
 type PodcastMedia {
     url: String!
     type: String!
     length: Int!
     checksum: String!
+    mediaCheck: PodcastMediaCheck
 }
 
 type PodcastOrigin {
@@ -150,6 +161,7 @@ type PodcastEpisode {
     title: String!
     artworkUrl: String
     link: String
+    pubDate: String
     media: PodcastMedia!
 }
 
@@ -315,6 +327,7 @@ input PodcastEpisodeInput {
     title: String!
     artworkUrl: String
     link: String
+    pubDate: String
     media: PodcastMediaInput!
 }
 
@@ -435,4 +448,5 @@ type Mutation {
     updateHostedPodcast(id: ID!, input: UpdateHostedPodcastInput!): HostedPodcast!
     deleteHostedPodcast(id: ID!): Boolean!
     deleteHostedEpisode(id: ID!): Boolean!
+    refreshEpisodeMedia(richPodId: ID!): PodcastMedia!
 }

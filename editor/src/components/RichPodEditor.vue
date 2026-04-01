@@ -55,7 +55,13 @@
                     class="flex-1 hidden lg:flex flex-col bg-gray-100"
                     :class="{ '!flex': activeEditorTab === 'chapters' }"
                 >
+                    <BrokenMediaPanel
+                        v-if="showBrokenMediaPanel && richpodId"
+                        :rich-pod-id="richpodId"
+                        @media-refreshed="onMediaRefreshed"
+                    />
                     <ChapterWorkspace
+                        v-else
                         :formatted-current-time="formattedCurrentTime"
                         :component-for="componentFor"
                         :remove-current-chapter="removeCurrentChapter"
@@ -126,6 +132,7 @@ import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import PlayerControls from "@player/components/PlayerControls.vue";
+import { useAudio } from "@player/composables/useAudio.ts";
 import { toSeconds } from "@player/utils.ts";
 import { h } from "vue";
 import InteractiveChartEnclosure from "@player/components/enclosures/InteractiveChartEnclosure.vue";
@@ -137,6 +144,7 @@ import FactboxEnclosure from "@player/components/enclosures/FactboxEnclosure.vue
 import CardEnclosure from "@player/components/enclosures/CardEnclosure.vue";
 import ChapterSidebar from "@/components/editor/ChapterSidebar.vue";
 import ChapterWorkspace from "@/components/editor/ChapterWorkspace.vue";
+import BrokenMediaPanel from "@/components/editor/BrokenMediaPanel.vue";
 import TypeChooserModal from "@/components/editor/TypeChooserModal.vue";
 import PollDeleteConfirmModal from "@/components/editor/PollDeleteConfirmModal.vue";
 import { useRichPodStore } from "@/stores/useRichPodStore";
@@ -166,6 +174,9 @@ const { runValidation } = useValidation();
 const richpodId = computed(() => route.params.id as string | undefined);
 const { saveStatus, saveNow, dispose: disposeAutoSave } = useAutoSave(richpodId);
 provideSaveNow(saveNow);
+
+const { audioError, setAudio } = useAudio();
+const showBrokenMediaPanel = computed(() => !isHosted.value && !!audioError.value);
 
 const activeEditorTab = ref<"details" | "chapters">("chapters");
 const error = ref("");
@@ -368,6 +379,11 @@ watch(isPlaybackActive, (active) => {
 });
 
 const audioUrl = computed(() => richpod.value.origin?.episode?.media?.url || undefined);
+
+function onMediaRefreshed(media: { url: string; mimeType: string }) {
+    richpodStore.updateMediaUrl(media.url, media.mimeType);
+    setAudio(media.url);
+}
 const chaptersForPlayer = computed(() => chapters.value as unknown as any[]);
 
 const enclosureTypes: EnclosureType[] = [

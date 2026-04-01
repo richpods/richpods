@@ -242,6 +242,13 @@
         "duplicateAtCurrentTimeDescription": "Eine Kopie dieses Kapitels an der aktuellen Wiedergabeposition erstellen.",
         "cannotDeleteLastPublishedChapter": "Ein veröffentlichter RichPod muss mindestens ein Kapitel haben."
     },
+    "brokenMedia": {
+        "title": "Audio nicht verf\u00fcgbar",
+        "description": "Die Medien-URL dieser Episode konnte nicht geladen werden. Das kann passieren, wenn der Podcast-Hoster die Datei-URLs \u00e4ndert. Klicke unten, um die aktuelle URL aus dem RSS-Feed abzurufen.",
+        "refreshButton": "Medien-URL aktualisieren",
+        "refreshing": "Wird aktualisiert\u2026",
+        "refreshFailed": "Die Medien-URL konnte nicht aktualisiert werden. Bitte versuche es sp\u00e4ter erneut."
+    },
     "sidebar": {
         "addChapter": "Kapitel hinzufügen",
         "saveChanges": "Änderungen an diesem RichPod speichern",

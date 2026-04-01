@@ -7,12 +7,12 @@ metadata:
     annotations:
         run.googleapis.com/launch-stage: GA
         run.googleapis.com/ingress: all
+        run.googleapis.com/minScale: "$MIN_INSTANCES"
+        run.googleapis.com/maxScale: "1"
 spec:
     template:
         metadata:
             annotations:
-                autoscaling.knative.dev/minScale: "0"
-                autoscaling.knative.dev/maxScale: "1"
                 run.googleapis.com/cpu-throttling: "true"
         spec:
             containerConcurrency: 90

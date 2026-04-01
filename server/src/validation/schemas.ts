@@ -136,6 +136,9 @@ export const podcastEpisodeInputSchema = Joi.object({
     link: httpUrlUnicode().optional().allow("").messages({
         "string.uri": "Episode link must be a valid URL",
     }),
+    pubDate: Joi.string().isoDate().optional().messages({
+        "string.isoDate": "Publication date must be a valid ISO 8601 date",
+    }),
     media: podcastMediaInputSchema.required(),
 });
 

@@ -422,6 +422,7 @@ async function handleEpisodeSelect(episode: any) {
         // Artwork priority: RSS feed first, then iTunes/other sources as fallback
         const episodeArtwork = rssEpisode.artwork || episode.artwork || undefined;
         const podcastArtwork = rssPodcast.artwork || episode.artwork || undefined;
+        const pubDate = rssEpisode.publicationDate || episode.publicationDate || undefined;
 
         // Create a new RichPod with the episode data
         const richPodResponse = await graphqlSdk.CreateRichPod({
@@ -440,6 +441,7 @@ async function handleEpisodeSelect(episode: any) {
                         title: rssEpisode.title || episode.episodeTitle,
                         artworkUrl: episodeArtwork,
                         link: rssEpisode.link || episode.link || "",
+                        pubDate,
                         media: {
                             url: rssEpisode.url,
                             type: rssEpisode.type,

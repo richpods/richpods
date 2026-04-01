@@ -244,6 +244,7 @@ export type Mutation = {
   deleteHostedEpisode: Scalars['Boolean']['output'];
   deleteHostedPodcast: Scalars['Boolean']['output'];
   deleteRichPod: Scalars['Boolean']['output'];
+  refreshEpisodeMedia: PodcastMedia;
   setRichPodChapters: RichPod;
   signIn: AuthPayload;
   signInWithGoogle: AuthPayload;
@@ -278,6 +279,11 @@ export type MutationDeleteHostedPodcastArgs = {
 
 export type MutationDeleteRichPodArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationRefreshEpisodeMediaArgs = {
+  richPodId: Scalars['ID']['input'];
 };
 
 
@@ -353,6 +359,7 @@ export type PodcastEpisode = {
   guid: Scalars['String']['output'];
   link?: Maybe<Scalars['String']['output']>;
   media: PodcastMedia;
+  pubDate?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
 };
 
@@ -361,6 +368,7 @@ export type PodcastEpisodeInput = {
   guid: Scalars['String']['input'];
   link?: InputMaybe<Scalars['String']['input']>;
   media: PodcastMediaInput;
+  pubDate?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -389,8 +397,20 @@ export type PodcastMedia = {
   __typename?: 'PodcastMedia';
   checksum: Scalars['String']['output'];
   length: Scalars['Int']['output'];
+  mediaCheck?: Maybe<PodcastMediaCheck>;
   type: Scalars['String']['output'];
   url: Scalars['String']['output'];
+};
+
+export type PodcastMediaCheck = {
+  __typename?: 'PodcastMediaCheck';
+  checkedAt: Scalars['String']['output'];
+  checkedUrl: Scalars['String']['output'];
+  contentLength?: Maybe<Scalars['Int']['output']>;
+  etag?: Maybe<Scalars['String']['output']>;
+  httpStatus?: Maybe<Scalars['Int']['output']>;
+  lastModified?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
 };
 
 export type PodcastMediaInput = {
@@ -746,6 +766,7 @@ export type ResolversTypes = {
   PodcastEpisodeSearchResult: ResolverTypeWrapper<PodcastEpisodeSearchResult>;
   PodcastInfo: ResolverTypeWrapper<PodcastInfo>;
   PodcastMedia: ResolverTypeWrapper<PodcastMedia>;
+  PodcastMediaCheck: ResolverTypeWrapper<PodcastMediaCheck>;
   PodcastMediaInput: PodcastMediaInput;
   PodcastMetadata: ResolverTypeWrapper<PodcastMetadata>;
   PodcastOrigin: ResolverTypeWrapper<PodcastOrigin>;
@@ -805,6 +826,7 @@ export type ResolversParentTypes = {
   PodcastEpisodeSearchResult: PodcastEpisodeSearchResult;
   PodcastInfo: PodcastInfo;
   PodcastMedia: PodcastMedia;
+  PodcastMediaCheck: PodcastMediaCheck;
   PodcastMediaInput: PodcastMediaInput;
   PodcastMetadata: PodcastMetadata;
   PodcastOrigin: PodcastOrigin;
@@ -994,6 +1016,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   deleteHostedEpisode?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteHostedEpisodeArgs, 'id'>>;
   deleteHostedPodcast?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteHostedPodcastArgs, 'id'>>;
   deleteRichPod?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteRichPodArgs, 'id'>>;
+  refreshEpisodeMedia?: Resolver<ResolversTypes['PodcastMedia'], ParentType, ContextType, RequireFields<MutationRefreshEpisodeMediaArgs, 'richPodId'>>;
   setRichPodChapters?: Resolver<ResolversTypes['RichPod'], ParentType, ContextType, RequireFields<MutationSetRichPodChaptersArgs, 'chapters' | 'id'>>;
   signIn?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationSignInArgs, 'input'>>;
   signInWithGoogle?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationSignInWithGoogleArgs, 'idToken'>>;
@@ -1033,6 +1056,7 @@ export type PodcastEpisodeResolvers<ContextType = any, ParentType extends Resolv
   guid?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   link?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   media?: Resolver<ResolversTypes['PodcastMedia'], ParentType, ContextType>;
+  pubDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -1061,8 +1085,20 @@ export type PodcastInfoResolvers<ContextType = any, ParentType extends Resolvers
 export type PodcastMediaResolvers<ContextType = any, ParentType extends ResolversParentTypes['PodcastMedia'] = ResolversParentTypes['PodcastMedia']> = {
   checksum?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   length?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  mediaCheck?: Resolver<Maybe<ResolversTypes['PodcastMediaCheck']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PodcastMediaCheckResolvers<ContextType = any, ParentType extends ResolversParentTypes['PodcastMediaCheck'] = ResolversParentTypes['PodcastMediaCheck']> = {
+  checkedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  checkedUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  contentLength?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  etag?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  httpStatus?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  lastModified?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1191,6 +1227,7 @@ export type Resolvers<ContextType = any> = {
   PodcastEpisodeSearchResult?: PodcastEpisodeSearchResultResolvers<ContextType>;
   PodcastInfo?: PodcastInfoResolvers<ContextType>;
   PodcastMedia?: PodcastMediaResolvers<ContextType>;
+  PodcastMediaCheck?: PodcastMediaCheckResolvers<ContextType>;
   PodcastMetadata?: PodcastMetadataResolvers<ContextType>;
   PodcastOrigin?: PodcastOriginResolvers<ContextType>;
   Poll?: PollResolvers<ContextType>;

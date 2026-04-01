@@ -17,6 +17,7 @@ import { EnclosureType, RichPodState as FirestoreRichPodState, RichPodStateType 
 import { RichPodState, ChartFormat, CardType as GraphQLCardType } from "../graphql.js";
 import { deleteEpisodeFiles } from "./hosted-storage.service.js";
 import { deleteAllEnclosures } from "./storage.service.js";
+import { checkAndUpdateMedia } from "./media-check.service.js";
 import type {
     Chapter as GraphQLChapter,
     Enclosure as GraphQLEnclosure,
@@ -173,7 +174,25 @@ export async function getRichPodById(
         throw new Error(`Editor not found for RichPod ${id}`);
     }
 
-    return mapToGraphQL(id, data, await getChaptersForRichPod(id, data.origin), editor);
+    const richPod = await mapToGraphQL(
+        id,
+        data,
+        await getChaptersForRichPod(id, data.origin),
+        editor,
+    );
+
+    // Run freshness check for non-hosted RichPods (only for authenticated requests)
+    if (!data.isHosted && requestingUserId) {
+        try {
+            const freshMedia = await checkAndUpdateMedia(id, false);
+            richPod.origin.episode.media.url = freshMedia.url;
+            richPod.origin.episode.media.mediaCheck = freshMedia.mediaCheck;
+        } catch (error: any) {
+            console.error(`Media check failed for RichPod ${id}:`, error.message);
+        }
+    }
+
+    return richPod;
 }
 
 /**
@@ -194,10 +213,32 @@ export async function createRichPod(
     editorUserId: string,
 ): Promise<RichPod> {
     // First, fetch and validate the RSS feed
-    const feedContent = await fetchAndValidateFeed(
+    const { feedContent, parsedFeed } = await fetchAndValidateFeed(
         richPod.origin.feedUrl,
         richPod.origin.episode.guid,
     );
+
+    // Ensure pubDate is persisted — extract from feed if client didn't provide it
+    if (!richPod.origin.episode.pubDate) {
+        const channel = parsedFeed.rss.channel;
+        const items: any[] = Array.isArray(channel.item)
+            ? channel.item
+            : channel.item
+              ? [channel.item]
+              : [];
+        const guid = richPod.origin.episode.guid;
+        const item = items.find((i) => {
+            const itemGuid =
+                typeof i.guid === "object" && i.guid["_"] ? i.guid["_"] : i.guid;
+            return itemGuid === guid;
+        });
+        if (item?.pubDate) {
+            const date = new Date(item.pubDate);
+            if (!isNaN(date.getTime())) {
+                richPod.origin.episode.pubDate = date.toISOString();
+            }
+        }
+    }
 
     // Resolve verification status at creation time
     const verificationStatus = await resolveRichPodVerificationStatus(
@@ -504,11 +545,27 @@ function mapToGraphQL(
                 title: data.origin.episode.title,
                 artworkUrl: data.origin.episode.artworkUrl,
                 link: data.origin.episode.link,
+                pubDate: data.origin.episode.pubDate ?? null,
                 media: {
                     url: data.origin.episode.media.url,
                     type: data.origin.episode.media.type,
                     length: data.origin.episode.media.length,
                     checksum: data.origin.episode.media.checksum,
+                    mediaCheck: data.origin.episode.media.mediaCheck
+                        ? {
+                              checkedAt: data.origin.episode.media.mediaCheck.checkedAt
+                                  ?.toDate()
+                                  .toISOString(),
+                              checkedUrl: data.origin.episode.media.mediaCheck.checkedUrl,
+                              status: data.origin.episode.media.mediaCheck.status,
+                              httpStatus: data.origin.episode.media.mediaCheck.httpStatus ?? null,
+                              etag: data.origin.episode.media.mediaCheck.etag ?? null,
+                              lastModified:
+                                  data.origin.episode.media.mediaCheck.lastModified ?? null,
+                              contentLength:
+                                  data.origin.episode.media.mediaCheck.contentLength ?? null,
+                          }
+                        : null,
                 },
             },
         },

@@ -1,0 +1,30 @@
+{
+    "name": "@richpods/check-media",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "main": "build/index.js",
+    "engines": {
+        "node": ">=24.0.0",
+        "pnpm": ">=10.30.0"
+    },
+    "scripts": {
+        "build": "tsc --noEmit && esbuild src/index.ts --bundle --platform=node --target=node24 --format=esm --outfile=build/index.js --external:@google-cloud/firestore --external:@google-cloud/functions-framework --external:got --external:xml2js",
+        "clean": "rimraf build",
+        "start": "npx @google-cloud/functions-framework --target=checkMedia --signature-type=http"
+    },
+    "dependencies": {
+        "@google-cloud/firestore": "7.11.6",
+        "@google-cloud/functions-framework": "3.3.0",
+        "got": "14.4.8",
+        "xml2js": "0.6.2"
+    },
+    "devDependencies": {
+        "@richpods/shared": "workspace:*",
+        "@tsconfig/node24": "24.0.0",
+        "@types/node": "24.0.0",
+        "esbuild": "0.25.12",
+        "rimraf": "6.0.1",
+        "typescript": "5.8.3"
+    }
+}

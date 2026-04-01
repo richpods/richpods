@@ -253,6 +253,7 @@ export type Mutation = {
     deleteHostedEpisode: Scalars["Boolean"]["output"];
     deleteHostedPodcast: Scalars["Boolean"]["output"];
     deleteRichPod: Scalars["Boolean"]["output"];
+    refreshEpisodeMedia: PodcastMedia;
     setRichPodChapters: RichPod;
     signIn: AuthPayload;
     signInWithGoogle: AuthPayload;
@@ -282,6 +283,10 @@ export type MutationDeleteHostedPodcastArgs = {
 
 export type MutationDeleteRichPodArgs = {
     id: Scalars["ID"]["input"];
+};
+
+export type MutationRefreshEpisodeMediaArgs = {
+    richPodId: Scalars["ID"]["input"];
 };
 
 export type MutationSetRichPodChaptersArgs = {
@@ -349,6 +354,7 @@ export type PodcastEpisode = {
     guid: Scalars["String"]["output"];
     link?: Maybe<Scalars["String"]["output"]>;
     media: PodcastMedia;
+    pubDate?: Maybe<Scalars["String"]["output"]>;
     title: Scalars["String"]["output"];
 };
 
@@ -357,6 +363,7 @@ export type PodcastEpisodeInput = {
     guid: Scalars["String"]["input"];
     link?: InputMaybe<Scalars["String"]["input"]>;
     media: PodcastMediaInput;
+    pubDate?: InputMaybe<Scalars["String"]["input"]>;
     title: Scalars["String"]["input"];
 };
 
@@ -385,8 +392,20 @@ export type PodcastMedia = {
     __typename?: "PodcastMedia";
     checksum: Scalars["String"]["output"];
     length: Scalars["Int"]["output"];
+    mediaCheck?: Maybe<PodcastMediaCheck>;
     type: Scalars["String"]["output"];
     url: Scalars["String"]["output"];
+};
+
+export type PodcastMediaCheck = {
+    __typename?: "PodcastMediaCheck";
+    checkedAt: Scalars["String"]["output"];
+    checkedUrl: Scalars["String"]["output"];
+    contentLength?: Maybe<Scalars["Int"]["output"]>;
+    etag?: Maybe<Scalars["String"]["output"]>;
+    httpStatus?: Maybe<Scalars["Int"]["output"]>;
+    lastModified?: Maybe<Scalars["String"]["output"]>;
+    status: Scalars["String"]["output"];
 };
 
 export type PodcastMediaInput = {
@@ -1497,6 +1516,21 @@ export type GetRichPodQuery = {
     } | null;
 };
 
+export type RefreshEpisodeMediaMutationVariables = Exact<{
+    richPodId: Scalars["ID"]["input"];
+}>;
+
+export type RefreshEpisodeMediaMutation = {
+    __typename?: "Mutation";
+    refreshEpisodeMedia: {
+        __typename?: "PodcastMedia";
+        url: string;
+        type: string;
+        length: number;
+        checksum: string;
+    };
+};
+
 export type UserRichPodsQueryVariables = Exact<{
     first?: InputMaybe<Scalars["Int"]["input"]>;
     after?: InputMaybe<Scalars["String"]["input"]>;
@@ -2095,6 +2129,16 @@ export const GetRichPodDocument = gql`
     ${RichPodFieldsFragmentDoc}
     ${ChapterFieldsFragmentDoc}
 `;
+export const RefreshEpisodeMediaDocument = gql`
+    mutation RefreshEpisodeMedia($richPodId: ID!) {
+        refreshEpisodeMedia(richPodId: $richPodId) {
+            url
+            type
+            length
+            checksum
+        }
+    }
+`;
 export const UserRichPodsDocument = gql`
     query UserRichPods($first: Int, $after: String, $state: RichPodState) {
         userRichPods(first: $first, after: $after, state: $state) {
@@ -2485,6 +2529,22 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
                     }),
                 "GetRichPod",
                 "query",
+                variables,
+            );
+        },
+        RefreshEpisodeMedia(
+            variables: RefreshEpisodeMediaMutationVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+        ): Promise<RefreshEpisodeMediaMutation> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<RefreshEpisodeMediaMutation>(
+                        RefreshEpisodeMediaDocument,
+                        variables,
+                        { ...requestHeaders, ...wrappedRequestHeaders },
+                    ),
+                "RefreshEpisodeMedia",
+                "mutation",
                 variables,
             );
         },

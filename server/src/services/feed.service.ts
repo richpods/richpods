@@ -1,10 +1,10 @@
 import { createHash } from "crypto";
 import got from "got";
-import * as xml2js from "xml2js";
 import { v4 as uuidv4 } from "uuid";
 import { Storage } from "@google-cloud/storage";
 import { validateParsedRssFeed, assertFeedNotLocked, episodeExistsInFeed, getMaxFeedSize } from "../validation/feed.js";
 import { GCS_IMMUTABLE_CACHE_CONTROL } from "../config/storage.js";
+import { parseFeed, RP_USER_AGENT, RSS_ACCEPT_HEADERS } from "@richpods/shared/media/feed";
 
 const storage = new Storage({
     projectId: process.env.GOOGLE_CLOUD_PROJECT,
@@ -14,8 +14,6 @@ const BUCKET_NAME = process.env.GCS_BUCKET_NAME ?? "";
 if (BUCKET_NAME.length <= 2) {
     throw new Error("GCS_BUCKET_NAME environment variable is required");
 }
-
-const RP_USER_AGENT = "RichPods/1.0 (+https://richpods.org/bot)";
 
 /**
  * Build deterministic GCS object name for a feed snapshot.
@@ -31,12 +29,9 @@ export interface FetchFeedResult {
     parsedFeed: any;
 }
 
-async function fetchFeed(feedUrl: string): Promise<FetchFeedResult> {
+export async function fetchFeed(feedUrl: string): Promise<FetchFeedResult> {
     const response = await got.get(feedUrl, {
-        headers: {
-            "User-Agent": RP_USER_AGENT,
-            Accept: "application/rss+xml, application/xml, text/xml",
-        },
+        headers: RSS_ACCEPT_HEADERS,
         responseType: "text",
         timeout: { request: 5000 },
         retry: { limit: 1 },
@@ -52,22 +47,11 @@ async function fetchFeed(feedUrl: string): Promise<FetchFeedResult> {
         );
     }
 
-    // Parse and validate the feed
-    const parser = new xml2js.Parser({
-        explicitArray: false,
-        ignoreAttrs: false,
-        mergeAttrs: true,
-    });
-    const parsed = await parser.parseStringPromise(feedContent);
-    const validatedFeed = validateParsedRssFeed(parsed);
+    const parsed = await parseFeed(feedContent);
+    validateParsedRssFeed(parsed);
+    assertFeedNotLocked(parsed);
 
-    if (!validatedFeed) {
-        throw new Error("Not a valid RSS 2.0 feed");
-    }
-
-    assertFeedNotLocked(validatedFeed);
-
-    return { feedContent, parsedFeed: validatedFeed };
+    return { feedContent, parsedFeed: parsed };
 }
 
 /**
@@ -76,7 +60,7 @@ async function fetchFeed(feedUrl: string): Promise<FetchFeedResult> {
 export async function fetchAndValidateFeed(
     feedUrl: string,
     episodeGuid: string,
-): Promise<string> {
+): Promise<FetchFeedResult> {
     const { feedContent, parsedFeed } = await fetchFeed(feedUrl);
 
     // Check if the episode with the given GUID exists
@@ -84,7 +68,7 @@ export async function fetchAndValidateFeed(
         throw new Error(`Episode with GUID "${episodeGuid}" not found in RSS feed`);
     }
 
-    return feedContent;
+    return { feedContent, parsedFeed };
 }
 
 /**

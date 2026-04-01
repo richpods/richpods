@@ -242,6 +242,13 @@
         "duplicateAtCurrentTimeDescription": "Create a copy of this chapter at the current playback position.",
         "cannotDeleteLastPublishedChapter": "A published RichPod must have at least one chapter."
     },
+    "brokenMedia": {
+        "title": "Audio unavailable",
+        "description": "The media URL for this episode could not be loaded. This can happen when the podcast host changes their file URLs. Click below to fetch the latest URL from the RSS feed.",
+        "refreshButton": "Refresh Media URL",
+        "refreshing": "Refreshing\u2026",
+        "refreshFailed": "Failed to refresh the media URL. Please try again later."
+    },
     "sidebar": {
         "addChapter": "Add Chapter",
         "saveChanges": "Save changes to this RichPod",

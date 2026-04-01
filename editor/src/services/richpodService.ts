@@ -110,7 +110,7 @@ function mapOrigin(origin: GraphQLRichPod["origin"]): PodcastOrigin {
                   media: {
                       url: origin.episode.media.url,
                       mimeType: origin.episode.media.type,
-                      durationInSeconds: origin.episode.media.length,
+                      durationInSeconds: null,
                   },
               }
             : undefined,
@@ -172,6 +172,18 @@ function serializeEnclosure(enclosure: EditorEnclosure): { type: EnclosureType; 
 
     const payload = removeUndefined(payloadWithoutOutputOnlyFields) as Record<string, unknown>;
     return { type: enclosureType, payload };
+}
+
+export async function refreshEpisodeMedia(richPodId: string): Promise<{
+    url: string;
+    mimeType: string;
+}> {
+    const response = await graphqlSdk.RefreshEpisodeMedia({ richPodId });
+    const media = response.refreshEpisodeMedia;
+    return {
+        url: media.url,
+        mimeType: media.type,
+    };
 }
 
 export async function saveRichPod(id: string, richpod: RichPodForEdit): Promise<RichPodForEdit> {

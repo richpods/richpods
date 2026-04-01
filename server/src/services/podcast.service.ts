@@ -1,7 +1,7 @@
 import got from "got";
 import { toASCII } from "node:punycode";
-import * as xml2js from "xml2js";
 import * as cheerio from "cheerio";
+import { parseFeed } from "@richpods/shared/media/feed";
 import { PodcastMetadata, PodcastEpisodeSearchResult } from "../graphql.js";
 import type {
     ParsedPodcast,
@@ -92,9 +92,8 @@ export async function extractFeedUrl(url: string): Promise<string> {
 
         if (isXmlByHeader || (looksLikeXmlExt && isXmlBySniff)) {
             try {
-                if (await parseRssFeed(dataStr) !== null) {
-                    return normalizedUrl;
-                }
+                await parseAndValidateRssFeed(dataStr);
+                return normalizedUrl;
             } catch {
                 // fallthrough to HTML discovery
             }
@@ -166,17 +165,13 @@ async function parsePodcastFeed(feedUrl: string): Promise<ParsedPodcast> {
     try {
         const response = await got.get(normalizeUrl(feedUrl), {
             headers: {
-                "User-Agent": "RichPods/1.0 (+https://richpods.org/bot)",
+                "User-Agent": RP_USER_AGENT,
             },
             responseType: "text",
             timeout: { request: 15000 },
         });
 
-        const parsedFeed = await parseRssFeed(response.body);
-        if (!parsedFeed) {
-            throw new Error("Unsupported or invalid RSS 2.0 feed");
-        }
-
+        const parsedFeed = await parseAndValidateRssFeed(response.body);
         const channel = parsedFeed.rss.channel;
         return {
             title: channel.title || "Unknown Podcast",
@@ -210,15 +205,11 @@ function normalizeUrl(input: string): string {
     }
 }
 
-// Check RSS 2.0 structure and required fields
-async function parseRssFeed(rawFeed: string): Promise<any | null> {
-    const parser = new xml2js.Parser({ explicitArray: false, ignoreAttrs: false, mergeAttrs: true });
-    const parsed = await parser.parseStringPromise(rawFeed);
-    const validated = validateParsedRssFeed(parsed);
-    if (validated) {
-        assertFeedNotLocked(validated);
-    }
-    return validated;
+async function parseAndValidateRssFeed(rawFeed: string): Promise<any> {
+    const parsed = await parseFeed(rawFeed);
+    validateParsedRssFeed(parsed);
+    assertFeedNotLocked(parsed);
+    return parsed;
 }
 
 /**
@@ -229,7 +220,7 @@ async function generateChecksum(mediaUrl: string): Promise<string> {
         const response = await got.head(mediaUrl, {
             timeout: { request: 10000 },
             headers: {
-                "User-Agent": "RichPods/1.0 (+https://richpods.org/bot)",
+                "User-Agent": RP_USER_AGENT,
             },
         });
 

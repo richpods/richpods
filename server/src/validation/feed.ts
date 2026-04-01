@@ -1,30 +1,70 @@
 /**
- * Validate a parsed RSS feed for RSS 2.0 compliance and required fields
- * Returns the parsed feed if valid, null otherwise
+ * Validate a parsed RSS feed for RSS 2.0 compliance and required fields.
+ * Throws with a descriptive reason if the feed is invalid.
  */
-export function validateParsedRssFeed(parsed: any): any | null {
-    if (!parsed || !parsed.rss || !parsed.rss.channel) return null;
-    const version = parsed.rss.version;
-    if (version && String(version) !== "2.0") return null;
+export function validateParsedRssFeed(parsed: unknown): void {
+    if (!parsed || typeof parsed !== "object" || !("rss" in parsed)) {
+        throw new Error("Not a valid RSS 2.0 feed: missing <rss> root element");
+    }
 
-    const channel = parsed.rss.channel;
-    if (!channel.title || !channel.description) return null;
+    const rss = (parsed as Record<string, unknown>).rss as Record<string, unknown> | undefined;
+    if (!rss || !rss.channel) {
+        throw new Error("Not a valid RSS 2.0 feed: missing <channel> element");
+    }
 
-    const items = Array.isArray(channel.item) ? channel.item : channel.item ? [channel.item] : [];
-    if (!items.length) return null;
+    const version = rss.version;
+    if (version && String(version) !== "2.0") {
+        throw new Error(
+            `Not a valid RSS 2.0 feed: unsupported RSS version "${String(version)}"`,
+        );
+    }
+
+    const channel = rss.channel as Record<string, unknown>;
+    if (!channel.title) {
+        throw new Error("Not a valid RSS 2.0 feed: channel is missing <title>");
+    }
+    if (!channel.description) {
+        throw new Error("Not a valid RSS 2.0 feed: channel is missing <description>");
+    }
+
+    const items = Array.isArray(channel.item)
+        ? channel.item
+        : channel.item
+          ? [channel.item]
+          : [];
+    if (!items.length) {
+        throw new Error("Not a valid RSS 2.0 feed: channel contains no <item> elements");
+    }
 
     for (const item of items) {
-        const hasTitle = Boolean(item && typeof item.title === "string" && item.title.trim().length > 0);
+        const title = item?.title;
+        const hasTitle = Boolean(typeof title === "string" && title.trim().length > 0);
+
         const guidVal = item?.guid;
         const hasGuid =
             typeof guidVal === "string"
                 ? guidVal.trim().length > 0
-                : guidVal && typeof guidVal === "object" && typeof guidVal._ === "string" && guidVal._.trim().length > 0;
+                : guidVal &&
+                  typeof guidVal === "object" &&
+                  typeof guidVal._ === "string" &&
+                  guidVal._.trim().length > 0;
+
         const enc = item?.enclosure;
-        const hasEnclosure = Boolean(enc && typeof enc.url === "string" && enc.url.trim().length > 0);
-        if (!hasTitle || !hasGuid || !hasEnclosure) return null;
+        const hasEnclosure = Boolean(
+            enc && typeof enc.url === "string" && enc.url.trim().length > 0,
+        );
+
+        if (!hasTitle || !hasGuid || !hasEnclosure) {
+            const missing: string[] = [];
+            if (!hasTitle) missing.push("title");
+            if (!hasGuid) missing.push("guid");
+            if (!hasEnclosure) missing.push("enclosure with url");
+            const itemLabel = hasTitle ? `"${String(title).trim()}"` : "(untitled)";
+            throw new Error(
+                `Not a valid RSS 2.0 feed: item ${itemLabel} is missing ${missing.join(", ")}`,
+            );
+        }
     }
-    return parsed;
 }
 
 /**

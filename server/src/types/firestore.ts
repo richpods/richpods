@@ -83,11 +83,22 @@ export interface ChapterDocument {
     chapters: Chapter[];
 }
 
+export interface PodcastMediaCheck {
+    checkedAt: Timestamp;
+    checkedUrl: string;
+    status: "ok" | "altered" | "broken";
+    httpStatus?: number;
+    etag?: string;
+    lastModified?: string;
+    contentLength?: number;
+}
+
 export interface PodcastMedia {
     url: string;
     type: string;
     length: number;
     checksum: string;
+    mediaCheck?: PodcastMediaCheck | null;
 }
 
 export interface PodcastEpisode {
@@ -95,6 +106,7 @@ export interface PodcastEpisode {
     title: string;
     artworkUrl?: string;
     link?: string;
+    pubDate?: string;
     media: PodcastMedia;
 }
 
