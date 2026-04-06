@@ -156,3 +156,4 @@ cloud-functions/check-media/build
 
 *serviceaccount.json
 *key*.json
+.claude
