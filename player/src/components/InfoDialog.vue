@@ -28,6 +28,10 @@
                     {{ t("sidebar.openEpisode") }}
                 </a>
             </div>
+
+            <a v-if="isUnverified" :href="reportMailtoLink" class="report-button">
+                {{ t("infoDialog.reportRichPod") }}
+            </a>
         </div>
     </modal-dialog>
 </template>
@@ -36,6 +40,8 @@ import { useI18n } from "vue-i18n";
 import { useRichPod } from "@/composables/useRichPod.ts";
 import ModalDialog from "./ModalDialog.vue";
 import { computed, useTemplateRef } from "vue";
+
+const REPORT_EMAIL = import.meta.env.VITE_REPORT_EMAIL || "contact@richpods.org";
 
 const { t } = useI18n();
 
@@ -48,6 +54,13 @@ const {
 
 const isUnverified = computed(() => !richPod.value?.origin.verified);
 const publisherName = computed(() => richPod.value?.editor?.publicName);
+
+const reportMailtoLink = computed(() => {
+    const title = richPod.value?.title ?? "";
+    const id = richPod.value?.id ?? "";
+    const subject = encodeURIComponent(`Report ${title} (${id})`);
+    return `mailto:${REPORT_EMAIL}?subject=${subject}`;
+});
 
 function toggle() {
     dialog.value?.toggle();
@@ -118,7 +131,7 @@ h2 {
         word-break: break-word;
     }
 
-    a:not(.episode-link-button) {
+    a:not(.episode-link-button):not(.report-button) {
         color: var(--richpod-link-color, #0066cc);
         text-decoration: none;
 
@@ -135,6 +148,25 @@ h2 {
 
     h3:first-child {
         margin-top: 0;
+    }
+}
+
+.report-button {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 6px 16px;
+    border: none;
+    border-radius: 13px;
+    background-color: var(--richpod-unverified-warning-background, #d32f2f);
+    color: #fff;
+    font-family: var(--richpod-font-family-text), sans-serif;
+    font-size: 14px;
+    line-height: 18px;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: none;
+        opacity: 0.9;
     }
 }
 

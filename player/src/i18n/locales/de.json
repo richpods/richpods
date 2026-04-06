@@ -29,12 +29,13 @@
         "unverifiedNoPublisher": "Dieser RichPod wurde nicht vom Podcast-Urheber veröffentlicht."
     },
     "sidebar": {
-        "openEpisode": "Episode öffnen"
+        "openEpisode": "Original-Episode öffnen"
     },
     "player": {
         "explicit": "Explizit"
     },
     "infoDialog": {
-        "explicit": "Explizit"
+        "explicit": "Explizit",
+        "reportRichPod": "RichPod melden"
     }
 }
