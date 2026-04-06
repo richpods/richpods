@@ -66,9 +66,10 @@
                                     {{ t("verificationStatus.verified") }}
                                 </span>
                             </div>
-                            <p class="break-all text-sm text-gray-500">{{ origin.feedUrl }}</p>
+                            <p v-if="!origin.isHosted" class="break-all text-sm text-gray-500">{{ origin.feedUrl }}</p>
                         </div>
                         <button
+                            v-if="!origin.isHosted"
                             class="inline-flex items-center gap-2 self-start rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:border-gray-400 hover:bg-gray-50"
                             @click="selectFeed(origin.feedUrl)"
                         >
@@ -248,16 +249,16 @@ async function loadMoreRichPods() {
 }
 
 const uniqueOrigins = computed(() => {
-    const items: Array<{ title: string; feedUrl: string; isVerified: boolean }> = [];
+    const items: Array<{ title: string; feedUrl: string; isVerified: boolean; isHosted: boolean }> = [];
     const seen = new Set<string>();
     for (const pod of richPods.value) {
         const url = pod.origin.feedUrl;
         if (!seen.has(url)) {
             seen.add(url);
-            const isVerified = pod.origin.verified || verifications.value.some(
+            const isVerified = pod.isHosted || pod.origin.verified || verifications.value.some(
                 v => v.feedUrl === url && v.state === "verified"
             );
-            items.push({ title: pod.origin.title, feedUrl: url, isVerified });
+            items.push({ title: pod.origin.title, feedUrl: url, isVerified, isHosted: pod.isHosted });
         }
     }
     return items.sort((a, b) => a.title.localeCompare(b.title));
