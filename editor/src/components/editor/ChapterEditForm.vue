@@ -1,5 +1,5 @@
 <template>
-    <div v-if="hasChapter" class="space-y-4">
+    <fieldset v-if="hasChapter" :disabled="isSaving" class="m-0 p-0 border-0 space-y-4">
         <div v-if="!isSlideshow && !isGeoMap && !isPoll && !isFactbox && !isCard">
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ t("chapterEdit.titleLabel") }}</label>
             <input
@@ -17,7 +17,7 @@
         <FactboxEditor v-else-if="isFactbox" :key="editorKey" />
         <CardEditor v-else-if="isCard" :key="editorKey" />
         <div v-else class="text-xs text-gray-500">{{ t("chapterEdit.wysiwygComingSoon") }}</div>
-    </div>
+    </fieldset>
 </template>
 
 <script setup lang="ts">
@@ -33,6 +33,10 @@ import GeoMapEditor from "./enclosures/GeoMapEditor.vue";
 import PollEditor from "./enclosures/PollEditor.vue";
 import FactboxEditor from "./enclosures/FactboxEditor.vue";
 import CardEditor from "./enclosures/CardEditor.vue";
+
+const props = defineProps<{
+    isSaving: boolean;
+}>();
 
 const { t } = useI18n();
 

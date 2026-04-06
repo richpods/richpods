@@ -488,6 +488,7 @@ async function handleImageUpload(event: Event, index: number) {
                 ...slide,
                 imageUrl: downloadUrl,
             }));
+            runValidation();
             if (!hasPrivilegedRole()) {
                 await fetchQuota();
             }

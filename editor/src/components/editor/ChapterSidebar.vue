@@ -58,7 +58,7 @@
             </button>
         </div>
 
-        <div class="space-y-6">
+        <fieldset :disabled="isSaving" class="m-0 p-0 border-0 space-y-6">
             <div
                 v-if="validationErrors.length > 0"
                 class="bg-red-50 border border-red-200 rounded-lg p-3"
@@ -310,7 +310,7 @@
                     </p>
                 </div>
             </div>
-        </div>
+        </fieldset>
     </aside>
 </template>
 
@@ -327,6 +327,8 @@ import { RichPodState } from "@/graphql/generated";
 import type { SaveStatus } from "@/composables/useAutoSave";
 
 const { t, locale } = useI18n();
+
+const isSaving = computed(() => props.saveStatus === "saving");
 
 const props = defineProps<{
     error: string;

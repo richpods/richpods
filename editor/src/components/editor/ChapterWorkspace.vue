@@ -38,6 +38,7 @@
 
                         <ChapterEditForm
                             v-if="activeTab === 'Edit'"
+                            :is-saving="isSaving"
                         />
 
                         <ChapterPreviewPane
