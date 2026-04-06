@@ -213,6 +213,21 @@ export const useRichPodStore = defineStore("richpod", () => {
         };
     }
 
+    function updateEpisodeArtworkUrl(url: string) {
+        const origin = richpod.value.origin;
+        if (!origin?.episode) return;
+        richpod.value = {
+            ...richpod.value,
+            origin: {
+                ...origin,
+                episode: {
+                    ...origin.episode,
+                    artworkUrl: url,
+                },
+            },
+        };
+    }
+
     return {
         richpod,
         chapters,
@@ -238,5 +253,6 @@ export const useRichPodStore = defineStore("richpod", () => {
         updateCurrentChapter,
         setActiveChapterIndex,
         updateMediaUrl,
+        updateEpisodeArtworkUrl,
     };
 });

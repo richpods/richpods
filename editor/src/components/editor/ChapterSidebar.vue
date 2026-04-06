@@ -190,7 +190,7 @@
                 <h3 class="font-medium text-gray-900 mb-3">{{ t("sidebar.originalPodcast") }}</h3>
 
                 <div class="flex gap-3">
-                    <div class="flex-shrink-0">
+                    <div class="flex-shrink-0 group relative">
                         <img
                             v-if="artworkUrl"
                             :src="artworkUrl"
@@ -203,6 +203,33 @@
                         >
                             <Icon icon="ion:image" class="w-12 h-12 text-gray-400" />
                         </div>
+                        <template v-if="isHosted && hostedEpisodeId">
+                            <input
+                                ref="coverFileInput"
+                                type="file"
+                                accept="image/jpeg,image/png"
+                                class="hidden"
+                                @change="handleCoverFileSelected"
+                            />
+                            <button
+                                v-if="!coverUploading"
+                                @click="coverFileInput?.click()"
+                                class="absolute inset-0 bg-black/50 rounded flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                :title="t('sidebar.changeCover')"
+                            >
+                                <Icon icon="ion:camera" class="w-6 h-6 text-white" />
+                                <span class="text-xs text-white mt-1">{{ t("sidebar.changeCover") }}</span>
+                            </button>
+                            <div
+                                v-else
+                                class="absolute inset-0 bg-black/50 rounded flex items-center justify-center"
+                            >
+                                <RipoSpinner :size="24" color="#ffffff" />
+                            </div>
+                        </template>
+                        <p v-if="coverUploadError" class="absolute -bottom-5 left-0 right-0 text-xs text-red-600 truncate">
+                            {{ coverUploadError }}
+                        </p>
                     </div>
 
                     <div class="flex-1 space-y-2 text-sm min-w-0">
@@ -323,6 +350,7 @@ import { toSeconds } from "@player/utils.ts";
 import { useRichPodStore } from "@/stores/useRichPodStore";
 import { useEditorUiStore } from "@/stores/useEditorUiStore";
 import { useValidation } from "@/composables/useValidation";
+import { useEpisodeCoverUpload } from "@/composables/useEpisodeCoverUpload";
 import { RichPodState } from "@/graphql/generated";
 import type { SaveStatus } from "@/composables/useAutoSave";
 import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
@@ -355,9 +383,26 @@ const emit = defineEmits<{
 
 const richpodStore = useRichPodStore();
 const editorUiStore = useEditorUiStore();
-const { richpod, isDirty, chapters } = storeToRefs(richpodStore);
+const { richpod, isDirty, chapters, hostedEpisodeId } = storeToRefs(richpodStore);
 const { validationErrors, validationErrorsByChapter, canEditorSave } = storeToRefs(editorUiStore);
 const { runValidation } = useValidation();
+const { uploading: coverUploading, uploadError: coverUploadError, uploadCover } = useEpisodeCoverUpload();
+
+const coverFileInput = ref<HTMLInputElement | null>(null);
+
+async function handleCoverFileSelected(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    target.value = "";
+    if (!file || !hostedEpisodeId.value) return;
+
+    try {
+        const newUrl = await uploadCover(hostedEpisodeId.value, file);
+        richpodStore.updateEpisodeArtworkUrl(newUrl);
+    } catch {
+        // error is already set in uploadError by the composable
+    }
+}
 
 // Track validation transitions: only show "valid" banner when it transitions from pending→valid
 const wasEverPending = ref(false);

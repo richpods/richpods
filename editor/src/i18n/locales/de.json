@@ -286,7 +286,8 @@
         "validationInvalid": "Audio-Validierung fehlgeschlagen",
         "publishRequiresValidation": "Audio muss vor der Veröffentlichung validiert werden.",
         "explicitLabel": "Expliziter Inhalt",
-        "explicitHint": "Diese Episode als expliziten Inhalt markieren."
+        "explicitHint": "Diese Episode als expliziten Inhalt markieren.",
+        "changeCover": "Ändern"
     },
     "typeChooser": {
         "title": "Kapiteltyp auswählen",
