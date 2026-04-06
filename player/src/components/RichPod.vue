@@ -1,8 +1,11 @@
 <template>
     <div v-if="loading" class="richpod-loading">
-        <div class="richpod-spinner" role="status">
-            <span class="visually-hidden">{{ t("common.loading") }}</span>
-        </div>
+        <RipoSpinner
+            :size="48"
+            color="var(--richpod-header-background-color)"
+            track-color="rgba(255, 255, 255, 0.15)"
+            :label="t('common.loading')"
+        />
     </div>
     <div v-else-if="error" class="richpod-error">
         <p>{{ t("common.error", { message: error.message }) }}</p>
@@ -17,6 +20,7 @@
 import { useI18n } from "vue-i18n";
 import { useRichPod } from "@/composables/useRichPod";
 import PodPlayer from "@/components/PodPlayer.vue";
+import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
 
 const { t } = useI18n();
 
@@ -49,18 +53,4 @@ function reload() {
     min-height: 300px;
 }
 
-.richpod-spinner {
-    width: 48px;
-    height: 48px;
-    border: 4px solid rgba(255, 255, 255, 0.15);
-    border-top-color: var(--richpod-header-background-color);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
 </style>

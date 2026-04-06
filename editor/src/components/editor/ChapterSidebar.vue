@@ -4,7 +4,7 @@
             <div class="flex items-center gap-2">
                 <!-- Saving spinner -->
                 <template v-if="saveStatus === 'saving'">
-                    <div class="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                    <RipoSpinner :size="16" color="#4b5563" :label="t('sidebar.saving')" />
                     <span class="text-sm text-gray-500">{{ t("sidebar.saving") }}</span>
                 </template>
                 <!-- Save error with retry -->
@@ -325,6 +325,7 @@ import { useEditorUiStore } from "@/stores/useEditorUiStore";
 import { useValidation } from "@/composables/useValidation";
 import { RichPodState } from "@/graphql/generated";
 import type { SaveStatus } from "@/composables/useAutoSave";
+import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
 
 const { t, locale } = useI18n();
 

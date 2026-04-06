@@ -33,7 +33,8 @@
             "types": "./dist/media/feed.d.ts",
             "import": "./dist/media/feed.js"
         },
-        "./assets/*": "./assets/*"
+        "./assets/*": "./assets/*",
+        "./components/*": "./components/*"
     },
     "scripts": {
         "build": "tsc -p tsconfig.json"

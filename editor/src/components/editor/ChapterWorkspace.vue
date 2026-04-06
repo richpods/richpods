@@ -3,9 +3,7 @@
         <div :class="['w-full mx-auto p-0 bg-white border border-gray-200 rounded-lg shadow-sm', wideMode ? '' : 'max-w-4xl']">
             <template v-if="isLoading">
                 <div class="px-3 lg:px-6 py-16 flex flex-col items-center justify-center text-gray-600">
-                    <div
-                        class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"
-                    ></div>
+                    <RipoSpinner :size="40" color="#2563eb" :label="t('editor.loadingChapterEditor')" />
                     <p class="mt-4 text-sm">{{ t("editor.loadingChapterEditor") }}</p>
                 </div>
             </template>
@@ -159,6 +157,7 @@ import ChapterEditForm from "./ChapterEditForm.vue";
 import ChapterPreviewPane from "./ChapterPreviewPane.vue";
 import type { StartTimeAddState } from "@/types/editor";
 import type { Component } from "vue";
+import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
 
 const { t } = useI18n();
 

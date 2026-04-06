@@ -5,7 +5,7 @@
             class="absolute inset-0 bg-white/80 flex items-center justify-center z-50"
         >
             <div class="flex flex-col items-center gap-3">
-                <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <RipoSpinner :size="32" color="#2563eb" :label="t('editor.deleting')" />
                 <span class="text-gray-700 font-medium">{{ t("editor.deleting") }}</span>
             </div>
         </div>
@@ -145,6 +145,7 @@ import CardEnclosure from "@player/components/enclosures/CardEnclosure.vue";
 import ChapterSidebar from "@/components/editor/ChapterSidebar.vue";
 import ChapterWorkspace from "@/components/editor/ChapterWorkspace.vue";
 import BrokenMediaPanel from "@/components/editor/BrokenMediaPanel.vue";
+import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
 import TypeChooserModal from "@/components/editor/TypeChooserModal.vue";
 import PollDeleteConfirmModal from "@/components/editor/PollDeleteConfirmModal.vue";
 import { useRichPodStore } from "@/stores/useRichPodStore";

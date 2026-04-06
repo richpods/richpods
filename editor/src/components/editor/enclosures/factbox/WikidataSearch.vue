@@ -55,9 +55,7 @@
 
             <div class="flex-1 overflow-y-auto p-4">
                 <div v-if="isLoading" class="flex items-center justify-center py-8">
-                    <div
-                        class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"
-                    ></div>
+                    <RipoSpinner :size="24" color="#2563eb" :label="t('factboxEditor.wikidataSearch.searching')" />
                     <span class="ml-2 text-gray-600">{{ t("factboxEditor.wikidataSearch.searching") }}</span>
                 </div>
 
@@ -160,9 +158,7 @@
                         @click="handleSelect"
                     >
                         <span v-if="isGenerating" class="flex items-center gap-2">
-                            <span
-                                class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
-                            ></span>
+                            <RipoSpinner :size="16" color="white" track-color="rgba(255, 255, 255, 0.3)" :label="t('factboxEditor.wikidataSearch.generating')" />
                             {{ t("factboxEditor.wikidataSearch.generating") }}
                         </span>
                         <span v-else>{{ t("factboxEditor.wikidataSearch.useSelectedEntity") }}</span>
@@ -186,6 +182,7 @@ import {
     type FactboxTemplate,
     type LanguageGroupedResults,
 } from "@/services/wikidataService";
+import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
 
 const props = defineProps<{
     open: boolean;
