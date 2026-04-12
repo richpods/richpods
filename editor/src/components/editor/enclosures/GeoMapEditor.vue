@@ -252,7 +252,8 @@ async function setInitialView() {
 }
 
 async function resetInitialView() {
-    const { bbox: _, ...rest } = geoJsonModel.value;
+    const rest = { ...geoJsonModel.value };
+    delete rest.bbox;
     geoJsonModel.value = rest as EditorFeatureCollection;
     await nextTick();
     geoJsonEditorRef.value?.fitBounds();

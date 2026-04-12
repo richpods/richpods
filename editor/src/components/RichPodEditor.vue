@@ -156,6 +156,7 @@ import { fetchRichPodById, saveRichPod } from "@/services/richpodService";
 import { useCurrentUserRole } from "@/composables/useCurrentUserRole";
 import { useHostedValidation } from "@/composables/useHostedValidation";
 import type { EditorChapter, EnclosureType, StartTimeAddState } from "@/types/editor";
+import type { Chapter } from "@/graphql/generated";
 import type { Component } from "vue";
 import { provideSaveNow } from "@/composables/useSaveNow";
 
@@ -385,7 +386,7 @@ function onMediaRefreshed(media: { url: string; mimeType: string }) {
     richpodStore.updateMediaUrl(media.url, media.mimeType);
     setAudio(media.url);
 }
-const chaptersForPlayer = computed(() => chapters.value as unknown as any[]);
+const chaptersForPlayer = computed(() => chapters.value as unknown as Chapter[]);
 
 const enclosureTypes: EnclosureType[] = [
     { type: "Markdown", icon: "\uD83D\uDCDD" },

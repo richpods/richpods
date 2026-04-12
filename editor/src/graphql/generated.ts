@@ -2245,12 +2245,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         SignUp(
             variables: SignUpMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<SignUpMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<SignUpMutation>(SignUpDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<SignUpMutation>({
+                        document: SignUpDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "SignUp",
                 "mutation",
@@ -2260,12 +2263,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         SignIn(
             variables: SignInMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<SignInMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<SignInMutation>(SignInDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<SignInMutation>({
+                        document: SignInDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "SignIn",
                 "mutation",
@@ -2275,12 +2281,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         SignInWithGoogle(
             variables: SignInWithGoogleMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<SignInWithGoogleMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<SignInWithGoogleMutation>(SignInWithGoogleDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<SignInWithGoogleMutation>({
+                        document: SignInWithGoogleDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "SignInWithGoogle",
                 "mutation",
@@ -2290,12 +2299,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         HostedPodcasts(
             variables?: HostedPodcastsQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<HostedPodcastsQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<HostedPodcastsQuery>(HostedPodcastsDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<HostedPodcastsQuery>({
+                        document: HostedPodcastsDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "HostedPodcasts",
                 "query",
@@ -2305,12 +2317,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         HostedPodcast(
             variables: HostedPodcastQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<HostedPodcastQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<HostedPodcastQuery>(HostedPodcastDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<HostedPodcastQuery>({
+                        document: HostedPodcastDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "HostedPodcast",
                 "query",
@@ -2320,12 +2335,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         HostedEpisodes(
             variables: HostedEpisodesQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<HostedEpisodesQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<HostedEpisodesQuery>(HostedEpisodesDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<HostedEpisodesQuery>({
+                        document: HostedEpisodesDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "HostedEpisodes",
                 "query",
@@ -2335,12 +2353,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         HostedEpisode(
             variables: HostedEpisodeQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<HostedEpisodeQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<HostedEpisodeQuery>(HostedEpisodeDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<HostedEpisodeQuery>({
+                        document: HostedEpisodeDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "HostedEpisode",
                 "query",
@@ -2350,14 +2371,16 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         UpdateHostedPodcast(
             variables: UpdateHostedPodcastMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<UpdateHostedPodcastMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<UpdateHostedPodcastMutation>(
-                        UpdateHostedPodcastDocument,
+                    client.request<UpdateHostedPodcastMutation>({
+                        document: UpdateHostedPodcastDocument,
                         variables,
-                        { ...requestHeaders, ...wrappedRequestHeaders },
-                    ),
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
                 "UpdateHostedPodcast",
                 "mutation",
                 variables,
@@ -2366,14 +2389,16 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         DeleteHostedPodcast(
             variables: DeleteHostedPodcastMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<DeleteHostedPodcastMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<DeleteHostedPodcastMutation>(
-                        DeleteHostedPodcastDocument,
+                    client.request<DeleteHostedPodcastMutation>({
+                        document: DeleteHostedPodcastDocument,
                         variables,
-                        { ...requestHeaders, ...wrappedRequestHeaders },
-                    ),
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
                 "DeleteHostedPodcast",
                 "mutation",
                 variables,
@@ -2382,14 +2407,16 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         DeleteHostedEpisode(
             variables: DeleteHostedEpisodeMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<DeleteHostedEpisodeMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<DeleteHostedEpisodeMutation>(
-                        DeleteHostedEpisodeDocument,
+                    client.request<DeleteHostedEpisodeMutation>({
+                        document: DeleteHostedEpisodeDocument,
                         variables,
-                        { ...requestHeaders, ...wrappedRequestHeaders },
-                    ),
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
                 "DeleteHostedEpisode",
                 "mutation",
                 variables,
@@ -2398,12 +2425,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         InstanceInfo(
             variables?: InstanceInfoQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<InstanceInfoQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<InstanceInfoQuery>(InstanceInfoDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<InstanceInfoQuery>({
+                        document: InstanceInfoDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "InstanceInfo",
                 "query",
@@ -2413,14 +2443,16 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         PodcastEpisodeSearch(
             variables: PodcastEpisodeSearchQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<PodcastEpisodeSearchQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<PodcastEpisodeSearchQuery>(
-                        PodcastEpisodeSearchDocument,
+                    client.request<PodcastEpisodeSearchQuery>({
+                        document: PodcastEpisodeSearchDocument,
                         variables,
-                        { ...requestHeaders, ...wrappedRequestHeaders },
-                    ),
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
                 "PodcastEpisodeSearch",
                 "query",
                 variables,
@@ -2429,12 +2461,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         ExtractFeedUrl(
             variables: ExtractFeedUrlQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<ExtractFeedUrlQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<ExtractFeedUrlQuery>(ExtractFeedUrlDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<ExtractFeedUrlQuery>({
+                        document: ExtractFeedUrlDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "ExtractFeedUrl",
                 "query",
@@ -2444,12 +2479,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         PodcastMetadata(
             variables: PodcastMetadataQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<PodcastMetadataQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<PodcastMetadataQuery>(PodcastMetadataDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<PodcastMetadataQuery>({
+                        document: PodcastMetadataDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "PodcastMetadata",
                 "query",
@@ -2459,12 +2497,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         CreateRichPod(
             variables: CreateRichPodMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<CreateRichPodMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<CreateRichPodMutation>(CreateRichPodDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<CreateRichPodMutation>({
+                        document: CreateRichPodDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "CreateRichPod",
                 "mutation",
@@ -2474,12 +2515,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         UpdateRichPod(
             variables: UpdateRichPodMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<UpdateRichPodMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<UpdateRichPodMutation>(UpdateRichPodDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<UpdateRichPodMutation>({
+                        document: UpdateRichPodDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "UpdateRichPod",
                 "mutation",
@@ -2489,12 +2533,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         DeleteRichPod(
             variables: DeleteRichPodMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<DeleteRichPodMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<DeleteRichPodMutation>(DeleteRichPodDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<DeleteRichPodMutation>({
+                        document: DeleteRichPodDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "DeleteRichPod",
                 "mutation",
@@ -2504,14 +2551,16 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         SetRichPodChapters(
             variables: SetRichPodChaptersMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<SetRichPodChaptersMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<SetRichPodChaptersMutation>(
-                        SetRichPodChaptersDocument,
+                    client.request<SetRichPodChaptersMutation>({
+                        document: SetRichPodChaptersDocument,
                         variables,
-                        { ...requestHeaders, ...wrappedRequestHeaders },
-                    ),
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
                 "SetRichPodChapters",
                 "mutation",
                 variables,
@@ -2520,12 +2569,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         GetRichPod(
             variables: GetRichPodQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<GetRichPodQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<GetRichPodQuery>(GetRichPodDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<GetRichPodQuery>({
+                        document: GetRichPodDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "GetRichPod",
                 "query",
@@ -2535,14 +2587,16 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         RefreshEpisodeMedia(
             variables: RefreshEpisodeMediaMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<RefreshEpisodeMediaMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<RefreshEpisodeMediaMutation>(
-                        RefreshEpisodeMediaDocument,
+                    client.request<RefreshEpisodeMediaMutation>({
+                        document: RefreshEpisodeMediaDocument,
                         variables,
-                        { ...requestHeaders, ...wrappedRequestHeaders },
-                    ),
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
                 "RefreshEpisodeMedia",
                 "mutation",
                 variables,
@@ -2551,12 +2605,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         UserRichPods(
             variables?: UserRichPodsQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<UserRichPodsQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<UserRichPodsQuery>(UserRichPodsDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<UserRichPodsQuery>({
+                        document: UserRichPodsDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "UserRichPods",
                 "query",
@@ -2566,12 +2623,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         GetCurrentUser(
             variables?: GetCurrentUserQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<GetCurrentUserQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<GetCurrentUserQuery>(GetCurrentUserDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<GetCurrentUserQuery>({
+                        document: GetCurrentUserDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "GetCurrentUser",
                 "query",
@@ -2581,12 +2641,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         UpdateProfile(
             variables: UpdateProfileMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<UpdateProfileMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<UpdateProfileMutation>(UpdateProfileDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<UpdateProfileMutation>({
+                        document: UpdateProfileDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "UpdateProfile",
                 "mutation",
@@ -2596,12 +2659,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         UserVerifications(
             variables?: UserVerificationsQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<UserVerificationsQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<UserVerificationsQuery>(UserVerificationsDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<UserVerificationsQuery>({
+                        document: UserVerificationsDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "UserVerifications",
                 "query",
@@ -2611,14 +2677,16 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         StartRichPodVerification(
             variables: StartRichPodVerificationMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<StartRichPodVerificationMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<StartRichPodVerificationMutation>(
-                        StartRichPodVerificationDocument,
+                    client.request<StartRichPodVerificationMutation>({
+                        document: StartRichPodVerificationDocument,
                         variables,
-                        { ...requestHeaders, ...wrappedRequestHeaders },
-                    ),
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
                 "StartRichPodVerification",
                 "mutation",
                 variables,
@@ -2627,14 +2695,16 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         CompleteRichPodVerification(
             variables: CompleteRichPodVerificationMutationVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<CompleteRichPodVerificationMutation> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<CompleteRichPodVerificationMutation>(
-                        CompleteRichPodVerificationDocument,
+                    client.request<CompleteRichPodVerificationMutation>({
+                        document: CompleteRichPodVerificationDocument,
                         variables,
-                        { ...requestHeaders, ...wrappedRequestHeaders },
-                    ),
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
                 "CompleteRichPodVerification",
                 "mutation",
                 variables,

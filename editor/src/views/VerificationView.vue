@@ -352,9 +352,10 @@ async function startVerification() {
         statusMessage.value = t("verification.emailSent", { email: response.startRichPodVerification.email });
         verificationCode.value = "";
         await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Failed to start verification", error);
-        errorMessage.value = error.message || t("verification.startFailed");
+        errorMessage.value =
+            error instanceof Error ? error.message : t("verification.startFailed");
     } finally {
         isSubmitting.value = false;
     }
@@ -373,9 +374,10 @@ async function completeVerification() {
         statusMessage.value = t("verification.verificationSuccess", { feedUrl: response.completeRichPodVerification.feedUrl });
         verificationCode.value = "";
         await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Failed to complete verification", error);
-        errorMessage.value = error.message || t("verification.completeFailed");
+        errorMessage.value =
+            error instanceof Error ? error.message : t("verification.completeFailed");
     } finally {
         isSubmitting.value = false;
     }

@@ -655,7 +655,7 @@ export type ResolverTypeWrapper<T> = Promise<T> | T;
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
   resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
 };
-export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> = ResolverFn<TResult, TParent, TContext, TArgs> | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
+export type Resolver<TResult, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>, TArgs = Record<PropertyKey, never>> = ResolverFn<TResult, TParent, TContext, TArgs> | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
 
 export type ResolverFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
@@ -692,21 +692,21 @@ export type SubscriptionObject<TResult, TKey extends string, TParent, TContext, 
   | SubscriptionSubscriberObject<TResult, TKey, TParent, TContext, TArgs>
   | SubscriptionResolverObject<TResult, TParent, TContext, TArgs>;
 
-export type SubscriptionResolver<TResult, TKey extends string, TParent = {}, TContext = {}, TArgs = {}> =
+export type SubscriptionResolver<TResult, TKey extends string, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>, TArgs = Record<PropertyKey, never>> =
   | ((...args: any[]) => SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>)
   | SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>;
 
-export type TypeResolveFn<TTypes, TParent = {}, TContext = {}> = (
+export type TypeResolveFn<TTypes, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>> = (
   parent: TParent,
   context: TContext,
   info: GraphQLResolveInfo
 ) => Maybe<TTypes> | Promise<Maybe<TTypes>>;
 
-export type IsTypeOfResolverFn<T = {}, TContext = {}> = (obj: T, context: TContext, info: GraphQLResolveInfo) => boolean | Promise<boolean>;
+export type IsTypeOfResolverFn<T = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>> = (obj: T, context: TContext, info: GraphQLResolveInfo) => boolean | Promise<boolean>;
 
 export type NextResolverFn<T> = () => Promise<T>;
 
-export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs = {}> = (
+export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>, TArgs = Record<PropertyKey, never>> = (
   next: NextResolverFn<TResult>,
   parent: TParent,
   args: TArgs,
@@ -714,14 +714,31 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
   info: GraphQLResolveInfo
 ) => TResult | Promise<TResult>;
 
+
+
 /** Mapping of union types */
 export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
-  Enclosure: ( Card ) | ( Factbox ) | ( GeoMap ) | ( InteractiveChart ) | ( Markdown ) | ( Poll ) | ( Slideshow );
+  Enclosure:
+    | ( Card )
+    | ( Factbox )
+    | ( GeoMap )
+    | ( InteractiveChart )
+    | ( Markdown )
+    | ( Poll )
+    | ( Slideshow )
+  ;
 };
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = {
-  BaseEnclosure: ( Card ) | ( Factbox ) | ( GeoMap ) | ( InteractiveChart ) | ( Markdown ) | ( Slideshow );
+  BaseEnclosure:
+    | ( Card )
+    | ( Factbox )
+    | ( GeoMap )
+    | ( InteractiveChart )
+    | ( Markdown )
+    | ( Slideshow )
+  ;
 };
 
 /** Mapping between all available schema types and the resolvers types */
@@ -756,7 +773,7 @@ export type ResolversTypes = {
   InteractiveChart: ResolverTypeWrapper<InteractiveChart>;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   Markdown: ResolverTypeWrapper<Markdown>;
-  Mutation: ResolverTypeWrapper<{}>;
+  Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PaginatedHostedEpisodes: ResolverTypeWrapper<PaginatedHostedEpisodes>;
   PaginatedHostedPodcasts: ResolverTypeWrapper<PaginatedHostedPodcasts>;
   PaginatedRichPods: ResolverTypeWrapper<Omit<PaginatedRichPods, 'items'> & { items: Array<ResolversTypes['RichPod']> }>;
@@ -772,7 +789,7 @@ export type ResolversTypes = {
   PodcastOrigin: ResolverTypeWrapper<PodcastOrigin>;
   PodcastOriginInput: PodcastOriginInput;
   Poll: ResolverTypeWrapper<Poll>;
-  Query: ResolverTypeWrapper<{}>;
+  Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   RichPod: ResolverTypeWrapper<Omit<RichPod, 'chapters'> & { chapters: Array<ResolversTypes['Chapter']> }>;
   RichPodState: RichPodState;
   RichPodVerificationStatus: RichPodVerificationStatus;
@@ -816,7 +833,7 @@ export type ResolversParentTypes = {
   InteractiveChart: InteractiveChart;
   JSON: Scalars['JSON']['output'];
   Markdown: Markdown;
-  Mutation: {};
+  Mutation: Record<PropertyKey, never>;
   PaginatedHostedEpisodes: PaginatedHostedEpisodes;
   PaginatedHostedPodcasts: PaginatedHostedPodcasts;
   PaginatedRichPods: Omit<PaginatedRichPods, 'items'> & { items: Array<ResolversParentTypes['RichPod']> };
@@ -832,7 +849,7 @@ export type ResolversParentTypes = {
   PodcastOrigin: PodcastOrigin;
   PodcastOriginInput: PodcastOriginInput;
   Poll: Poll;
-  Query: {};
+  Query: Record<PropertyKey, never>;
   RichPod: Omit<RichPod, 'chapters'> & { chapters: Array<ResolversParentTypes['Chapter']> };
   SignInInput: SignInInput;
   SignUpInput: SignUpInput;
@@ -849,12 +866,10 @@ export type ResolversParentTypes = {
 export type AuthPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['AuthPayload'] = ResolversParentTypes['AuthPayload']> = {
   token?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type BaseEnclosureResolvers<ContextType = any, ParentType extends ResolversParentTypes['BaseEnclosure'] = ResolversParentTypes['BaseEnclosure']> = {
   __resolveType: TypeResolveFn<'Card' | 'Factbox' | 'GeoMap' | 'InteractiveChart' | 'Markdown' | 'Slideshow', ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type CardResolvers<ContextType = any, ParentType extends ResolversParentTypes['Card'] = ResolversParentTypes['Card']> = {
@@ -881,19 +896,16 @@ export type CardOpenGraphResolvers<ContextType = any, ParentType extends Resolve
   ogImageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   ogImageWidth?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   ogTitle?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type ChapterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Chapter'] = ResolversParentTypes['Chapter']> = {
   begin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   enclosure?: Resolver<ResolversTypes['Enclosure'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type ColoeusResolvers<ContextType = any, ParentType extends ResolversParentTypes['Coloeus'] = ResolversParentTypes['Coloeus']> = {
   endpoint?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   pollId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type EnclosureResolvers<ContextType = any, ParentType extends ResolversParentTypes['Enclosure'] = ResolversParentTypes['Enclosure']> = {
@@ -910,7 +922,6 @@ export type EpisodeInfoResolvers<ContextType = any, ParentType extends Resolvers
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type FactboxResolvers<ContextType = any, ParentType extends ResolversParentTypes['Factbox'] = ResolversParentTypes['Factbox']> = {
@@ -923,7 +934,6 @@ export type FactboxResolvers<ContextType = any, ParentType extends ResolversPare
 export type FactboxLinkResolvers<ContextType = any, ParentType extends ResolversParentTypes['FactboxLink'] = ResolversParentTypes['FactboxLink']> = {
   label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export interface GeoJsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['GeoJSON'], any> {
@@ -953,7 +963,6 @@ export type HostedEpisodeResolvers<ContextType = any, ParentType extends Resolve
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   validationError?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   validationStatus?: Resolver<ResolversTypes['HostedEpisodeValidationStatus'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type HostedPodcastResolvers<ContextType = any, ParentType extends ResolversParentTypes['HostedPodcast'] = ResolversParentTypes['HostedPodcast']> = {
@@ -973,7 +982,6 @@ export type HostedPodcastResolvers<ContextType = any, ParentType extends Resolve
   link?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type HostingLimitsResolvers<ContextType = any, ParentType extends ResolversParentTypes['HostingLimits'] = ResolversParentTypes['HostingLimits']> = {
@@ -981,7 +989,6 @@ export type HostingLimitsResolvers<ContextType = any, ParentType extends Resolve
   mp3MaxDurationMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   mp3MaxFileSizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   mp3MinFileSizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type InstanceInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['InstanceInfo'] = ResolversParentTypes['InstanceInfo']> = {
@@ -989,7 +996,6 @@ export type InstanceInfoResolvers<ContextType = any, ParentType extends Resolver
   hosting?: Resolver<ResolversTypes['HostingLimits'], ParentType, ContextType>;
   serverVersion?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type InteractiveChartResolvers<ContextType = any, ParentType extends ResolversParentTypes['InteractiveChart'] = ResolversParentTypes['InteractiveChart']> = {
@@ -1030,25 +1036,21 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 export type PaginatedHostedEpisodesResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaginatedHostedEpisodes'] = ResolversParentTypes['PaginatedHostedEpisodes']> = {
   items?: Resolver<Array<ResolversTypes['HostedEpisode']>, ParentType, ContextType>;
   nextCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PaginatedHostedPodcastsResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaginatedHostedPodcasts'] = ResolversParentTypes['PaginatedHostedPodcasts']> = {
   items?: Resolver<Array<ResolversTypes['HostedPodcast']>, ParentType, ContextType>;
   nextCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PaginatedRichPodsResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaginatedRichPods'] = ResolversParentTypes['PaginatedRichPods']> = {
   items?: Resolver<Array<ResolversTypes['RichPod']>, ParentType, ContextType>;
   nextCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PaginatedVerificationsResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaginatedVerifications'] = ResolversParentTypes['PaginatedVerifications']> = {
   items?: Resolver<Array<ResolversTypes['Verification']>, ParentType, ContextType>;
   nextCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PodcastEpisodeResolvers<ContextType = any, ParentType extends ResolversParentTypes['PodcastEpisode'] = ResolversParentTypes['PodcastEpisode']> = {
@@ -1058,7 +1060,6 @@ export type PodcastEpisodeResolvers<ContextType = any, ParentType extends Resolv
   media?: Resolver<ResolversTypes['PodcastMedia'], ParentType, ContextType>;
   pubDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PodcastEpisodeSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['PodcastEpisodeSearchResult'] = ResolversParentTypes['PodcastEpisodeSearchResult']> = {
@@ -1071,7 +1072,6 @@ export type PodcastEpisodeSearchResultResolvers<ContextType = any, ParentType ex
   feedUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   genre?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   podcastTitle?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PodcastInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['PodcastInfo'] = ResolversParentTypes['PodcastInfo']> = {
@@ -1079,7 +1079,6 @@ export type PodcastInfoResolvers<ContextType = any, ParentType extends Resolvers
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   link?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PodcastMediaResolvers<ContextType = any, ParentType extends ResolversParentTypes['PodcastMedia'] = ResolversParentTypes['PodcastMedia']> = {
@@ -1088,7 +1087,6 @@ export type PodcastMediaResolvers<ContextType = any, ParentType extends Resolver
   mediaCheck?: Resolver<Maybe<ResolversTypes['PodcastMediaCheck']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PodcastMediaCheckResolvers<ContextType = any, ParentType extends ResolversParentTypes['PodcastMediaCheck'] = ResolversParentTypes['PodcastMediaCheck']> = {
@@ -1099,13 +1097,11 @@ export type PodcastMediaCheckResolvers<ContextType = any, ParentType extends Res
   httpStatus?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   lastModified?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PodcastMetadataResolvers<ContextType = any, ParentType extends ResolversParentTypes['PodcastMetadata'] = ResolversParentTypes['PodcastMetadata']> = {
   episodes?: Resolver<Array<ResolversTypes['EpisodeInfo']>, ParentType, ContextType>;
   podcast?: Resolver<ResolversTypes['PodcastInfo'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PodcastOriginResolvers<ContextType = any, ParentType extends ResolversParentTypes['PodcastOrigin'] = ResolversParentTypes['PodcastOrigin']> = {
@@ -1116,7 +1112,6 @@ export type PodcastOriginResolvers<ContextType = any, ParentType extends Resolve
   link?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   verified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PollResolvers<ContextType = any, ParentType extends ResolversParentTypes['Poll'] = ResolversParentTypes['Poll']> = {
@@ -1155,7 +1150,6 @@ export type RichPodResolvers<ContextType = any, ParentType extends ResolversPare
   state?: Resolver<ResolversTypes['RichPodState'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type SlideResolvers<ContextType = any, ParentType extends ResolversParentTypes['Slide'] = ResolversParentTypes['Slide']> = {
@@ -1163,7 +1157,6 @@ export type SlideResolvers<ContextType = any, ParentType extends ResolversParent
   credit?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   imageAlt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type SlideshowResolvers<ContextType = any, ParentType extends ResolversParentTypes['Slideshow'] = ResolversParentTypes['Slideshow']> = {
@@ -1184,7 +1177,6 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   totalQuotaBytes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   usedQuotaBytes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type VerificationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Verification'] = ResolversParentTypes['Verification']> = {
@@ -1195,7 +1187,6 @@ export type VerificationResolvers<ContextType = any, ParentType extends Resolver
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   state?: Resolver<ResolversTypes['RichPodVerificationStatus'], ParentType, ContextType>;
   verificationTimestamp?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = any> = {

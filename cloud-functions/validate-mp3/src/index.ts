@@ -1,4 +1,4 @@
-import { cloudEvent } from "@google-cloud/functions-framework";
+import { cloudEvent, type CloudEvent } from "@google-cloud/functions-framework";
 import { Firestore, FieldValue } from "@google-cloud/firestore";
 import { Storage } from "@google-cloud/storage";
 import { parseBuffer } from "music-metadata";
@@ -192,7 +192,7 @@ async function recordInvalidUpload(
     await deleteInvalidObject(bucketName, objectName);
 }
 
-cloudEvent<StorageObjectData>("validateMp3", async (event) => {
+cloudEvent<StorageObjectData>("validateMp3", async (event: CloudEvent<StorageObjectData>) => {
     const data = event.data;
     if (!data) {
         console.info("No event data, skipping");

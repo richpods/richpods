@@ -303,7 +303,8 @@ onMounted(() => {
         const chart = getChartObject();
         if (chart) {
             // Remove metadata for display, user shouldn't edit it directly
-            const { metadata, ...echartsConfig } = chart;
+            const echartsConfig = { ...chart };
+            delete (echartsConfig as Record<string, unknown>).metadata;
             jsonTextInput.value = JSON.stringify(echartsConfig, null, 2);
         }
     }
@@ -639,7 +640,8 @@ function updatePreview() {
                 if (chart) {
                     // Deep clone to avoid Proxy serialization issues with postMessage
                     // Remove metadata before passing to ECharts
-                    const { metadata, ...echartsConfig } = JSON.parse(JSON.stringify(chart));
+                    const echartsConfig = JSON.parse(JSON.stringify(chart));
+                    delete echartsConfig.metadata;
                     sandbox.setOption(echartsConfig);
                 }
             } else {

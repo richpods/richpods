@@ -27,7 +27,7 @@
 import { computed } from "vue";
 import { ITUNES_CATEGORIES } from "@richpods/shared/utils/itunesCategories";
 
-const props = defineProps<{
+defineProps<{
     modelValue: string;
     label?: string;
     placeholder?: string;

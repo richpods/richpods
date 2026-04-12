@@ -19,7 +19,7 @@
                             :src="result.artwork"
                             alt=""
                             class="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover border border-gray-200"
-                            @error="handleImageError($event, result)"
+                            @error="handleImageError($event)"
                         />
                         <div
                             v-else
@@ -109,7 +109,7 @@ function formatDate(dateString: string): string {
 }
 
 // Handle broken images - replace with icon fallback
-function handleImageError(event: Event, result: PodcastEpisodeSearchResult) {
+function handleImageError(event: Event) {
     const img = event.target as HTMLImageElement;
     const container = img.parentElement;
     if (container) {

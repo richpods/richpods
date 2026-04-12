@@ -67,7 +67,8 @@ function getEChartsOption(): Record<string, unknown> {
     } else {
         // ECharts format: chart = { series: [...], xAxis: {...}, ..., metadata: {...} }
         // Remove metadata before passing to ECharts
-        const { metadata, ...echartsConfig } = chart;
+        const echartsConfig = { ...chart };
+        delete echartsConfig.metadata;
         return echartsConfig;
     }
 }

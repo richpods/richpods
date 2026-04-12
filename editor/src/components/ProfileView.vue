@@ -109,20 +109,6 @@ const accountType = computed(() => {
     return t("profile.emailAccount");
 });
 
-const providerName = computed(() => {
-    if (!user.value) return "";
-
-    const providers = user.value.providerData;
-    if (providers && providers.length > 0) {
-        const provider = providers[0];
-        if (provider.providerId === "google.com") {
-            return t("profile.providedByGoogle");
-        }
-    }
-
-    return t("profile.userUploaded");
-});
-
 const roleLabel = computed(() => {
     if (currentUserRole.value === "super_admin") {
         return t("profile.roleSuperAdmin");

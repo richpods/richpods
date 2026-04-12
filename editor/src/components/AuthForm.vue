@@ -121,9 +121,9 @@ const handleSubmit = async () => {
         }
 
         router.replace({ name: "richpods" });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Authentication error:", err);
-        error.value = err.message || t("auth.authFailed");
+        error.value = err instanceof Error ? err.message : t("auth.authFailed");
     } finally {
         signingIn.value = false;
         loading.value = false;
@@ -148,9 +148,9 @@ const handleGoogleSignIn = async () => {
         });
 
         router.replace({ name: "richpods" });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Google sign-in error:", err);
-        error.value = err.message || t("auth.googleSignInFailed");
+        error.value = err instanceof Error ? err.message : t("auth.googleSignInFailed");
     } finally {
         signingIn.value = false;
         loading.value = false;

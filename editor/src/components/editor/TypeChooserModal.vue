@@ -184,7 +184,8 @@ function isTypeDisabled(type: string): boolean {
     return false;
 }
 
-function isCardTypeDisabled(_cardType: CardSubtype): boolean {
+function isCardTypeDisabled(cardType: CardSubtype): boolean {
+    void cardType;
     return false;
 }
 

@@ -321,7 +321,7 @@ async function downloadWithLimitOnce(
 
         let stream: ReturnType<typeof got.stream>;
         try {
-            stream = got.stream(url, { ...requestOptions, isStream: true });
+            stream = got.stream(url, requestOptions);
         } catch (error) {
             settle(fail(normalizeRemoteFetchError(error)));
             return;

@@ -41,8 +41,8 @@ export function useQuota() {
                 remainingBytes,
                 percentUsed,
             };
-        } catch (err: any) {
-            error.value = err.message || t("quota.fetchFailed");
+        } catch (err: unknown) {
+            error.value = err instanceof Error ? err.message : t("quota.fetchFailed");
             quotaInfo.value = null;
         } finally {
             loading.value = false;

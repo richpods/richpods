@@ -72,8 +72,8 @@ export function useUpload() {
                 : `${apiUrl}${data.downloadUrl}`;
 
             return downloadUrl;
-        } catch (err: any) {
-            error.value = err.message || t("upload.uploadFailed");
+        } catch (err: unknown) {
+            error.value = err instanceof Error ? err.message : t("upload.uploadFailed");
             return null;
         } finally {
             uploading.value = false;

@@ -5,7 +5,6 @@
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "esModuleInterop": true,
-        "baseUrl": ".",
         "rootDir": ".",
         "outDir": "build",
         "paths": {

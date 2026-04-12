@@ -510,7 +510,6 @@ const origin = computed(() => richpod.value.origin);
 const artworkUrl = computed(
     () => origin.value?.episode?.artworkUrl || origin.value?.artworkUrl || "",
 );
-const richpodId = computed(() => richpod.value.id ?? "");
 </script>
 
 <style lang="scss" scoped>

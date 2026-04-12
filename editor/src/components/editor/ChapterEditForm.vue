@@ -34,7 +34,7 @@ import PollEditor from "./enclosures/PollEditor.vue";
 import FactboxEditor from "./enclosures/FactboxEditor.vue";
 import CardEditor from "./enclosures/CardEditor.vue";
 
-const props = defineProps<{
+defineProps<{
     isSaving: boolean;
 }>();
 

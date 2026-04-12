@@ -272,7 +272,24 @@ function closeErrorDialog() {
 
 // Manual URL functionality
 const manualUrl = ref("");
-const manualEpisodes = ref<any[]>([]);
+type ManualEpisode = {
+    guid: string;
+    episodeGuid: string;
+    title: string;
+    description: string;
+    feedUrl: string;
+    artwork?: string;
+    podcastArtwork?: string;
+    podcastTitle: string;
+    podcastLink: string;
+    publicationDate?: string;
+    url?: string;
+    type?: string;
+    length?: number;
+    checksum?: string;
+    link?: string;
+};
+const manualEpisodes = ref<ManualEpisode[]>([]);
 const manualLoading = ref(false);
 const manualError = ref("");
 
@@ -310,9 +327,10 @@ async function handleSearch() {
         if (searchResults.value.length === 0) {
             searchError.value = t("episodeSearch.noPodcastsFound");
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Search error:", error);
-        searchError.value = error.message || t("episodeSearch.searchFailed");
+        searchError.value =
+            error instanceof Error ? error.message : t("episodeSearch.searchFailed");
     } finally {
         searchLoading.value = false;
     }
@@ -333,7 +351,7 @@ async function handleManualSubmit() {
         try {
             const extractResponse = await graphqlSdk.ExtractFeedUrl({ url: feedUrl });
             feedUrl = extractResponse.extractFeedUrl;
-        } catch (extractError) {
+        } catch {
             console.log("Direct feed URL or extraction failed, trying as is");
         }
 
@@ -345,7 +363,7 @@ async function handleManualSubmit() {
 
         // Map all episodes from the podcast feed
         const podcastMeta = metadataResponse.podcastMetadata.podcast;
-        manualEpisodes.value = metadataResponse.podcastMetadata.episodes.map(episode => ({
+        manualEpisodes.value = metadataResponse.podcastMetadata.episodes.map((episode) => ({
             guid: episode.guid,
             episodeGuid: episode.guid,  // Add this for compatibility
             title: episode.title,
@@ -353,35 +371,65 @@ async function handleManualSubmit() {
                 title: podcastMeta.title,
             }),
             feedUrl,
-            artwork: episode.artwork,
-            podcastArtwork: podcastMeta.artwork,
+            artwork: episode.artwork ?? undefined,
+            podcastArtwork: podcastMeta.artwork ?? undefined,
             podcastTitle: podcastMeta.title,
             podcastLink: podcastMeta.link,
-            publicationDate: episode.publicationDate,
-            url: episode.url,
-            type: episode.type,
-            length: episode.length,
-            checksum: episode.checksum,
-            link: episode.link,
+            publicationDate: episode.publicationDate ?? undefined,
+            url: episode.url ?? undefined,
+            type: episode.type ?? undefined,
+            length: episode.length ?? undefined,
+            checksum: episode.checksum ?? undefined,
+            link: episode.link ?? undefined,
         }));
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Manual URL error:", error);
-        const gqlMessage = error?.response?.errors?.[0]?.message;
-        manualError.value = gqlMessage || error.message || t("episodeSearch.manualUrlFailed");
+        const err = error as { response?: { errors?: Array<{ message: string }> }; message?: string };
+        const gqlMessage = err?.response?.errors?.[0]?.message;
+        manualError.value = gqlMessage || err?.message || t("episodeSearch.manualUrlFailed");
     } finally {
         manualLoading.value = false;
     }
 }
 
+type RssEpisode = {
+    title: string;
+    artwork: string;
+    link: string;
+    publicationDate: string;
+    url: string;
+    type: string;
+    length: number;
+    checksum: string;
+};
+
 // Handle episode selection from either search or manual
-async function handleEpisodeSelect(episode: any) {
+async function handleEpisodeSelect(episodeInput: unknown) {
+    const episode = episodeInput as Record<string, unknown> & {
+        feedUrl: string;
+        guid?: string;
+        episodeGuid?: string;
+        episodeTitle?: string;
+        title?: string;
+        description?: string;
+        artwork?: string;
+        podcastArtwork?: string;
+        podcastTitle: string;
+        podcastLink?: string;
+        publicationDate?: string;
+        url?: string;
+        type?: string;
+        length?: number;
+        checksum?: string;
+        link?: string;
+    };
     try {
-        let feedUrl = episode.feedUrl;
-        let episodeGuid = episode.episodeGuid || episode.guid;
-        
+        const feedUrl = episode.feedUrl;
+        const episodeGuid = episode.episodeGuid || episode.guid;
+
         // Fetch RSS metadata for the episode — this is the primary source for artwork
-        let rssEpisode: typeof episode | undefined;
+        let rssEpisode: RssEpisode | undefined;
         let rssPodcast: { title: string; artwork: string; link: string } | undefined;
 
         if (!episode.checksum) {
@@ -391,17 +439,31 @@ async function handleEpisodeSelect(episode: any) {
                 episodeGuid,
             });
             rssPodcast = metadataResponse.podcastMetadata.podcast;
-            rssEpisode = metadataResponse.podcastMetadata.episodes.find(
-                ep => ep.guid === episodeGuid
-            ) || metadataResponse.podcastMetadata.episodes[0];
+            rssEpisode =
+                metadataResponse.podcastMetadata.episodes.find(
+                    (ep) => ep.guid === episodeGuid,
+                ) || metadataResponse.podcastMetadata.episodes[0];
         } else {
             // Manual search path: episode already has RSS data
-            rssEpisode = episode;
+            rssEpisode = {
+                title: episode.title ?? "",
+                artwork: episode.artwork ?? "",
+                link: episode.link ?? "",
+                publicationDate: episode.publicationDate ?? "",
+                url: episode.url ?? "",
+                type: episode.type ?? "",
+                length: episode.length ?? 0,
+                checksum: episode.checksum ?? "",
+            };
             rssPodcast = {
                 title: episode.podcastTitle,
                 artwork: episode.podcastArtwork || "",
                 link: episode.podcastLink || "",
             };
+        }
+
+        if (!rssEpisode) {
+            throw new Error(t("episodeSearch.invalidAudioMedia"));
         }
 
         // Validate that we have required media information
@@ -427,7 +489,7 @@ async function handleEpisodeSelect(episode: any) {
         // Create a new RichPod with the episode data
         const richPodResponse = await graphqlSdk.CreateRichPod({
             input: {
-                title: rssEpisode.title || episode.episodeTitle,
+                title: rssEpisode.title || episode.episodeTitle || "",
                 description:
                     episode.description ||
                     t("episodeSearch.episodeFromPodcast", { title: episode.podcastTitle }),
@@ -438,7 +500,7 @@ async function handleEpisodeSelect(episode: any) {
                     artworkUrl: podcastArtwork,
                     episode: {
                         guid: episodeGuid || Date.now().toString(),
-                        title: rssEpisode.title || episode.episodeTitle,
+                        title: rssEpisode.title || episode.episodeTitle || "",
                         artworkUrl: episodeArtwork,
                         link: rssEpisode.link || episode.link || "",
                         pubDate,

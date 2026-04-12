@@ -424,9 +424,9 @@ async function handleDelete(id: string) {
         await graphqlSdk.DeleteRichPod({ id });
         // Remove from local list
         richPods.value = richPods.value.filter((rp) => rp.id !== id);
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Error deleting RichPod:", err);
-        alert(err.message || t("myRichPods.deleteFailed"));
+        alert(err instanceof Error ? err.message : t("myRichPods.deleteFailed"));
     }
 }
 
