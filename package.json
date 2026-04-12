@@ -6,6 +6,11 @@
     "engines": {
         "node": ">=24.0.0"
     },
+    "pnpm": {
+        "overrides": {
+            "vite": "8.0.8"
+        }
+    },
     "scripts": {
         "preinstall": "node -e \"const ua = process.env.npm_config_user_agent || ''; if (!ua.includes('pnpm/')) { console.error('\\nThis repository uses pnpm. Run: corepack enable && pnpm install\\n'); process.exit(1); }\"",
         "dev:server": "pnpm --filter @richpods/server dev",
