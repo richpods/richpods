@@ -19,6 +19,11 @@
                 {{ richPod.origin.title }}
             </div>
             <div class="info-area">
+                <ShareIconButton
+                    variant="compact"
+                    :label="t('player.share')"
+                    @click="toggleShareDialog"
+                />
                 <button @click="toggleInfoDialog" class="control-button info-button">
                     {{ t("player.info") }}
                 </button>
@@ -41,6 +46,12 @@
             <div class="sidebar-artwork">
                 <img :src="artworkUrl" :alt="richPod.origin.title">
             </div>
+            <ShareIconButton
+                variant="labeled"
+                class="sidebar-share"
+                :label="t('player.share')"
+                @click="toggleShareDialog"
+            />
             <div v-if="richPod.origin" class="sidebar-info">
                 <h3>{{ t("infoDialog.originalPodcastTitle") }}</h3>
                 <p>
@@ -79,6 +90,7 @@
             <ChapterFlow :currentTime="currentTime" />
         </div>
         <InfoDialog ref="infoDialog" />
+        <ShareDialog ref="shareDialog" />
     </div>
 </template>
 <script setup lang="ts">
@@ -92,6 +104,8 @@ import { useDeepLink } from "@/composables/useDeepLink.ts";
 import { useMediaSession } from "@/composables/useMediaSession.ts";
 import PlayerControls from "@/components/PlayerControls.vue";
 import InfoDialog from "@/components/InfoDialog.vue";
+import ShareDialog from "@/components/ShareDialog.vue";
+import ShareIconButton from "@/components/ShareIconButton.vue";
 
 const REPORT_EMAIL = import.meta.env.VITE_REPORT_EMAIL || "contact@richpods.org";
 
@@ -159,6 +173,11 @@ watch(isPaused, (pauseState) => {
 const infoDialog = useTemplateRef("infoDialog");
 function toggleInfoDialog() {
     infoDialog.value?.toggle();
+}
+
+const shareDialog = useTemplateRef("shareDialog");
+function toggleShareDialog() {
+    shareDialog.value?.toggle();
 }
 </script>
 <style lang="scss">
@@ -261,6 +280,7 @@ function toggleInfoDialog() {
         grid-area: info;
         display: flex;
         align-items: start;
+        gap: 6px;
     }
 
     .info-button {
@@ -419,6 +439,10 @@ function toggleInfoDialog() {
             font-weight: 700;
             letter-spacing: -0.4px;
             margin: 0 0 4px;
+        }
+
+        .sidebar-share {
+            margin-bottom: 16px;
         }
 
         > .explicit-badge {

@@ -32,10 +32,22 @@
         "openEpisode": "Open Original Episode"
     },
     "player": {
-        "explicit": "Explicit"
+        "explicit": "Explicit",
+        "share": "Share"
     },
     "infoDialog": {
         "explicit": "Explicit",
         "reportRichPod": "Report RichPod"
+    },
+    "shareDialog": {
+        "title": "Share this RichPod",
+        "description": "Copy the link or embed this player on any website.",
+        "linkLabel": "Link",
+        "embedLabel": "Embed code",
+        "embedHint": "Paste this snippet into your website's HTML to embed the player.",
+        "copy": "Copy",
+        "copyEmbed": "Copy code",
+        "copied": "Copied!",
+        "nativeShare": "Share…"
     }
 }
