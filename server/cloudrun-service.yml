@@ -26,6 +26,8 @@ spec:
                           cpu: "1"
                           memory: 256Mi
                   env:
+                      - name: NODE_ENV
+                        value: production
                       - name: GOOGLE_CLOUD_PROJECT
                         value: $GOOGLE_CLOUD_PROJECT
                       - name: GCS_BUCKET_NAME
@@ -38,6 +40,8 @@ spec:
                         value: $CORS_ALLOWED_ORIGINS
                       - name: API_BASE_URL
                         value: $API_BASE_URL
+                      - name: WEBSITE_HOSTED_PODCAST_URL_PATTERN
+                        value: $WEBSITE_HOSTED_PODCAST_URL_PATTERN
                       - name: FIREBASE_API_KEY
                         value: $FIREBASE_API_KEY
                       - name: POSTMARK_FROM_EMAIL

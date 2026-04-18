@@ -6,6 +6,7 @@ import { deletePodcastChannelFiles, getHostedPublicUrl } from "./hosted-storage.
 import type {
     HostedPodcast,
     CreateHostedPodcastInput,
+    PublicHostedPodcast,
     UpdateHostedPodcastInput,
 } from "../graphql.js";
 import type { PaginatedResult } from "../utils/pagination.js";
@@ -43,6 +44,15 @@ function mapToGraphQL(
         itunesType: data.itunesType,
         copyright: data.copyright,
         applePodcastsVerifyTxt: data.applePodcastsVerifyTxt,
+        // Legacy documents pre-date the customWebsite flag. Treat a missing field as
+        // "custom website on" so their stored `link` continues to drive the channel link
+        // and is surfaced in the editor toggle instead of being silently overwritten
+        // with the auto-generated URL.
+        customWebsite: data.customWebsite ?? true,
+        platformLinkApplePodcasts: data.platformLinkApplePodcasts ?? null,
+        platformLinkSpotify: data.platformLinkSpotify ?? null,
+        platformLinkAmazonMusic: data.platformLinkAmazonMusic ?? null,
+        platformLinkYouTubeMusic: data.platformLinkYouTubeMusic ?? null,
         coverImageUrl: getHostedPublicUrl(data.gcsCoverImageName),
         episodeCount,
         feedUrl: buildFeedUrl(id),
@@ -60,10 +70,18 @@ export async function createHostedPodcast(
 ): Promise<HostedPodcast> {
     const docRef = db.collection(HOSTED_PODCASTS_COLLECTION).doc(podcastId);
 
+    const customWebsite = input.customWebsite ?? false;
+    const trimmedLink = input.link?.trim() ?? "";
+    if (customWebsite && !trimmedLink) {
+        throw new ValidationError("Validation failed for input", [
+            "link: a valid website URL is required when customWebsite is true",
+        ]);
+    }
+    const link = trimmedLink || "https://www.richpods.org";
     const docData = {
         title: input.title,
         description: input.description,
-        link: input.link?.trim() || "https://www.richpods.org",
+        link,
         language: input.language,
         itunesCategory: input.itunesCategory,
         itunesExplicit: input.itunesExplicit,
@@ -71,6 +89,11 @@ export async function createHostedPodcast(
         itunesType: input.itunesType || null,
         copyright: input.copyright || null,
         applePodcastsVerifyTxt: input.applePodcastsVerifyTxt || null,
+        customWebsite,
+        platformLinkApplePodcasts: input.platformLinkApplePodcasts?.trim() || null,
+        platformLinkSpotify: input.platformLinkSpotify?.trim() || null,
+        platformLinkAmazonMusic: input.platformLinkAmazonMusic?.trim() || null,
+        platformLinkYouTubeMusic: input.platformLinkYouTubeMusic?.trim() || null,
         gcsCoverImageName,
         coverImageMimeType,
         editor: getUserReference(editorUserId),
@@ -96,12 +119,44 @@ export async function getHostedPodcastById(
 
     const data = doc.data() as HostedPodcastDocument;
     if (data.editor.id !== editorUserId) {
-        console.warn(`Unauthorized podcast access attempt: user ${editorUserId} tried to access podcast ${id} owned by ${data.editor.id}`);
+        console.warn(
+            `Unauthorized podcast access attempt: user ${editorUserId} tried to access podcast ${id} owned by ${data.editor.id}`,
+        );
         throw new Error("Unauthorized: You can only access your own hosted podcasts");
     }
 
     const episodeCount = await countEpisodes(id);
     return mapToGraphQL(id, data, episodeCount);
+}
+
+function mapToPublic(id: string, data: HostedPodcastDocument): PublicHostedPodcast {
+    return {
+        id,
+        title: data.title,
+        description: data.description,
+        link: data.link,
+        language: data.language,
+        itunesCategory: data.itunesCategory,
+        itunesExplicit: data.itunesExplicit,
+        itunesAuthor: data.itunesAuthor,
+        itunesType: data.itunesType,
+        copyright: data.copyright,
+        customWebsite: data.customWebsite ?? true,
+        platformLinkApplePodcasts: data.platformLinkApplePodcasts ?? null,
+        platformLinkSpotify: data.platformLinkSpotify ?? null,
+        platformLinkAmazonMusic: data.platformLinkAmazonMusic ?? null,
+        platformLinkYouTubeMusic: data.platformLinkYouTubeMusic ?? null,
+        coverImageUrl: getHostedPublicUrl(data.gcsCoverImageName),
+        feedUrl: buildFeedUrl(id),
+    };
+}
+
+export async function getPublicHostedPodcast(id: string): Promise<PublicHostedPodcast | null> {
+    const doc = await db.collection(HOSTED_PODCASTS_COLLECTION).doc(id).get();
+    if (!doc.exists) {
+        return null;
+    }
+    return mapToPublic(id, doc.data() as HostedPodcastDocument);
 }
 
 /**
@@ -123,16 +178,16 @@ export async function getUserHostedPodcasts(
     afterCursor?: string | null,
 ): Promise<PaginatedResult<HostedPodcast>> {
     const userRef = getUserReference(editorUserId);
-    const baseQuery = db
-        .collection(HOSTED_PODCASTS_COLLECTION)
-        .where("editor", "==", userRef);
+    const baseQuery = db.collection(HOSTED_PODCASTS_COLLECTION).where("editor", "==", userRef);
 
     let orderedQuery = baseQuery.orderBy("updatedAt", "desc").limit(pageSize + 1);
 
     if (afterCursor) {
         const cursorDoc = await db.collection(HOSTED_PODCASTS_COLLECTION).doc(afterCursor).get();
         if (!cursorDoc.exists) {
-            throw new ValidationError("Validation failed for after", ["after: invalid or stale cursor"]);
+            throw new ValidationError("Validation failed for after", [
+                "after: invalid or stale cursor",
+            ]);
         }
         orderedQuery = orderedQuery.startAfter(cursorDoc);
     }
@@ -167,7 +222,9 @@ export async function updateHostedPodcast(
 
     const data = doc.data() as HostedPodcastDocument;
     if (data.editor.id !== editorUserId) {
-        console.warn(`Unauthorized podcast update attempt: user ${editorUserId} tried to edit podcast ${id} owned by ${data.editor.id}`);
+        console.warn(
+            `Unauthorized podcast update attempt: user ${editorUserId} tried to edit podcast ${id} owned by ${data.editor.id}`,
+        );
         throw new Error("Unauthorized: You can only edit your own hosted podcasts");
     }
 
@@ -178,7 +235,24 @@ export async function updateHostedPodcast(
     if (input.title !== undefined && input.title !== null) updates.title = input.title;
     if (input.description !== undefined && input.description !== null)
         updates.description = input.description;
-    if (input.link !== undefined) updates.link = input.link?.trim() || "https://www.richpods.org";
+
+    // Determine the post-update state of (customWebsite, link) so we can reject
+    // updates that leave customWebsite=true without a valid link.
+    const nextCustomWebsite =
+        input.customWebsite !== undefined && input.customWebsite !== null
+            ? input.customWebsite
+            : (data.customWebsite ?? true);
+    const incomingLink = input.link !== undefined ? (input.link?.trim() ?? "") : null;
+    const resolvedLink = incomingLink !== null ? incomingLink : (data.link ?? "").trim();
+    if (nextCustomWebsite && !resolvedLink) {
+        throw new ValidationError("Validation failed for input", [
+            "link: a valid website URL is required when customWebsite is true",
+        ]);
+    }
+    if (input.link !== undefined) {
+        updates.link = incomingLink || "https://www.richpods.org";
+    }
+
     if (input.language !== undefined && input.language !== null) updates.language = input.language;
     if (input.itunesCategory !== undefined && input.itunesCategory !== null)
         updates.itunesCategory = input.itunesCategory;
@@ -190,6 +264,18 @@ export async function updateHostedPodcast(
     if (input.copyright !== undefined) updates.copyright = input.copyright || null;
     if (input.applePodcastsVerifyTxt !== undefined)
         updates.applePodcastsVerifyTxt = input.applePodcastsVerifyTxt || null;
+
+    if (input.customWebsite !== undefined && input.customWebsite !== null) {
+        updates.customWebsite = input.customWebsite;
+    }
+    if (input.platformLinkApplePodcasts !== undefined)
+        updates.platformLinkApplePodcasts = input.platformLinkApplePodcasts?.trim() || null;
+    if (input.platformLinkSpotify !== undefined)
+        updates.platformLinkSpotify = input.platformLinkSpotify?.trim() || null;
+    if (input.platformLinkAmazonMusic !== undefined)
+        updates.platformLinkAmazonMusic = input.platformLinkAmazonMusic?.trim() || null;
+    if (input.platformLinkYouTubeMusic !== undefined)
+        updates.platformLinkYouTubeMusic = input.platformLinkYouTubeMusic?.trim() || null;
 
     await docRef.update(updates);
 
@@ -209,13 +295,17 @@ export async function deleteHostedPodcast(id: string, editorUserId: string): Pro
 
     const data = doc.data() as HostedPodcastDocument;
     if (data.editor.id !== editorUserId) {
-        console.warn(`Unauthorized podcast deletion attempt: user ${editorUserId} tried to delete podcast ${id} owned by ${data.editor.id}`);
+        console.warn(
+            `Unauthorized podcast deletion attempt: user ${editorUserId} tried to delete podcast ${id} owned by ${data.editor.id}`,
+        );
         throw new Error("Unauthorized: You can only delete your own hosted podcasts");
     }
 
     const episodeCount = await countEpisodes(id);
     if (episodeCount > 0) {
-        console.warn(`Rejected deletion of podcast ${id} by user ${editorUserId}: still has ${episodeCount} episode(s)`);
+        console.warn(
+            `Rejected deletion of podcast ${id} by user ${editorUserId}: still has ${episodeCount} episode(s)`,
+        );
         throw new Error(
             "Cannot delete a hosted podcast that still has episodes. Delete all episodes first.",
         );

@@ -51,6 +51,48 @@
         "empty": "Noch keine RichPods verfügbar. Schau bald wieder vorbei!",
         "loadError": "RichPods konnten nicht geladen werden. Bitte versuche es später erneut."
     },
+    "podcastSite": {
+        "loadError": "Dieser Podcast konnte nicht geladen werden. Bitte versuche es später erneut.",
+        "meta": {
+            "title": "Podcast-Details",
+            "author": "Urheber:in",
+            "category": "Kategorie",
+            "language": "Sprache",
+            "explicit": "Nicht jugendfrei",
+            "explicitYes": "Ja",
+            "explicitNo": "Nein",
+            "type": "Typ",
+            "typeValues": {
+                "episodic": "Episodisch",
+                "serial": "Serie"
+            },
+            "copyright": "Copyright"
+        },
+        "subscribe": {
+            "title": "Abonnieren",
+            "rss": "RSS-Feed",
+            "overcast": "Overcast",
+            "apple": "Apple Podcasts",
+            "spotify": "Spotify",
+            "amazon": "Amazon Music",
+            "youtube": "YouTube Music"
+        },
+        "episodes": {
+            "title": "Folgen",
+            "empty": "Bisher wurden noch keine Folgen veröffentlicht.",
+            "showMore": "Mehr Folgen anzeigen",
+            "loading": "Wird geladen…",
+            "explicit": "Nicht jugendfrei",
+            "listen": "RichPod anhören: {title}",
+            "durationHoursMinutes": "{hours} Std. {minutes} Min.",
+            "durationMinutes": "{minutes} Min.",
+            "durationSeconds": "{seconds} Sek."
+        },
+        "report": {
+            "button": "Podcast melden",
+            "note": "Illegale Inhalte, Identitätsmissbrauch oder Urheberrechtsverletzung entdeckt? Schreib uns — wir schauen uns das an."
+        }
+    },
     "contact": {
         "title": "Kontakt",
         "address": "Bruno-Marek-Allee 5/51, 1020 Wien",

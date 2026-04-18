@@ -14,7 +14,7 @@ import type {
 import { ValidationStatus, RichPodState } from "../types/firestore.js";
 import { getUserReference } from "./user.service.js";
 import { deleteEpisodeFiles, getHostedPublicUrl } from "./hosted-storage.service.js";
-import type { HostedEpisode } from "../graphql.js";
+import type { HostedEpisode, PublicHostedEpisode } from "../graphql.js";
 import { HostedEpisodeValidationStatus } from "../graphql.js";
 import type { PaginatedResult } from "../utils/pagination.js";
 import { ValidationError } from "../validation/validator.js";
@@ -67,24 +67,22 @@ type CreateHostedEpisodeParams = {
 export async function createHostedEpisode(
     params: CreateHostedEpisodeParams,
 ): Promise<{ episode: HostedEpisode }> {
-    const {
-        episodeId,
-        podcastId,
-        gcsAudioName,
-        audioByteSize,
-        editorUserId,
-    } = params;
+    const { episodeId, podcastId, gcsAudioName, audioByteSize, editorUserId } = params;
 
     const podcastRef = db.collection(HOSTED_PODCASTS_COLLECTION).doc(podcastId);
     const podcastDoc = await podcastRef.get();
     if (!podcastDoc.exists) {
-        console.warn(`Cannot create hosted episode: podcast ${podcastId} not found, requested by user ${editorUserId}`);
+        console.warn(
+            `Cannot create hosted episode: podcast ${podcastId} not found, requested by user ${editorUserId}`,
+        );
         throw new Error("Hosted podcast not found");
     }
 
     const podcastData = podcastDoc.data() as HostedPodcastDocument;
     if (podcastData.editor.id !== editorUserId) {
-        console.warn(`Unauthorized episode creation attempt: user ${editorUserId} tried to add episode to podcast ${podcastId} owned by ${podcastData.editor.id}`);
+        console.warn(
+            `Unauthorized episode creation attempt: user ${editorUserId} tried to add episode to podcast ${podcastId} owned by ${podcastData.editor.id}`,
+        );
         throw new Error("Unauthorized: You can only add episodes to your own hosted podcasts");
     }
 
@@ -152,7 +150,9 @@ export async function createRichPodForEpisode(
         }
 
         if (episodeData.validationStatus !== ValidationStatus.VALID) {
-            throw new Error("Cannot create a RichPod for an episode that has not passed validation");
+            throw new Error(
+                "Cannot create a RichPod for an episode that has not passed validation",
+            );
         }
 
         const podcastRef = episodeData.hostedPodcast;
@@ -223,7 +223,9 @@ export async function getHostedEpisode(
 
     const data = doc.data() as HostedEpisodeDocument;
     if (data.editor.id !== editorUserId) {
-        console.warn(`Unauthorized episode access attempt: user ${editorUserId} tried to access episode ${episodeId} owned by ${data.editor.id}`);
+        console.warn(
+            `Unauthorized episode access attempt: user ${editorUserId} tried to access episode ${episodeId} owned by ${data.editor.id}`,
+        );
         throw new Error("Unauthorized: You can only access your own hosted episodes");
     }
 
@@ -262,7 +264,9 @@ export async function getHostedEpisodesForPodcast(
 
     const podcastData = podcastDoc.data() as HostedPodcastDocument;
     if (podcastData.editor.id !== editorUserId) {
-        console.warn(`Unauthorized podcast episodes access attempt: user ${editorUserId} tried to list episodes for podcast ${podcastId} owned by ${podcastData.editor.id}`);
+        console.warn(
+            `Unauthorized podcast episodes access attempt: user ${editorUserId} tried to list episodes for podcast ${podcastId} owned by ${podcastData.editor.id}`,
+        );
         throw new Error("Unauthorized: You can only access episodes from your own hosted podcasts");
     }
 
@@ -275,7 +279,9 @@ export async function getHostedEpisodesForPodcast(
     if (afterCursor) {
         const cursorDoc = await db.collection(HOSTED_EPISODES_COLLECTION).doc(afterCursor).get();
         if (!cursorDoc.exists) {
-            throw new ValidationError("Validation failed for after", ["after: invalid or stale cursor"]);
+            throw new ValidationError("Validation failed for after", [
+                "after: invalid or stale cursor",
+            ]);
         }
         orderedQuery = orderedQuery.startAfter(cursorDoc);
     }
@@ -304,7 +310,7 @@ export async function getHostedEpisodesForPodcast(
         if (data.editor.id !== editorUserId) {
             throw new Error("Unauthorized: You can only access your own hosted episodes");
         }
-        const title = data.richPod ? richPodTitleMap.get(data.richPod.id) ?? null : null;
+        const title = data.richPod ? (richPodTitleMap.get(data.richPod.id) ?? null) : null;
         return mapToGraphQL(doc.id, data, title);
     });
 
@@ -389,6 +395,54 @@ export async function getPublishedEpisodesForPodcast(
     return results;
 }
 
+/**
+ * Public paginator over published episodes for a hosted podcast. Used by the
+ * auto-generated podcast website. Performs no authentication because only
+ * episodes whose linked RichPod is in "published" state are exposed.
+ *
+ * Pagination is cursor-based using the episode id of the last item from the
+ * previous page. The underlying query returns all published episodes; this
+ * wrapper slices them — acceptable because published episode counts per
+ * podcast are bounded.
+ */
+export async function getPublicPublishedEpisodes(
+    podcastId: string,
+    pageSize: number,
+    afterCursor?: string | null,
+): Promise<PaginatedResult<PublicHostedEpisode>> {
+    const all = await getPublishedEpisodesForPodcast(podcastId);
+
+    let startIndex = 0;
+    if (afterCursor) {
+        const cursorIndex = all.findIndex((e) => e.episodeId === afterCursor);
+        if (cursorIndex === -1) {
+            throw new ValidationError("Validation failed for after", [
+                "after: invalid or stale cursor",
+            ]);
+        }
+        startIndex = cursorIndex + 1;
+    }
+
+    const slice = all.slice(startIndex, startIndex + pageSize);
+    const hasNextPage = startIndex + pageSize < all.length;
+
+    const items: PublicHostedEpisode[] = slice.map((e) => ({
+        id: e.episodeId,
+        richPodId: e.richPodId,
+        title: e.title,
+        description: e.description,
+        publishedAt: e.publishedAt.toDate().toISOString(),
+        explicit: e.explicit,
+        audioUrl: getHostedPublicUrl(e.audioGcsName),
+        audioByteSize: e.audioByteSize,
+        audioDurationSeconds: e.audioDurationSeconds,
+        episodeCoverUrl: e.episodeCoverGcsName ? getHostedPublicUrl(e.episodeCoverGcsName) : null,
+    }));
+
+    const nextCursor = hasNextPage && items.length > 0 ? items[items.length - 1].id : null;
+    return { items, nextCursor };
+}
+
 export async function deleteHostedEpisode(
     episodeId: string,
     editorUserId: string,
@@ -402,7 +456,9 @@ export async function deleteHostedEpisode(
 
     const episodeData = episodeDoc.data() as HostedEpisodeDocument;
     if (episodeData.editor.id !== editorUserId) {
-        console.warn(`Unauthorized episode deletion attempt: user ${editorUserId} tried to delete episode ${episodeId} owned by ${episodeData.editor.id}`);
+        console.warn(
+            `Unauthorized episode deletion attempt: user ${editorUserId} tried to delete episode ${episodeId} owned by ${episodeData.editor.id}`,
+        );
         throw new Error("Unauthorized: You can only delete your own hosted episodes");
     }
 
@@ -427,4 +483,3 @@ export async function deleteHostedEpisode(
     );
     return true;
 }
-

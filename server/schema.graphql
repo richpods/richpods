@@ -81,27 +81,49 @@ type Card implements BaseEnclosure {
     title: String!
     cardType: CardType!
     visibleAsChapter: Boolean!
-    """Link card: the external URL"""
+    """
+    Link card: the external URL
+    """
     url: String
-    """Link card: parsed Open Graph metadata"""
+    """
+    Link card: parsed Open Graph metadata
+    """
     openGraph: CardOpenGraph
-    """Link card: optional description"""
+    """
+    Link card: optional description
+    """
     description: String
-    """Cover card: 'podcast' or 'episode'"""
+    """
+    Cover card: 'podcast' or 'episode'
+    """
     coverSource: String
-    """Cover card: resolved artwork URL"""
+    """
+    Cover card: resolved artwork URL
+    """
     coverImageUrl: String
-    """Citation card: the quoted text"""
+    """
+    Citation card: the quoted text
+    """
     quoteText: String
-    """Citation card: attribution source"""
+    """
+    Citation card: attribution source
+    """
     citationSource: String
-    """Citation card: optional link URL"""
+    """
+    Citation card: optional link URL
+    """
     citationUrl: String
-    """Image card: uploaded image URL"""
+    """
+    Image card: uploaded image URL
+    """
     imageUrl: String
-    """Image card: alt text for accessibility"""
+    """
+    Image card: alt text for accessibility
+    """
     imageAlt: String
-    """Image card: optional link wrapping the image"""
+    """
+    Image card: optional link wrapping the image
+    """
     imageLink: String
 }
 
@@ -227,7 +249,9 @@ type User {
     publicEmail: String
     socialAccounts: [String!]!
     editorLanguage: String
-    """Only populated for the current user (via currentUser query)."""
+    """
+    Only populated for the current user (via currentUser query).
+    """
     role: String
     usedQuotaBytes: Int
     totalQuotaBytes: Int
@@ -276,6 +300,11 @@ type HostedPodcast {
     itunesType: String
     copyright: String
     applePodcastsVerifyTxt: String
+    customWebsite: Boolean!
+    platformLinkApplePodcasts: String
+    platformLinkSpotify: String
+    platformLinkAmazonMusic: String
+    platformLinkYouTubeMusic: String
     coverImageUrl: String!
     episodeCount: Int!
     feedUrl: String!
@@ -299,6 +328,53 @@ type HostedEpisode {
     episodeCoverUrl: String
     createdAt: String!
     updatedAt: String!
+}
+
+"""
+Public, unauthenticated projection of a hosted podcast. Used by the
+auto-generated podcast website. Excludes editor-only fields.
+"""
+type PublicHostedPodcast {
+    id: ID!
+    title: String!
+    description: String!
+    link: String!
+    language: String!
+    itunesCategory: String!
+    itunesExplicit: Boolean!
+    itunesAuthor: String!
+    itunesType: String
+    copyright: String
+    customWebsite: Boolean!
+    platformLinkApplePodcasts: String
+    platformLinkSpotify: String
+    platformLinkAmazonMusic: String
+    platformLinkYouTubeMusic: String
+    coverImageUrl: String!
+    feedUrl: String!
+}
+
+"""
+Public, unauthenticated projection of a published hosted episode.
+Title, description, publishedAt and explicit come from the linked RichPod,
+which is the single source of truth for listener-visible metadata.
+"""
+type PublicHostedEpisode {
+    id: ID!
+    richPodId: ID!
+    title: String!
+    description: String!
+    publishedAt: String!
+    explicit: Boolean!
+    audioUrl: String!
+    audioByteSize: Int!
+    audioDurationSeconds: Float
+    episodeCoverUrl: String
+}
+
+type PaginatedPublicHostedEpisodes {
+    items: [PublicHostedEpisode!]!
+    nextCursor: String
 }
 
 input CreateRichPodInput {
@@ -349,6 +425,11 @@ input CreateHostedPodcastInput {
     itunesType: String
     copyright: String
     applePodcastsVerifyTxt: String
+    customWebsite: Boolean
+    platformLinkApplePodcasts: String
+    platformLinkSpotify: String
+    platformLinkAmazonMusic: String
+    platformLinkYouTubeMusic: String
 }
 
 input UpdateHostedPodcastInput {
@@ -362,6 +443,11 @@ input UpdateHostedPodcastInput {
     itunesType: String
     copyright: String
     applePodcastsVerifyTxt: String
+    customWebsite: Boolean
+    platformLinkApplePodcasts: String
+    platformLinkSpotify: String
+    platformLinkAmazonMusic: String
+    platformLinkYouTubeMusic: String
 }
 
 input SignUpInput {
@@ -426,12 +512,22 @@ type Query {
     user(id: ID!): User
     podcastMetadata(feedUrl: String!, episodeGuid: String): PodcastMetadata!
     extractFeedUrl(url: String!): String!
-    podcastEpisodeSearch(query: String!, country: String, language: String): [PodcastEpisodeSearchResult!]!
+    podcastEpisodeSearch(
+        query: String!
+        country: String
+        language: String
+    ): [PodcastEpisodeSearchResult!]!
     userVerifications(first: Int, after: String): PaginatedVerifications!
     hostedPodcasts(first: Int, after: String): PaginatedHostedPodcasts!
     hostedPodcast(id: ID!): HostedPodcast
     hostedEpisodes(podcastId: ID!, first: Int, after: String): PaginatedHostedEpisodes!
     hostedEpisode(id: ID!): HostedEpisode
+    publicHostedPodcast(id: ID!): PublicHostedPodcast
+    publicHostedPodcastEpisodes(
+        podcastId: ID!
+        first: Int
+        after: String
+    ): PaginatedPublicHostedEpisodes!
 }
 
 type Mutation {

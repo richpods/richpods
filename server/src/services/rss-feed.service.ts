@@ -46,6 +46,28 @@ function buildPlayerUrl(richPodId: string): string {
     return `https://www.richpods.org/listen?id=${richPodId}`;
 }
 
+function buildAutoWebsiteUrl(podcastId: string): string {
+    const pattern =
+        process.env.WEBSITE_HOSTED_PODCAST_URL_PATTERN ||
+        process.env.VITE_WEBSITE_HOSTED_PODCAST_URL_PATTERN ||
+        "https://www.richpods.org/podcast/{ID}";
+    return pattern.replace("{ID}", podcastId);
+}
+
+function buildChannelLink(
+    podcastId: string,
+    podcast: { customWebsite?: boolean; link: string },
+): string {
+    // Legacy documents have no customWebsite field — default them to "on" so their
+    // stored `link` keeps driving the channel link. Only an explicit `false` switches
+    // to the auto-generated URL.
+    const useCustom = podcast.customWebsite ?? true;
+    if (useCustom && podcast.link) {
+        return podcast.link;
+    }
+    return buildAutoWebsiteUrl(podcastId);
+}
+
 export async function generateRssFeed(podcastId: string): Promise<string | null> {
     const podcastResult = await getHostedPodcastDocById(podcastId);
     if (!podcastResult) {
@@ -99,15 +121,17 @@ export async function generateRssFeed(podcastId: string): Promise<string | null>
     // Get managing editor email from the podcast owner
     const editorDoc = await podcast.editor.get();
     const editorData = editorDoc.exists ? editorDoc.data() : null;
-    const managingEditor = editorData?.publicEmail || null;
+    const ownerEmail = editorData?.publicEmail || null;
 
     // Build optional fields
     let optionalFields = "";
     if (podcast.copyright) {
         optionalFields += `\n    <copyright>${escapeXml(podcast.copyright)}</copyright>`;
     }
-    if (managingEditor) {
-        optionalFields += `\n    <managingEditor>${escapeXml(managingEditor)}</managingEditor>`;
+    if (ownerEmail) {
+        optionalFields += `\n    <managingEditor>${escapeXml(ownerEmail)}</managingEditor>`;
+        const ownerName = editorData?.publicName || podcast.itunesAuthor;
+        optionalFields += `\n    <itunes:owner>\n      <itunes:name>${escapeXml(ownerName)}</itunes:name>\n      <itunes:email>${escapeXml(ownerEmail)}</itunes:email>\n    </itunes:owner>`;
     }
     if (podcast.itunesType) {
         optionalFields += `\n    <itunes:type>${escapeXml(podcast.itunesType)}</itunes:type>`;
@@ -124,7 +148,7 @@ export async function generateRssFeed(podcastId: string): Promise<string | null>
   <channel>
     <title>${escapeXml(podcast.title)}</title>
     <description>${escapeXml(podcast.description)}</description>
-    <link>${escapeXml(podcast.link)}</link>
+    <link>${escapeXml(buildChannelLink(podcastId, podcast))}</link>
     <language>${escapeXml(podcast.language)}</language>
     <generator>${escapeXml(GENERATOR)}</generator>
     <itunes:image href="${escapeXml(coverUrl)}"/>

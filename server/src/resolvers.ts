@@ -29,6 +29,7 @@ import {
 } from "./services/verification.service.js";
 import {
     getHostedPodcastById,
+    getPublicHostedPodcast,
     getUserHostedPodcasts,
     updateHostedPodcast,
     deleteHostedPodcast,
@@ -36,6 +37,7 @@ import {
 import {
     getHostedEpisode,
     getHostedEpisodesForPodcast,
+    getPublicPublishedEpisodes,
     deleteHostedEpisode,
 } from "./services/hosted-episode.service.js";
 import { validate, validateField } from "./validation/validator.js";
@@ -78,6 +80,8 @@ import {
     PaginatedRichPods,
     PaginatedHostedPodcasts,
     PaginatedHostedEpisodes,
+    PaginatedPublicHostedEpisodes,
+    PublicHostedPodcast,
     PodcastMedia,
 } from "./graphql.js";
 import { Request } from "express";
@@ -112,10 +116,18 @@ export function createResolvers(req: Request, auth: AuthContext) {
         }): Promise<PaginatedRichPods> => {
             const userId = requireAuth(auth);
             const pageSize = resolvePageSize(
-                first !== undefined ? validateField<number>(paginationFirstSchema, first, "first") : undefined,
+                first !== undefined
+                    ? validateField<number>(paginationFirstSchema, first, "first")
+                    : undefined,
             );
-            const validatedAfter = after !== undefined ? validateField<string>(paginationAfterSchema, after, "after") : undefined;
-            const validatedState = state !== undefined ? validateField<string>(richPodStateFilterSchema, state, "state") : undefined;
+            const validatedAfter =
+                after !== undefined
+                    ? validateField<string>(paginationAfterSchema, after, "after")
+                    : undefined;
+            const validatedState =
+                state !== undefined
+                    ? validateField<string>(richPodStateFilterSchema, state, "state")
+                    : undefined;
             return getUserRichPods(userId, pageSize, validatedAfter, validatedState);
         },
 
@@ -127,9 +139,14 @@ export function createResolvers(req: Request, auth: AuthContext) {
             after?: string;
         }): Promise<PaginatedRichPods> => {
             const pageSize = resolvePageSize(
-                first !== undefined ? validateField<number>(paginationFirstSchema, first, "first") : undefined,
+                first !== undefined
+                    ? validateField<number>(paginationFirstSchema, first, "first")
+                    : undefined,
             );
-            const validatedAfter = after !== undefined ? validateField<string>(paginationAfterSchema, after, "after") : undefined;
+            const validatedAfter =
+                after !== undefined
+                    ? validateField<string>(paginationAfterSchema, after, "after")
+                    : undefined;
             return getRecentPublishedRichPods(Math.min(pageSize, 24), validatedAfter);
         },
 
@@ -186,18 +203,17 @@ export function createResolvers(req: Request, auth: AuthContext) {
             );
         },
 
-        userVerifications: async ({
-            first,
-            after,
-        }: {
-            first?: number;
-            after?: string;
-        }) => {
+        userVerifications: async ({ first, after }: { first?: number; after?: string }) => {
             const userId = requireAuth(auth);
             const pageSize = resolvePageSize(
-                first !== undefined ? validateField<number>(paginationFirstSchema, first, "first") : undefined,
+                first !== undefined
+                    ? validateField<number>(paginationFirstSchema, first, "first")
+                    : undefined,
             );
-            const validatedAfter = after !== undefined ? validateField<string>(paginationAfterSchema, after, "after") : undefined;
+            const validatedAfter =
+                after !== undefined
+                    ? validateField<string>(paginationAfterSchema, after, "after")
+                    : undefined;
             return getUserVerifications(userId, pageSize, validatedAfter);
         },
 
@@ -306,8 +322,7 @@ export function createResolvers(req: Request, auth: AuthContext) {
             if (validatedInput.description !== undefined)
                 updates.description = validatedInput.description;
             if (validatedInput.state !== undefined) updates.state = validatedInput.state;
-            if (validatedInput.explicit !== undefined)
-                updates.explicit = validatedInput.explicit;
+            if (validatedInput.explicit !== undefined) updates.explicit = validatedInput.explicit;
 
             return updateRichPod(validatedId, updates, userId);
         },
@@ -381,9 +396,14 @@ export function createResolvers(req: Request, auth: AuthContext) {
         }): Promise<PaginatedHostedPodcasts> => {
             const userId = requirePrivilegedAuth(auth);
             const pageSize = resolvePageSize(
-                first !== undefined ? validateField<number>(paginationFirstSchema, first, "first") : undefined,
+                first !== undefined
+                    ? validateField<number>(paginationFirstSchema, first, "first")
+                    : undefined,
             );
-            const validatedAfter = after !== undefined ? validateField<string>(paginationAfterSchema, after, "after") : undefined;
+            const validatedAfter =
+                after !== undefined
+                    ? validateField<string>(paginationAfterSchema, after, "after")
+                    : undefined;
             return getUserHostedPodcasts(userId, pageSize, validatedAfter);
         },
 
@@ -405,9 +425,14 @@ export function createResolvers(req: Request, auth: AuthContext) {
             const userId = requirePrivilegedAuth(auth);
             const validatedId = validateField<string>(idSchema, podcastId, "podcastId");
             const pageSize = resolvePageSize(
-                first !== undefined ? validateField<number>(paginationFirstSchema, first, "first") : undefined,
+                first !== undefined
+                    ? validateField<number>(paginationFirstSchema, first, "first")
+                    : undefined,
             );
-            const validatedAfter = after !== undefined ? validateField<string>(paginationAfterSchema, after, "after") : undefined;
+            const validatedAfter =
+                after !== undefined
+                    ? validateField<string>(paginationAfterSchema, after, "after")
+                    : undefined;
             return getHostedEpisodesForPodcast(validatedId, userId, pageSize, validatedAfter);
         },
 
@@ -415,6 +440,37 @@ export function createResolvers(req: Request, auth: AuthContext) {
             const userId = requirePrivilegedAuth(auth);
             const validatedId = validateField<string>(idSchema, id, "id");
             return getHostedEpisode(validatedId, userId);
+        },
+
+        publicHostedPodcast: async ({
+            id,
+        }: {
+            id: string;
+        }): Promise<PublicHostedPodcast | null> => {
+            const validatedId = validateField<string>(idSchema, id, "id");
+            return getPublicHostedPodcast(validatedId);
+        },
+
+        publicHostedPodcastEpisodes: async ({
+            podcastId,
+            first,
+            after,
+        }: {
+            podcastId: string;
+            first?: number;
+            after?: string;
+        }): Promise<PaginatedPublicHostedEpisodes> => {
+            const validatedId = validateField<string>(idSchema, podcastId, "podcastId");
+            const pageSize = resolvePageSize(
+                first !== undefined
+                    ? validateField<number>(paginationFirstSchema, first, "first")
+                    : undefined,
+            );
+            const validatedAfter =
+                after !== undefined
+                    ? validateField<string>(paginationAfterSchema, after, "after")
+                    : undefined;
+            return getPublicPublishedEpisodes(validatedId, pageSize, validatedAfter);
         },
 
         // Hosted Podcasts mutations

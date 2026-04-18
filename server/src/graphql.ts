@@ -101,6 +101,7 @@ export type Coloeus = {
 export type CreateHostedPodcastInput = {
   applePodcastsVerifyTxt?: InputMaybe<Scalars['String']['input']>;
   copyright?: InputMaybe<Scalars['String']['input']>;
+  customWebsite?: InputMaybe<Scalars['Boolean']['input']>;
   description: Scalars['String']['input'];
   itunesAuthor: Scalars['String']['input'];
   itunesCategory: Scalars['String']['input'];
@@ -108,6 +109,10 @@ export type CreateHostedPodcastInput = {
   itunesType?: InputMaybe<Scalars['String']['input']>;
   language: Scalars['String']['input'];
   link?: InputMaybe<Scalars['String']['input']>;
+  platformLinkAmazonMusic?: InputMaybe<Scalars['String']['input']>;
+  platformLinkApplePodcasts?: InputMaybe<Scalars['String']['input']>;
+  platformLinkSpotify?: InputMaybe<Scalars['String']['input']>;
+  platformLinkYouTubeMusic?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -193,6 +198,7 @@ export type HostedPodcast = {
   copyright?: Maybe<Scalars['String']['output']>;
   coverImageUrl: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
+  customWebsite: Scalars['Boolean']['output'];
   description: Scalars['String']['output'];
   episodeCount: Scalars['Int']['output'];
   feedUrl: Scalars['String']['output'];
@@ -203,6 +209,10 @@ export type HostedPodcast = {
   itunesType?: Maybe<Scalars['String']['output']>;
   language: Scalars['String']['output'];
   link: Scalars['String']['output'];
+  platformLinkAmazonMusic?: Maybe<Scalars['String']['output']>;
+  platformLinkApplePodcasts?: Maybe<Scalars['String']['output']>;
+  platformLinkSpotify?: Maybe<Scalars['String']['output']>;
+  platformLinkYouTubeMusic?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -341,6 +351,12 @@ export type PaginatedHostedPodcasts = {
   nextCursor?: Maybe<Scalars['String']['output']>;
 };
 
+export type PaginatedPublicHostedEpisodes = {
+  __typename?: 'PaginatedPublicHostedEpisodes';
+  items: Array<PublicHostedEpisode>;
+  nextCursor?: Maybe<Scalars['String']['output']>;
+};
+
 export type PaginatedRichPods = {
   __typename?: 'PaginatedRichPods';
   items: Array<RichPod>;
@@ -450,6 +466,50 @@ export type Poll = {
   coloeus: Coloeus;
 };
 
+/**
+ * Public, unauthenticated projection of a published hosted episode.
+ * Title, description, publishedAt and explicit come from the linked RichPod,
+ * which is the single source of truth for listener-visible metadata.
+ */
+export type PublicHostedEpisode = {
+  __typename?: 'PublicHostedEpisode';
+  audioByteSize: Scalars['Int']['output'];
+  audioDurationSeconds?: Maybe<Scalars['Float']['output']>;
+  audioUrl: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  episodeCoverUrl?: Maybe<Scalars['String']['output']>;
+  explicit: Scalars['Boolean']['output'];
+  id: Scalars['ID']['output'];
+  publishedAt: Scalars['String']['output'];
+  richPodId: Scalars['ID']['output'];
+  title: Scalars['String']['output'];
+};
+
+/**
+ * Public, unauthenticated projection of a hosted podcast. Used by the
+ * auto-generated podcast website. Excludes editor-only fields.
+ */
+export type PublicHostedPodcast = {
+  __typename?: 'PublicHostedPodcast';
+  copyright?: Maybe<Scalars['String']['output']>;
+  coverImageUrl: Scalars['String']['output'];
+  customWebsite: Scalars['Boolean']['output'];
+  description: Scalars['String']['output'];
+  feedUrl: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  itunesAuthor: Scalars['String']['output'];
+  itunesCategory: Scalars['String']['output'];
+  itunesExplicit: Scalars['Boolean']['output'];
+  itunesType?: Maybe<Scalars['String']['output']>;
+  language: Scalars['String']['output'];
+  link: Scalars['String']['output'];
+  platformLinkAmazonMusic?: Maybe<Scalars['String']['output']>;
+  platformLinkApplePodcasts?: Maybe<Scalars['String']['output']>;
+  platformLinkSpotify?: Maybe<Scalars['String']['output']>;
+  platformLinkYouTubeMusic?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   currentUser?: Maybe<User>;
@@ -461,6 +521,8 @@ export type Query = {
   instanceInfo: InstanceInfo;
   podcastEpisodeSearch: Array<PodcastEpisodeSearchResult>;
   podcastMetadata: PodcastMetadata;
+  publicHostedPodcast?: Maybe<PublicHostedPodcast>;
+  publicHostedPodcastEpisodes: PaginatedPublicHostedEpisodes;
   recentPublishedRichPods: PaginatedRichPods;
   richPod?: Maybe<RichPod>;
   user?: Maybe<User>;
@@ -507,6 +569,18 @@ export type QueryPodcastEpisodeSearchArgs = {
 export type QueryPodcastMetadataArgs = {
   episodeGuid?: InputMaybe<Scalars['String']['input']>;
   feedUrl: Scalars['String']['input'];
+};
+
+
+export type QueryPublicHostedPodcastArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryPublicHostedPodcastEpisodesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  podcastId: Scalars['ID']['input'];
 };
 
 
@@ -595,6 +669,7 @@ export type Slideshow = BaseEnclosure & {
 export type UpdateHostedPodcastInput = {
   applePodcastsVerifyTxt?: InputMaybe<Scalars['String']['input']>;
   copyright?: InputMaybe<Scalars['String']['input']>;
+  customWebsite?: InputMaybe<Scalars['Boolean']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   itunesAuthor?: InputMaybe<Scalars['String']['input']>;
   itunesCategory?: InputMaybe<Scalars['String']['input']>;
@@ -602,6 +677,10 @@ export type UpdateHostedPodcastInput = {
   itunesType?: InputMaybe<Scalars['String']['input']>;
   language?: InputMaybe<Scalars['String']['input']>;
   link?: InputMaybe<Scalars['String']['input']>;
+  platformLinkAmazonMusic?: InputMaybe<Scalars['String']['input']>;
+  platformLinkApplePodcasts?: InputMaybe<Scalars['String']['input']>;
+  platformLinkSpotify?: InputMaybe<Scalars['String']['input']>;
+  platformLinkYouTubeMusic?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -776,6 +855,7 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PaginatedHostedEpisodes: ResolverTypeWrapper<PaginatedHostedEpisodes>;
   PaginatedHostedPodcasts: ResolverTypeWrapper<PaginatedHostedPodcasts>;
+  PaginatedPublicHostedEpisodes: ResolverTypeWrapper<PaginatedPublicHostedEpisodes>;
   PaginatedRichPods: ResolverTypeWrapper<Omit<PaginatedRichPods, 'items'> & { items: Array<ResolversTypes['RichPod']> }>;
   PaginatedVerifications: ResolverTypeWrapper<PaginatedVerifications>;
   PodcastEpisode: ResolverTypeWrapper<PodcastEpisode>;
@@ -789,6 +869,8 @@ export type ResolversTypes = {
   PodcastOrigin: ResolverTypeWrapper<PodcastOrigin>;
   PodcastOriginInput: PodcastOriginInput;
   Poll: ResolverTypeWrapper<Poll>;
+  PublicHostedEpisode: ResolverTypeWrapper<PublicHostedEpisode>;
+  PublicHostedPodcast: ResolverTypeWrapper<PublicHostedPodcast>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   RichPod: ResolverTypeWrapper<Omit<RichPod, 'chapters'> & { chapters: Array<ResolversTypes['Chapter']> }>;
   RichPodState: RichPodState;
@@ -836,6 +918,7 @@ export type ResolversParentTypes = {
   Mutation: Record<PropertyKey, never>;
   PaginatedHostedEpisodes: PaginatedHostedEpisodes;
   PaginatedHostedPodcasts: PaginatedHostedPodcasts;
+  PaginatedPublicHostedEpisodes: PaginatedPublicHostedEpisodes;
   PaginatedRichPods: Omit<PaginatedRichPods, 'items'> & { items: Array<ResolversParentTypes['RichPod']> };
   PaginatedVerifications: PaginatedVerifications;
   PodcastEpisode: PodcastEpisode;
@@ -849,6 +932,8 @@ export type ResolversParentTypes = {
   PodcastOrigin: PodcastOrigin;
   PodcastOriginInput: PodcastOriginInput;
   Poll: Poll;
+  PublicHostedEpisode: PublicHostedEpisode;
+  PublicHostedPodcast: PublicHostedPodcast;
   Query: Record<PropertyKey, never>;
   RichPod: Omit<RichPod, 'chapters'> & { chapters: Array<ResolversParentTypes['Chapter']> };
   SignInInput: SignInInput;
@@ -970,6 +1055,7 @@ export type HostedPodcastResolvers<ContextType = any, ParentType extends Resolve
   copyright?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   coverImageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  customWebsite?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   episodeCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   feedUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -980,6 +1066,10 @@ export type HostedPodcastResolvers<ContextType = any, ParentType extends Resolve
   itunesType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   language?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   link?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  platformLinkAmazonMusic?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  platformLinkApplePodcasts?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  platformLinkSpotify?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  platformLinkYouTubeMusic?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
@@ -1040,6 +1130,11 @@ export type PaginatedHostedEpisodesResolvers<ContextType = any, ParentType exten
 
 export type PaginatedHostedPodcastsResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaginatedHostedPodcasts'] = ResolversParentTypes['PaginatedHostedPodcasts']> = {
   items?: Resolver<Array<ResolversTypes['HostedPodcast']>, ParentType, ContextType>;
+  nextCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type PaginatedPublicHostedEpisodesResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaginatedPublicHostedEpisodes'] = ResolversParentTypes['PaginatedPublicHostedEpisodes']> = {
+  items?: Resolver<Array<ResolversTypes['PublicHostedEpisode']>, ParentType, ContextType>;
   nextCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
@@ -1119,6 +1214,39 @@ export type PollResolvers<ContextType = any, ParentType extends ResolversParentT
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PublicHostedEpisodeResolvers<ContextType = any, ParentType extends ResolversParentTypes['PublicHostedEpisode'] = ResolversParentTypes['PublicHostedEpisode']> = {
+  audioByteSize?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  audioDurationSeconds?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  audioUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  episodeCoverUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  explicit?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  publishedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  richPodId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type PublicHostedPodcastResolvers<ContextType = any, ParentType extends ResolversParentTypes['PublicHostedPodcast'] = ResolversParentTypes['PublicHostedPodcast']> = {
+  copyright?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  coverImageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  customWebsite?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  feedUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  itunesAuthor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  itunesCategory?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  itunesExplicit?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  itunesType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  language?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  link?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  platformLinkAmazonMusic?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  platformLinkApplePodcasts?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  platformLinkSpotify?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  platformLinkYouTubeMusic?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   extractFeedUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryExtractFeedUrlArgs, 'url'>>;
@@ -1129,6 +1257,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   instanceInfo?: Resolver<ResolversTypes['InstanceInfo'], ParentType, ContextType>;
   podcastEpisodeSearch?: Resolver<Array<ResolversTypes['PodcastEpisodeSearchResult']>, ParentType, ContextType, RequireFields<QueryPodcastEpisodeSearchArgs, 'query'>>;
   podcastMetadata?: Resolver<ResolversTypes['PodcastMetadata'], ParentType, ContextType, RequireFields<QueryPodcastMetadataArgs, 'feedUrl'>>;
+  publicHostedPodcast?: Resolver<Maybe<ResolversTypes['PublicHostedPodcast']>, ParentType, ContextType, RequireFields<QueryPublicHostedPodcastArgs, 'id'>>;
+  publicHostedPodcastEpisodes?: Resolver<ResolversTypes['PaginatedPublicHostedEpisodes'], ParentType, ContextType, RequireFields<QueryPublicHostedPodcastEpisodesArgs, 'podcastId'>>;
   recentPublishedRichPods?: Resolver<ResolversTypes['PaginatedRichPods'], ParentType, ContextType, Partial<QueryRecentPublishedRichPodsArgs>>;
   richPod?: Resolver<Maybe<ResolversTypes['RichPod']>, ParentType, ContextType, RequireFields<QueryRichPodArgs, 'id'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
@@ -1212,6 +1342,7 @@ export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>;
   PaginatedHostedEpisodes?: PaginatedHostedEpisodesResolvers<ContextType>;
   PaginatedHostedPodcasts?: PaginatedHostedPodcastsResolvers<ContextType>;
+  PaginatedPublicHostedEpisodes?: PaginatedPublicHostedEpisodesResolvers<ContextType>;
   PaginatedRichPods?: PaginatedRichPodsResolvers<ContextType>;
   PaginatedVerifications?: PaginatedVerificationsResolvers<ContextType>;
   PodcastEpisode?: PodcastEpisodeResolvers<ContextType>;
@@ -1222,6 +1353,8 @@ export type Resolvers<ContextType = any> = {
   PodcastMetadata?: PodcastMetadataResolvers<ContextType>;
   PodcastOrigin?: PodcastOriginResolvers<ContextType>;
   Poll?: PollResolvers<ContextType>;
+  PublicHostedEpisode?: PublicHostedEpisodeResolvers<ContextType>;
+  PublicHostedPodcast?: PublicHostedPodcastResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   RichPod?: RichPodResolvers<ContextType>;
   Slide?: SlideResolvers<ContextType>;

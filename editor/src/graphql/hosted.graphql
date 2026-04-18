@@ -35,6 +35,11 @@ query HostedPodcast($id: ID!) {
         itunesType
         copyright
         applePodcastsVerifyTxt
+        customWebsite
+        platformLinkApplePodcasts
+        platformLinkSpotify
+        platformLinkAmazonMusic
+        platformLinkYouTubeMusic
         coverImageUrl
         episodeCount
         feedUrl
@@ -98,6 +103,11 @@ mutation UpdateHostedPodcast($id: ID!, $input: UpdateHostedPodcastInput!) {
         itunesType
         copyright
         applePodcastsVerifyTxt
+        customWebsite
+        platformLinkApplePodcasts
+        platformLinkSpotify
+        platformLinkAmazonMusic
+        platformLinkYouTubeMusic
         coverImageUrl
         episodeCount
         feedUrl

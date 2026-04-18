@@ -107,6 +107,7 @@ export type Coloeus = {
 export type CreateHostedPodcastInput = {
     applePodcastsVerifyTxt?: InputMaybe<Scalars["String"]["input"]>;
     copyright?: InputMaybe<Scalars["String"]["input"]>;
+    customWebsite?: InputMaybe<Scalars["Boolean"]["input"]>;
     description: Scalars["String"]["input"];
     itunesAuthor: Scalars["String"]["input"];
     itunesCategory: Scalars["String"]["input"];
@@ -114,6 +115,10 @@ export type CreateHostedPodcastInput = {
     itunesType?: InputMaybe<Scalars["String"]["input"]>;
     language: Scalars["String"]["input"];
     link?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkAmazonMusic?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkApplePodcasts?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkSpotify?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkYouTubeMusic?: InputMaybe<Scalars["String"]["input"]>;
     title: Scalars["String"]["input"];
 };
 
@@ -202,6 +207,7 @@ export type HostedPodcast = {
     copyright?: Maybe<Scalars["String"]["output"]>;
     coverImageUrl: Scalars["String"]["output"];
     createdAt: Scalars["String"]["output"];
+    customWebsite: Scalars["Boolean"]["output"];
     description: Scalars["String"]["output"];
     episodeCount: Scalars["Int"]["output"];
     feedUrl: Scalars["String"]["output"];
@@ -212,6 +218,10 @@ export type HostedPodcast = {
     itunesType?: Maybe<Scalars["String"]["output"]>;
     language: Scalars["String"]["output"];
     link: Scalars["String"]["output"];
+    platformLinkAmazonMusic?: Maybe<Scalars["String"]["output"]>;
+    platformLinkApplePodcasts?: Maybe<Scalars["String"]["output"]>;
+    platformLinkSpotify?: Maybe<Scalars["String"]["output"]>;
+    platformLinkYouTubeMusic?: Maybe<Scalars["String"]["output"]>;
     title: Scalars["String"]["output"];
     updatedAt: Scalars["String"]["output"];
 };
@@ -581,6 +591,7 @@ export type Slideshow = BaseEnclosure & {
 export type UpdateHostedPodcastInput = {
     applePodcastsVerifyTxt?: InputMaybe<Scalars["String"]["input"]>;
     copyright?: InputMaybe<Scalars["String"]["input"]>;
+    customWebsite?: InputMaybe<Scalars["Boolean"]["input"]>;
     description?: InputMaybe<Scalars["String"]["input"]>;
     itunesAuthor?: InputMaybe<Scalars["String"]["input"]>;
     itunesCategory?: InputMaybe<Scalars["String"]["input"]>;
@@ -588,6 +599,10 @@ export type UpdateHostedPodcastInput = {
     itunesType?: InputMaybe<Scalars["String"]["input"]>;
     language?: InputMaybe<Scalars["String"]["input"]>;
     link?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkAmazonMusic?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkApplePodcasts?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkSpotify?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkYouTubeMusic?: InputMaybe<Scalars["String"]["input"]>;
     title?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -870,6 +885,11 @@ export type HostedPodcastQuery = {
         itunesType?: string | null;
         copyright?: string | null;
         applePodcastsVerifyTxt?: string | null;
+        customWebsite: boolean;
+        platformLinkApplePodcasts?: string | null;
+        platformLinkSpotify?: string | null;
+        platformLinkAmazonMusic?: string | null;
+        platformLinkYouTubeMusic?: string | null;
         coverImageUrl: string;
         episodeCount: number;
         feedUrl: string;
@@ -955,6 +975,11 @@ export type UpdateHostedPodcastMutation = {
         itunesType?: string | null;
         copyright?: string | null;
         applePodcastsVerifyTxt?: string | null;
+        customWebsite: boolean;
+        platformLinkApplePodcasts?: string | null;
+        platformLinkSpotify?: string | null;
+        platformLinkAmazonMusic?: string | null;
+        platformLinkYouTubeMusic?: string | null;
         coverImageUrl: string;
         episodeCount: number;
         feedUrl: string;
@@ -1855,6 +1880,11 @@ export const HostedPodcastDocument = gql`
             itunesType
             copyright
             applePodcastsVerifyTxt
+            customWebsite
+            platformLinkApplePodcasts
+            platformLinkSpotify
+            platformLinkAmazonMusic
+            platformLinkYouTubeMusic
             coverImageUrl
             episodeCount
             feedUrl
@@ -1921,6 +1951,11 @@ export const UpdateHostedPodcastDocument = gql`
             itunesType
             copyright
             applePodcastsVerifyTxt
+            customWebsite
+            platformLinkApplePodcasts
+            platformLinkSpotify
+            platformLinkAmazonMusic
+            platformLinkYouTubeMusic
             coverImageUrl
             episodeCount
             feedUrl

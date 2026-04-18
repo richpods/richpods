@@ -91,19 +91,6 @@
                         />
                     </div>
 
-                    <div>
-                        <label for="podcast-link" class="block text-sm font-medium text-gray-700 mb-1">
-                            {{ t("hostedForm.linkLabel") }}
-                        </label>
-                        <input
-                            id="podcast-link"
-                            v-model="form.link"
-                            type="url"
-                            maxlength="1000"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            :placeholder="t('hostedForm.linkPlaceholder')"
-                        />
-                    </div>
                 </div>
 
                 <!-- iTunes Metadata -->
@@ -184,6 +171,118 @@
                     </div>
                 </div>
 
+                <!-- Website -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 space-y-4">
+                    <h2 class="text-base font-semibold text-gray-900">
+                        {{ t("hostedForm.websiteSection") }}
+                    </h2>
+                    <p class="text-sm text-gray-600">
+                        {{ t("hostedForm.websiteSectionHint") }}
+                    </p>
+
+                    <div class="flex items-start gap-3">
+                        <SwitchGroup as="div" class="flex items-center gap-3">
+                            <Switch
+                                v-model="form.customWebsite"
+                                :class="[
+                                    form.customWebsite ? 'bg-blue-600' : 'bg-gray-300',
+                                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+                                ]"
+                            >
+                                <span
+                                    :class="[
+                                        form.customWebsite ? 'translate-x-5' : 'translate-x-0',
+                                        'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                                    ]"
+                                />
+                            </Switch>
+                            <SwitchLabel class="text-sm font-medium text-gray-700 cursor-pointer">
+                                {{ t("hostedForm.customWebsiteLabel") }}
+                            </SwitchLabel>
+                        </SwitchGroup>
+                    </div>
+
+                    <div v-if="form.customWebsite">
+                        <label for="podcast-custom-website-url" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ t("hostedForm.customWebsiteUrlLabel") }} *
+                        </label>
+                        <input
+                            id="podcast-custom-website-url"
+                            v-model="form.link"
+                            type="url"
+                            maxlength="1000"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            :class="customWebsiteUrlInvalid ? 'border-red-400' : ''"
+                            :placeholder="t('hostedForm.customWebsiteUrlPlaceholder')"
+                        />
+                        <p v-if="customWebsiteUrlInvalid" class="mt-1 text-xs text-red-600">
+                            {{ t("hostedForm.customWebsiteUrlInvalid") }}
+                        </p>
+                    </div>
+
+                    <div
+                        v-else-if="isEditMode"
+                        class="bg-gray-50 rounded-md px-3 py-2 flex items-center gap-2"
+                    >
+                        <Icon icon="ion:globe-outline" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span class="text-xs text-gray-500 flex-shrink-0">
+                            {{ t("hostedForm.autoWebsiteLabel") }}
+                        </span>
+                        <code class="text-sm text-gray-700 truncate flex-1 font-mono">{{ autoWebsiteUrl }}</code>
+                        <button
+                            type="button"
+                            @click="copyAutoWebsiteUrl"
+                            class="text-gray-500 hover:text-gray-700 flex-shrink-0 p-1"
+                            :title="t('hostedForm.copyAutoWebsiteUrl')"
+                        >
+                            <Icon icon="ion:copy-outline" class="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Platform Links -->
+                <div
+                    v-if="isEditMode"
+                    class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 space-y-4"
+                >
+                    <h2 class="text-base font-semibold text-gray-900">
+                        {{ t("hostedForm.platformLinksSection") }}
+                    </h2>
+                    <p class="text-sm text-gray-600">
+                        {{ t("hostedForm.platformLinksHint") }}
+                    </p>
+
+                    <div
+                        v-for="platform in platformLinkFields"
+                        :key="platform.key"
+                    >
+                        <label :for="`podcast-${platform.key}`" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ platform.label }}
+                        </label>
+                        <div class="flex items-stretch">
+                            <span
+                                class="inline-flex items-center px-3 border border-r-0 border-gray-300 rounded-l-md bg-gray-50"
+                                :style="{ color: platform.color }"
+                            >
+                                <Icon :icon="platform.icon" class="w-5 h-5" />
+                            </span>
+                            <input
+                                :id="`podcast-${platform.key}`"
+                                v-model="form[platform.key]"
+                                type="url"
+                                maxlength="1000"
+                                class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-r-md text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                :class="platformLinkInvalid[platform.key] ? 'border-red-400' : ''"
+                                :placeholder="platform.placeholder"
+                            />
+                        </div>
+                        <p v-if="platformLinkInvalid[platform.key]" class="mt-1 text-xs text-red-600">
+                            {{ t("hostedForm.platformUrlPrefixInvalid", { prefixes: platform.allowedHint }) }}
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Optional Fields -->
                 <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 space-y-4">
                     <h2 class="text-base font-semibold text-gray-900">
@@ -234,26 +333,6 @@
                     </div>
                 </div>
 
-                <!-- Feed URL (shown only in edit mode) -->
-                <div
-                    v-if="isEditMode && existingPodcast?.feedUrl"
-                    class="bg-blue-50 border border-blue-200 rounded-lg p-4"
-                >
-                    <label class="block text-sm font-medium text-blue-800 mb-1">
-                        {{ t("hosted.feedUrl") }}
-                    </label>
-                    <div class="flex items-center gap-2">
-                        <code class="text-xs text-blue-700 truncate flex-1">{{ existingPodcast.feedUrl }}</code>
-                        <button
-                            type="button"
-                            @click="copyFeedUrl(existingPodcast.feedUrl)"
-                            class="text-blue-600 hover:text-blue-800 flex-shrink-0"
-                        >
-                            <Icon icon="ion:copy-outline" class="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Submit error -->
                 <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-lg p-4">
                     <p class="text-red-800 text-sm">{{ submitError }}</p>
@@ -294,9 +373,22 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Icon } from "@iconify/vue";
+import { Switch, SwitchGroup, SwitchLabel } from "@headlessui/vue";
 import { auth } from "@/lib/firebase";
-import { graphqlSdk, type HostedPodcastQuery } from "@/lib/graphql";
+import { graphqlSdk } from "@/lib/graphql";
 import CategorySelect from "./CategorySelect.vue";
+
+type PlatformLinkKey =
+    | "platformLinkApplePodcasts"
+    | "platformLinkSpotify"
+    | "platformLinkAmazonMusic"
+    | "platformLinkYouTubeMusic";
+
+const APPLE_PODCASTS_URL_PATTERN = /^https:\/\/(itunes|podcasts)\.apple\.com\//i;
+const SPOTIFY_URL_PATTERN = /^https:\/\/open\.spotify\.com\//i;
+const YOUTUBE_MUSIC_URL_PATTERN = /^https:\/\/(www|music)\.youtube\.com\//i;
+const AMAZON_MUSIC_URL_PATTERN =
+    /^https:\/\/music\.amazon\.(co\.za|com\.br|com\.mx|co\.jp|com\.tr|com\.be|co\.uk|com\.au|com|eg|ca|cn|in|sa|sg|ae|fr|de|ie|it|nl|pl|es|se)\//i;
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -305,9 +397,6 @@ const router = useRouter();
 const podcastId = computed(() => route.params.id as string | undefined);
 const isEditMode = computed(() => !!podcastId.value);
 
-type HostedPodcast = NonNullable<HostedPodcastQuery["hostedPodcast"]>;
-
-const existingPodcast = ref<HostedPodcast | null>(null);
 const loadingPodcast = ref(false);
 const submitting = ref(false);
 const submitError = ref("");
@@ -327,6 +416,104 @@ const form = ref({
     itunesType: "",
     copyright: "",
     applePodcastsVerifyTxt: "",
+    customWebsite: false,
+    platformLinkApplePodcasts: "",
+    platformLinkSpotify: "",
+    platformLinkAmazonMusic: "",
+    platformLinkYouTubeMusic: "",
+});
+
+const websiteUrlPattern = import.meta.env.VITE_WEBSITE_HOSTED_PODCAST_URL_PATTERN as
+    | string
+    | undefined;
+
+const autoWebsiteUrl = computed(() => {
+    const pattern = websiteUrlPattern ?? "https://www.richpods.org/podcast/{ID}";
+    const id = podcastId.value || "{ID}";
+    return pattern.replace("{ID}", id);
+});
+
+const platformLinkFields = computed<
+    Array<{
+        key: PlatformLinkKey;
+        label: string;
+        placeholder: string;
+        icon: string;
+        color: string;
+        allowedPattern: RegExp;
+        allowedHint: string;
+    }>
+>(() => [
+    {
+        key: "platformLinkApplePodcasts",
+        label: t("hostedForm.platformAppleLabel"),
+        placeholder: "https://podcasts.apple.com/\u2026",
+        icon: "simple-icons:applepodcasts",
+        color: "#9933CC",
+        allowedPattern: APPLE_PODCASTS_URL_PATTERN,
+        allowedHint: "https://itunes.apple.com/, https://podcasts.apple.com/",
+    },
+    {
+        key: "platformLinkSpotify",
+        label: t("hostedForm.platformSpotifyLabel"),
+        placeholder: "https://open.spotify.com/show/\u2026",
+        icon: "simple-icons:spotify",
+        color: "#1DB954",
+        allowedPattern: SPOTIFY_URL_PATTERN,
+        allowedHint: "https://open.spotify.com/",
+    },
+    {
+        key: "platformLinkAmazonMusic",
+        label: t("hostedForm.platformAmazonLabel"),
+        placeholder: "https://music.amazon.com/podcasts/\u2026",
+        icon: "simple-icons:amazonmusic",
+        color: "#00A8E1",
+        allowedPattern: AMAZON_MUSIC_URL_PATTERN,
+        allowedHint: "https://music.amazon.<tld>/",
+    },
+    {
+        key: "platformLinkYouTubeMusic",
+        label: t("hostedForm.platformYouTubeLabel"),
+        placeholder: "https://music.youtube.com/playlist?list=\u2026",
+        icon: "simple-icons:youtubemusic",
+        color: "#FF0000",
+        allowedPattern: YOUTUBE_MUSIC_URL_PATTERN,
+        allowedHint: "https://www.youtube.com/, https://music.youtube.com/",
+    },
+]);
+
+function isValidUrl(value: string): boolean {
+    try {
+        const url = new URL(value);
+        return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+        return false;
+    }
+}
+
+function matchesAllowedPattern(value: string, pattern: RegExp): boolean {
+    return pattern.test(value);
+}
+
+const customWebsiteUrlInvalid = computed(() => {
+    if (!form.value.customWebsite) return false;
+    const value = form.value.link.trim();
+    if (!value) return false;
+    return !isValidUrl(value);
+});
+
+const platformLinkInvalid = computed<Record<PlatformLinkKey, boolean>>(() => {
+    const result = {} as Record<PlatformLinkKey, boolean>;
+    for (const platform of platformLinkFields.value) {
+        const value = form.value[platform.key].trim();
+        if (value.length === 0) {
+            result[platform.key] = false;
+            continue;
+        }
+        result[platform.key] =
+            !isValidUrl(value) || !matchesAllowedPattern(value, platform.allowedPattern);
+    }
+    return result;
 });
 
 function handleCoverSelect(event: Event) {
@@ -355,8 +542,42 @@ function getApiBaseUrl(): string {
     return new URL(graphqlEndpoint).origin;
 }
 
+function validateUrlFields(): string | null {
+    if (form.value.customWebsite) {
+        const value = form.value.link.trim();
+        if (!value) {
+            return t("hostedForm.customWebsiteUrlRequired");
+        }
+        if (!isValidUrl(value)) {
+            return t("hostedForm.customWebsiteUrlInvalid");
+        }
+    }
+
+    for (const platform of platformLinkFields.value) {
+        const value = form.value[platform.key].trim();
+        if (!value) continue;
+        if (!isValidUrl(value)) {
+            return t("hostedForm.platformUrlInvalid");
+        }
+        if (!matchesAllowedPattern(value, platform.allowedPattern)) {
+            return t("hostedForm.platformUrlPrefixInvalid", {
+                prefixes: platform.allowedHint,
+            });
+        }
+    }
+
+    return null;
+}
+
 async function handleSubmit() {
     submitError.value = "";
+
+    const validationError = validateUrlFields();
+    if (validationError) {
+        submitError.value = validationError;
+        return;
+    }
+
     submitting.value = true;
 
     try {
@@ -398,6 +619,11 @@ async function handleCreate() {
         itunesType: form.value.itunesType || null,
         copyright: form.value.copyright || null,
         applePodcastsVerifyTxt: form.value.applePodcastsVerifyTxt || null,
+        customWebsite: form.value.customWebsite,
+        platformLinkApplePodcasts: form.value.platformLinkApplePodcasts.trim() || null,
+        platformLinkSpotify: form.value.platformLinkSpotify.trim() || null,
+        platformLinkAmazonMusic: form.value.platformLinkAmazonMusic.trim() || null,
+        platformLinkYouTubeMusic: form.value.platformLinkYouTubeMusic.trim() || null,
     };
 
     const formData = new FormData();
@@ -436,6 +662,11 @@ async function handleUpdate() {
             itunesType: form.value.itunesType || null,
             copyright: form.value.copyright || null,
             applePodcastsVerifyTxt: form.value.applePodcastsVerifyTxt || null,
+            customWebsite: form.value.customWebsite,
+            platformLinkApplePodcasts: form.value.platformLinkApplePodcasts.trim() || null,
+            platformLinkSpotify: form.value.platformLinkSpotify.trim() || null,
+            platformLinkAmazonMusic: form.value.platformLinkAmazonMusic.trim() || null,
+            platformLinkYouTubeMusic: form.value.platformLinkYouTubeMusic.trim() || null,
         },
     });
 
@@ -464,9 +695,9 @@ async function handleUpdate() {
     router.push("/hosted");
 }
 
-function copyFeedUrl(feedUrl: string) {
-    navigator.clipboard.writeText(feedUrl).then(() => {
-        alert(t("hosted.feedUrlCopied"));
+function copyAutoWebsiteUrl() {
+    navigator.clipboard.writeText(autoWebsiteUrl.value).then(() => {
+        alert(t("hostedForm.autoWebsiteUrlCopied"));
     });
 }
 
@@ -482,7 +713,6 @@ async function loadExistingPodcast() {
             return;
         }
 
-        existingPodcast.value = podcast;
         form.value = {
             title: podcast.title,
             description: podcast.description,
@@ -494,6 +724,11 @@ async function loadExistingPodcast() {
             itunesType: podcast.itunesType || "",
             copyright: podcast.copyright || "",
             applePodcastsVerifyTxt: podcast.applePodcastsVerifyTxt || "",
+            customWebsite: podcast.customWebsite ?? false,
+            platformLinkApplePodcasts: podcast.platformLinkApplePodcasts || "",
+            platformLinkSpotify: podcast.platformLinkSpotify || "",
+            platformLinkAmazonMusic: podcast.platformLinkAmazonMusic || "",
+            platformLinkYouTubeMusic: podcast.platformLinkYouTubeMusic || "",
         };
         coverPreview.value = podcast.coverImageUrl;
     } catch (err: unknown) {

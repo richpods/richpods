@@ -87,28 +87,6 @@
                         </div>
                     </div>
 
-                    <!-- Feed URL (only shown when episodes exist) -->
-                    <div v-if="podcast.episodeCount > 0" class="mt-4 flex items-center gap-2 bg-gray-50 rounded-md px-3 py-2">
-                        <Icon icon="ion:link-outline" class="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <code class="text-xs text-gray-600 truncate flex-1">{{ podcast.feedUrl }}</code>
-                        <button
-                            @click="copyFeedUrl(podcast.feedUrl)"
-                            class="text-gray-500 hover:text-gray-700 flex-shrink-0"
-                            :title="t('hosted.copyFeedUrl')"
-                        >
-                            <Icon icon="ion:copy-outline" class="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    <!-- Episodes -->
-                    <div v-if="podcast.episodeCount > 0" class="mt-4 border-t border-gray-100 pt-4">
-                        <h3 class="text-sm font-medium text-gray-700 mb-2">{{ t("hosted.episodesHeading") }}</h3>
-                        <HostedEpisodeList
-                            :podcast-id="podcast.id"
-                            @episode-count-changed="loadPodcasts"
-                        />
-                    </div>
-
                     <!-- Actions -->
                     <div class="mt-4 flex flex-wrap gap-2">
                         <button
@@ -134,6 +112,41 @@
                             <Icon icon="ion:trash-outline" class="w-4 h-4" />
                             {{ t("hosted.deletePodcast") }}
                         </button>
+                    </div>
+
+                    <!-- Feed URL (only shown when episodes exist) -->
+                    <div v-if="podcast.episodeCount > 0" class="mt-4 border-t border-gray-100 pt-4">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+                            <Icon icon="ion:logo-rss" class="w-4 h-4 text-orange-500" />
+                            {{ t("hosted.rssFeedLabel") }}
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="text"
+                                readonly
+                                :value="podcast.feedUrl"
+                                class="flex-1 min-w-0 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-base text-blue-800 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                @focus="($event.target as HTMLInputElement).select()"
+                            />
+                            <button
+                                type="button"
+                                @click="copyFeedUrl(podcast.feedUrl)"
+                                class="inline-flex items-center gap-1.5 bg-gray-900 text-white rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-800 transition-colors flex-shrink-0"
+                                :title="t('hosted.copyFeedUrl')"
+                            >
+                                <Icon icon="ion:copy-outline" class="w-5 h-5" />
+                                {{ t("hosted.copyFeedUrl") }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Episodes -->
+                    <div v-if="podcast.episodeCount > 0" class="mt-4 border-t border-gray-100 pt-4">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">{{ t("hosted.episodesHeading") }}</h3>
+                        <HostedEpisodeList
+                            :podcast-id="podcast.id"
+                            @episode-count-changed="loadPodcasts"
+                        />
                     </div>
                 </div>
 

@@ -11,6 +11,8 @@
         "postinstall": "nuxt prepare"
     },
     "dependencies": {
+        "@iconify-json/ion": "1.2.7",
+        "@iconify/vue": "5.0.0",
         "@nuxt/eslint": "1.15.2",
         "@nuxtjs/i18n": "10.2.4",
         "@richpods/shared": "workspace:*",

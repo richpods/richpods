@@ -51,6 +51,48 @@
         "empty": "No RichPods available yet. Check back soon!",
         "loadError": "Could not load RichPods. Please try again later."
     },
+    "podcastSite": {
+        "loadError": "Could not load this podcast. Please try again later.",
+        "meta": {
+            "title": "Podcast details",
+            "author": "Author",
+            "category": "Category",
+            "language": "Language",
+            "explicit": "Explicit content",
+            "explicitYes": "Yes",
+            "explicitNo": "No",
+            "type": "Type",
+            "typeValues": {
+                "episodic": "Episodic",
+                "serial": "Serial"
+            },
+            "copyright": "Copyright"
+        },
+        "subscribe": {
+            "title": "Subscribe",
+            "rss": "RSS Feed",
+            "overcast": "Overcast",
+            "apple": "Apple Podcasts",
+            "spotify": "Spotify",
+            "amazon": "Amazon Music",
+            "youtube": "YouTube Music"
+        },
+        "episodes": {
+            "title": "Episodes",
+            "empty": "No episodes published yet.",
+            "showMore": "Show more episodes",
+            "loading": "Loading…",
+            "explicit": "Explicit",
+            "listen": "Listen to the RichPod: {title}",
+            "durationHoursMinutes": "{hours} h {minutes} min",
+            "durationMinutes": "{minutes} min",
+            "durationSeconds": "{seconds} sec"
+        },
+        "report": {
+            "button": "Report Podcast",
+            "note": "Found illegal content, impersonation, or copyright issues? Contact us and we'll take a look."
+        }
+    },
     "contact": {
         "title": "Contact",
         "address": "Bruno-Marek-Allee 5/51, 1020 Vienna",

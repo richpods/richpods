@@ -226,6 +226,11 @@ export interface HostedPodcastDocument {
     itunesType: string | null;
     copyright: string | null;
     applePodcastsVerifyTxt: string | null;
+    customWebsite: boolean;
+    platformLinkApplePodcasts: string | null;
+    platformLinkSpotify: string | null;
+    platformLinkAmazonMusic: string | null;
+    platformLinkYouTubeMusic: string | null;
     gcsCoverImageName: string;
     coverImageMimeType: string;
     editor: DocumentReference;
