@@ -1,6 +1,10 @@
-import { FieldValue } from "@google-cloud/firestore";
-import { db, HOSTED_PODCASTS_COLLECTION, HOSTED_EPISODES_COLLECTION } from "../config/firestore.js";
-import type { HostedPodcastDocument } from "../types/firestore.js";
+import { FieldValue, type DocumentReference } from "@google-cloud/firestore";
+import {
+    db,
+    HOSTED_PODCASTS_COLLECTION,
+    HOSTED_EPISODES_COLLECTION,
+} from "../config/firestore.js";
+import type { HostedEpisodeDocument, HostedPodcastDocument } from "../types/firestore.js";
 import { getUserReference } from "./user.service.js";
 import { deletePodcastChannelFiles, getHostedPublicUrl } from "./hosted-storage.service.js";
 import type {
@@ -208,6 +212,56 @@ export async function getUserHostedPodcasts(
     return { items, nextCursor };
 }
 
+type RichPodOriginSync = {
+    title?: string;
+    link?: string;
+    artworkUrl?: string;
+};
+
+/**
+ * Propagate denormalized hosted-podcast fields (title, link, cover artwork) to every
+ * RichPod that was created for one of the podcast's episodes. RichPods store a copy
+ * of these values under `origin` at creation time, so subsequent edits to the podcast
+ * would otherwise drift out of sync with the player and the RSS feed.
+ */
+export async function syncHostedPodcastFieldsToRichPods(
+    podcastId: string,
+    changes: RichPodOriginSync,
+): Promise<void> {
+    const fieldUpdates: Record<string, unknown> = {};
+    if (changes.title !== undefined) fieldUpdates["origin.title"] = changes.title;
+    if (changes.link !== undefined) fieldUpdates["origin.link"] = changes.link;
+    if (changes.artworkUrl !== undefined) fieldUpdates["origin.artworkUrl"] = changes.artworkUrl;
+    if (Object.keys(fieldUpdates).length === 0) return;
+
+    const podcastRef = db.collection(HOSTED_PODCASTS_COLLECTION).doc(podcastId);
+    const episodesSnapshot = await db
+        .collection(HOSTED_EPISODES_COLLECTION)
+        .where("hostedPodcast", "==", podcastRef)
+        .get();
+
+    const richPodRefs: DocumentReference[] = [];
+    for (const episodeDoc of episodesSnapshot.docs) {
+        const episodeData = episodeDoc.data() as HostedEpisodeDocument;
+        if (episodeData.richPod) {
+            richPodRefs.push(episodeData.richPod);
+        }
+    }
+    if (richPodRefs.length === 0) return;
+
+    const payload = { ...fieldUpdates, updatedAt: FieldValue.serverTimestamp() };
+
+    // Firestore batches are capped at 500 writes. Chunk conservatively.
+    const CHUNK_SIZE = 400;
+    for (let i = 0; i < richPodRefs.length; i += CHUNK_SIZE) {
+        const batch = db.batch();
+        for (const ref of richPodRefs.slice(i, i + CHUNK_SIZE)) {
+            batch.update(ref, payload);
+        }
+        await batch.commit();
+    }
+}
+
 export async function updateHostedPodcast(
     id: string,
     input: UpdateHostedPodcastInput,
@@ -278,6 +332,11 @@ export async function updateHostedPodcast(
         updates.platformLinkYouTubeMusic = input.platformLinkYouTubeMusic?.trim() || null;
 
     await docRef.update(updates);
+
+    const richPodSync: RichPodOriginSync = {};
+    if (typeof updates.title === "string") richPodSync.title = updates.title;
+    if (typeof updates.link === "string") richPodSync.link = updates.link;
+    await syncHostedPodcastFieldsToRichPods(id, richPodSync);
 
     const updated = await docRef.get();
     const updatedData = updated.data() as HostedPodcastDocument;

@@ -11,7 +11,11 @@ import {
     createHostedPodcastInputSchema,
     createEpisodeSchema,
 } from "../validation/hosted-schemas.js";
-import { createHostedPodcast, getHostedPodcastById } from "../services/hosted-podcast.service.js";
+import {
+    createHostedPodcast,
+    getHostedPodcastById,
+    syncHostedPodcastFieldsToRichPods,
+} from "../services/hosted-podcast.service.js";
 import { createHostedEpisode, getHostedEpisodeDoc, createRichPodForEpisode } from "../services/hosted-episode.service.js";
 import {
     savePodcastCover,
@@ -304,7 +308,10 @@ hostedRouter.post(
                 updatedAt: FieldValue.serverTimestamp(),
             });
 
-            res.status(200).json({ coverImageUrl: podcast.coverImageUrl });
+            const coverImageUrl = getHostedPublicUrl(gcsCoverName);
+            await syncHostedPodcastFieldsToRichPods(podcastId, { artworkUrl: coverImageUrl });
+
+            res.status(200).json({ coverImageUrl });
         } catch (error) {
             console.error("Error uploading podcast cover:", error);
             const message = error instanceof Error ? error.message : "Failed to upload cover";
