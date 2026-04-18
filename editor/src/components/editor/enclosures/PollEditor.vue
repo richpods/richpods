@@ -2,7 +2,12 @@
     <div class="space-y-4">
         <!-- Read-only view for saved chapters with a poll -->
         <template v-if="isSavedWithPoll">
-            <ColoeusPolls v-if="isConfigured" :lang="locale" :id="selectedPollId" @error="handlePreviewError" />
+            <ColoeusPolls
+                v-if="isConfigured"
+                :lang="locale"
+                :id="selectedPollId"
+                @error="handlePreviewError"
+            />
             <p v-if="previewError" class="text-sm text-red-600 mt-2">{{ previewError }}</p>
         </template>
 
@@ -29,11 +34,18 @@
                 <p class="text-sm text-gray-600">
                     {{ t("pollEditor.createPollHint") }}
                 </p>
-                <div v-if="!isConfigured" class="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                <div
+                    v-if="!isConfigured"
+                    class="p-4 bg-yellow-50 border border-yellow-200 rounded-md"
+                >
                     <p class="text-sm text-yellow-700">{{ t("pollEditor.configuringService") }}</p>
                 </div>
                 <div v-else>
-                    <ColoeusEditor :lang="locale" @saved="handlePollSaved" @cancel="activeTab = 'Link Existing'" />
+                    <ColoeusEditor
+                        :lang="locale"
+                        @saved="handlePollSaved"
+                        @cancel="activeTab = 'Link Existing'"
+                    />
                 </div>
             </div>
 
@@ -82,7 +94,8 @@
                             <div class="flex-1 min-w-0">
                                 <p class="font-medium text-gray-900 truncate">{{ poll.title }}</p>
                                 <p class="text-xs text-gray-500 mt-1">
-                                    {{ t("pollEditor.options", poll.options.length) }} · {{ t("pollEditor.votes", poll.totalVotes) }}
+                                    {{ t("pollEditor.options", poll.options.length) }} ·
+                                    {{ t("pollEditor.votes", poll.totalVotes) }}
                                 </p>
                             </div>
                             <div class="flex-shrink-0">
@@ -101,9 +114,15 @@
                     v-if="selectedPollId && isConfigured"
                     class="border border-gray-200 rounded-md overflow-hidden mt-4"
                 >
-                    <p class="text-xs text-gray-500 px-3 py-2 bg-gray-50 border-b">{{ t("pollEditor.previewLabel") }}</p>
+                    <p class="text-xs text-gray-500 px-3 py-2 bg-gray-50 border-b">
+                        {{ t("pollEditor.previewLabel") }}
+                    </p>
                     <div class="p-4">
-                        <ColoeusPolls :lang="locale" :id="selectedPollId" @error="handlePreviewError" />
+                        <ColoeusPolls
+                            :lang="locale"
+                            :id="selectedPollId"
+                            @error="handlePreviewError"
+                        />
                     </div>
                 </div>
                 <p v-if="previewError" class="text-sm text-red-600">{{ previewError }}</p>

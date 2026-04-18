@@ -46,10 +46,7 @@
                 v-else-if="podcasts.length === 0"
                 class="bg-white rounded-lg shadow text-center py-12"
             >
-                <Icon
-                    icon="ion:mic-outline"
-                    class="w-12 h-12 mx-auto text-gray-400 mb-3"
-                />
+                <Icon icon="ion:mic-outline" class="w-12 h-12 mx-auto text-gray-400 mb-3" />
                 <p class="text-gray-500">{{ t("hosted.noPodcastsYet") }}</p>
                 <p class="text-sm text-gray-400 mt-1">{{ t("hosted.noPodcastsHint") }}</p>
             </div>
@@ -77,10 +74,19 @@
                             <p class="text-sm text-gray-600 mt-1 line-clamp-2">
                                 {{ podcast.description }}
                             </p>
-                            <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500">
+                            <div
+                                class="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500"
+                            >
                                 <span>{{ podcast.itunesCategory }}</span>
                                 <span>&middot;</span>
-                                <span>{{ podcast.episodeCount }} {{ podcast.episodeCount === 1 ? t("hosted.episodeSingular") : t("hosted.episodePlural") }}</span>
+                                <span
+                                    >{{ podcast.episodeCount }}
+                                    {{
+                                        podcast.episodeCount === 1
+                                            ? t("hosted.episodeSingular")
+                                            : t("hosted.episodePlural")
+                                    }}</span
+                                >
                                 <span>&middot;</span>
                                 <span>{{ podcast.language }}</span>
                             </div>
@@ -107,7 +113,11 @@
                             @click="handleDelete(podcast)"
                             :disabled="podcast.episodeCount > 0"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-700 disabled:hover:border-gray-300"
-                            :title="podcast.episodeCount > 0 ? t('hosted.deleteHasEpisodes') : t('hosted.deletePodcast')"
+                            :title="
+                                podcast.episodeCount > 0
+                                    ? t('hosted.deleteHasEpisodes')
+                                    : t('hosted.deletePodcast')
+                            "
                         >
                             <Icon icon="ion:trash-outline" class="w-4 h-4" />
                             {{ t("hosted.deletePodcast") }}
@@ -116,7 +126,9 @@
 
                     <!-- Feed URL (only shown when episodes exist) -->
                     <div v-if="podcast.episodeCount > 0" class="mt-4 border-t border-gray-100 pt-4">
-                        <h3 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+                        <h3
+                            class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5"
+                        >
                             <Icon icon="ion:logo-rss" class="w-4 h-4 text-orange-500" />
                             {{ t("hosted.rssFeedLabel") }}
                         </h3>
@@ -142,7 +154,9 @@
 
                     <!-- Episodes -->
                     <div v-if="podcast.episodeCount > 0" class="mt-4 border-t border-gray-100 pt-4">
-                        <h3 class="text-sm font-medium text-gray-700 mb-2">{{ t("hosted.episodesHeading") }}</h3>
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">
+                            {{ t("hosted.episodesHeading") }}
+                        </h3>
                         <HostedEpisodeList
                             :podcast-id="podcast.id"
                             @episode-count-changed="loadPodcasts"

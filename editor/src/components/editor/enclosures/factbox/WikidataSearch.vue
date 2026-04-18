@@ -55,8 +55,14 @@
 
             <div class="flex-1 overflow-y-auto p-4">
                 <div v-if="isLoading" class="flex items-center justify-center py-8">
-                    <RipoSpinner :size="24" color="#2563eb" :label="t('factboxEditor.wikidataSearch.searching')" />
-                    <span class="ml-2 text-gray-600">{{ t("factboxEditor.wikidataSearch.searching") }}</span>
+                    <RipoSpinner
+                        :size="24"
+                        color="#2563eb"
+                        :label="t('factboxEditor.wikidataSearch.searching')"
+                    />
+                    <span class="ml-2 text-gray-600">{{
+                        t("factboxEditor.wikidataSearch.searching")
+                    }}</span>
                 </div>
 
                 <div v-else-if="error" class="p-4 bg-red-50 border border-red-200 rounded-md">
@@ -74,7 +80,9 @@
                     v-else-if="searchQuery && groupedResults.length === 0 && hasSearched"
                     class="py-8 text-center text-gray-500"
                 >
-                    {{ t("factboxEditor.wikidataSearch.noResultsFoundFor", { query: searchQuery }) }}
+                    {{
+                        t("factboxEditor.wikidataSearch.noResultsFoundFor", { query: searchQuery })
+                    }}
                 </div>
 
                 <div v-else-if="groupedResults.length === 0" class="py-8 text-center text-gray-500">
@@ -82,11 +90,7 @@
                 </div>
 
                 <div v-else class="space-y-4">
-                    <div
-                        v-for="group in groupedResults"
-                        :key="group.language"
-                        class="space-y-2"
-                    >
+                    <div v-for="group in groupedResults" :key="group.language" class="space-y-2">
                         <h4 class="text-sm font-medium text-gray-700 flex items-center gap-2">
                             <span
                                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700"
@@ -158,10 +162,17 @@
                         @click="handleSelect"
                     >
                         <span v-if="isGenerating" class="flex items-center gap-2">
-                            <RipoSpinner :size="16" color="white" track-color="rgba(255, 255, 255, 0.3)" :label="t('factboxEditor.wikidataSearch.generating')" />
+                            <RipoSpinner
+                                :size="16"
+                                color="white"
+                                track-color="rgba(255, 255, 255, 0.3)"
+                                :label="t('factboxEditor.wikidataSearch.generating')"
+                            />
                             {{ t("factboxEditor.wikidataSearch.generating") }}
                         </span>
-                        <span v-else>{{ t("factboxEditor.wikidataSearch.useSelectedEntity") }}</span>
+                        <span v-else>{{
+                            t("factboxEditor.wikidataSearch.useSelectedEntity")
+                        }}</span>
                     </button>
                 </div>
             </div>
@@ -242,7 +253,7 @@ watch(
                 dialogRef.value.close();
             }
         }
-    }
+    },
 );
 
 function handleClose() {
@@ -306,7 +317,8 @@ async function performSearch() {
         groupedResults.value = await searchWikidataMultiLang(query, sortedLangs);
         hasSearched.value = true;
     } catch (e) {
-        error.value = e instanceof Error ? e.message : t("factboxEditor.wikidataSearch.searchFailed");
+        error.value =
+            e instanceof Error ? e.message : t("factboxEditor.wikidataSearch.searchFailed");
         groupedResults.value = [];
     } finally {
         isLoading.value = false;
@@ -315,8 +327,7 @@ async function performSearch() {
 
 function isSelected(result: WikidataSearchResult): boolean {
     return (
-        selectedResult.value?.id === result.id &&
-        selectedResult.value?.language === result.language
+        selectedResult.value?.id === result.id && selectedResult.value?.language === result.language
     );
 }
 
@@ -337,12 +348,13 @@ async function handleSelect() {
     try {
         const template = await generateFactboxFromWikidata(
             selectedResult.value.id,
-            selectedResult.value.language
+            selectedResult.value.language,
         );
         emit("select", template);
         handleClose();
     } catch (e) {
-        error.value = e instanceof Error ? e.message : t("factboxEditor.wikidataSearch.generateFailed");
+        error.value =
+            e instanceof Error ? e.message : t("factboxEditor.wikidataSearch.generateFailed");
     } finally {
         isGenerating.value = false;
     }

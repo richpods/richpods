@@ -1,7 +1,9 @@
 <template>
     <dialog :aria-labelledby="headingId" class="modal-dialog" ref="dialog">
         <slot name="closeButton">
-            <form method="dialog"><button class="close-button">{{ t("common.close") }}</button></form>
+            <form method="dialog">
+                <button class="close-button">{{ t("common.close") }}</button>
+            </form>
         </slot>
         <slot />
     </dialog>

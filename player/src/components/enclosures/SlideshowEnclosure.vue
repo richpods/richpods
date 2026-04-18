@@ -11,7 +11,12 @@
                 :plugins="FlickPlugins"
             >
                 <div class="slide-panel" v-for="(slide, index) of slides" :key="index">
-                    <img :src="slide.imageUrl" :alt="slide.imageAlt" class="slide-image" draggable="false" />
+                    <img
+                        :src="slide.imageUrl"
+                        :alt="slide.imageAlt"
+                        class="slide-image"
+                        draggable="false"
+                    />
                     <div class="slide-text">
                         <span class="slide-caption">{{ slide.caption }}</span>
                         <span class="slide-credit">{{ slide.credit }}</span>
@@ -39,7 +44,7 @@ import type { Slideshow } from "@/graphql/generated.ts";
 import { computed } from "vue";
 
 const props = defineProps<{
-    enclosure: Slideshow,
+    enclosure: Slideshow;
 }>();
 
 const slides = computed(() => {

@@ -10,7 +10,12 @@ import {
 } from "@/stores/useEditorUiStore";
 import { RichPodState } from "@/graphql/generated";
 import type { EditorChapter } from "@/types/editor";
-import { isPlainDataEnclosure, isEChartsEnclosure, PlainDataChartType, ChartFormat } from "@/types/editor";
+import {
+    isPlainDataEnclosure,
+    isEChartsEnclosure,
+    PlainDataChartType,
+    ChartFormat,
+} from "@/types/editor";
 import { validateGeoJsonRfc7946 } from "@/utils/geoJsonValidation";
 
 // Zod schemas for common validations
@@ -119,10 +124,7 @@ export function useValidation() {
 
         if (enclosure.__typename !== "Slideshow") return errors;
 
-        const titleError = validateRequired(
-            enclosure.title,
-            t("validation.fields.slideshowTitle"),
-        );
+        const titleError = validateRequired(enclosure.title, t("validation.fields.slideshowTitle"));
         if (titleError) {
             errors.push({
                 type: ValidationErrorTypes.REQUIRED,
@@ -245,7 +247,10 @@ export function useValidation() {
 
         // Validate chartFormat field
         const chartFormat = enclosure.chartFormat as string | undefined;
-        if (!chartFormat || (chartFormat !== ChartFormat.PLAIN_DATA && chartFormat !== ChartFormat.ECHARTS)) {
+        if (
+            !chartFormat ||
+            (chartFormat !== ChartFormat.PLAIN_DATA && chartFormat !== ChartFormat.ECHARTS)
+        ) {
             errors.push({
                 type: ValidationErrorTypes.REQUIRED,
                 field: "chartFormat",
@@ -271,7 +276,9 @@ export function useValidation() {
         if (isPlainDataEnclosure(enclosure)) {
             // Plain-data format validation
             const data = chartObj.data as (string | number)[][];
-            const metadata = chartObj.metadata as { type?: string; aspectRatio?: string } | undefined;
+            const metadata = chartObj.metadata as
+                | { type?: string; aspectRatio?: string }
+                | undefined;
 
             // Check minimum dimensions
             if (!data || data.length < 2) {
@@ -355,7 +362,10 @@ export function useValidation() {
 
             // Check metadata
             const validChartTypes = Object.values(PlainDataChartType);
-            if (!metadata?.type || !validChartTypes.includes(metadata.type as typeof validChartTypes[number])) {
+            if (
+                !metadata?.type ||
+                !validChartTypes.includes(metadata.type as (typeof validChartTypes)[number])
+            ) {
                 errors.push({
                     type: ValidationErrorTypes.REQUIRED,
                     field: "chart-type",
@@ -473,10 +483,7 @@ export function useValidation() {
         return errors;
     }
 
-    function validatePollChapter(
-        chapter: EditorChapter,
-        chapterIndex: number,
-    ): ValidationError[] {
+    function validatePollChapter(chapter: EditorChapter, chapterIndex: number): ValidationError[] {
         const errors: ValidationError[] = [];
         const enclosure = chapter.enclosure;
 
@@ -585,11 +592,7 @@ export function useValidation() {
                     message: labelError,
                 });
             } else {
-                const labelMaxError = validateMaxLength(
-                    link.label,
-                    50,
-                    labelField,
-                );
+                const labelMaxError = validateMaxLength(link.label, 50, labelField);
                 if (labelMaxError) {
                     errors.push({
                         type: ValidationErrorTypes.REQUIRED,
@@ -625,10 +628,7 @@ export function useValidation() {
         return errors;
     }
 
-    function validateCardChapter(
-        chapter: EditorChapter,
-        chapterIndex: number,
-    ): ValidationError[] {
+    function validateCardChapter(chapter: EditorChapter, chapterIndex: number): ValidationError[] {
         const errors: ValidationError[] = [];
         const enclosure = chapter.enclosure;
 
@@ -674,7 +674,11 @@ export function useValidation() {
                         });
                     }
                 }
-                const urlMaxError = validateMaxLength(enclosure.url, 500, t("validation.fields.url"));
+                const urlMaxError = validateMaxLength(
+                    enclosure.url,
+                    500,
+                    t("validation.fields.url"),
+                );
                 if (urlMaxError) {
                     errors.push({
                         type: ValidationErrorTypes.REQUIRED,
@@ -740,7 +744,10 @@ export function useValidation() {
             case "IMAGE": {
                 // Image URL must be valid if provided
                 if (enclosure.imageUrl) {
-                    const imgUrlError = validateUrl(enclosure.imageUrl, t("validation.fields.imageUrl"));
+                    const imgUrlError = validateUrl(
+                        enclosure.imageUrl,
+                        t("validation.fields.imageUrl"),
+                    );
                     if (imgUrlError) {
                         errors.push({
                             type: ValidationErrorTypes.INVALID_URL,

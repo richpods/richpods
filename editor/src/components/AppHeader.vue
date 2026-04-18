@@ -32,9 +32,7 @@
                         <button
                             class="lg:hidden p-2 text-gray-500 hover:text-gray-700 transition-colors"
                             :aria-label="
-                                showMobileMenu
-                                    ? t('header.closeMenu')
-                                    : t('header.openMenu')
+                                showMobileMenu ? t('header.closeMenu') : t('header.openMenu')
                             "
                             @click="showMobileMenu = !showMobileMenu"
                         >
@@ -118,10 +116,7 @@
         </header>
 
         <!-- Mobile navigation menu -->
-        <nav
-            v-if="showMobileMenu"
-            class="lg:hidden bg-white border-b border-gray-200"
-        >
+        <nav v-if="showMobileMenu" class="lg:hidden bg-white border-b border-gray-200">
             <div class="container mx-auto px-4 py-2 flex flex-col space-y-1">
                 <button
                     v-for="tab in tabs"
@@ -179,7 +174,7 @@ const tabs = computed(() => {
 
 const activeTab = computed(() => {
     const currentPath = route.path;
-    const tab = tabs.value.find(t => currentPath.startsWith(t.path));
+    const tab = tabs.value.find((t) => currentPath.startsWith(t.path));
     return tab?.id || "richpods";
 });
 

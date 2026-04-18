@@ -84,9 +84,7 @@ function sanitizeMarkdown(markdown: string): string {
 export function useTipTapEditor() {
     const richpodStore = useRichPodStore();
     const { currentChapter } = storeToRefs(richpodStore);
-    const isMarkdown = computed(
-        () => currentChapter.value?.enclosure.__typename === "Markdown",
-    );
+    const isMarkdown = computed(() => currentChapter.value?.enclosure.__typename === "Markdown");
     const editor = shallowRef<Editor | null>(null);
 
     const editorToMarkdown = (editorInstance: MarkdownEditorLike): string => {
@@ -129,10 +127,7 @@ export function useTipTapEditor() {
                 const sanitized = sanitizeMarkdown(markdown);
 
                 const chapterValue = currentChapter.value;
-                if (
-                    !chapterValue ||
-                    chapterValue.enclosure.__typename !== "Markdown"
-                ) {
+                if (!chapterValue || chapterValue.enclosure.__typename !== "Markdown") {
                     return;
                 }
 
@@ -173,9 +168,7 @@ export function useTipTapEditor() {
             }
 
             const text =
-                typeof chapterValue.enclosure.text === "string"
-                    ? chapterValue.enclosure.text
-                    : "";
+                typeof chapterValue.enclosure.text === "string" ? chapterValue.enclosure.text : "";
 
             if (!editor.value) {
                 initializeEditor(text);

@@ -7,8 +7,7 @@
     font-family: "JetBrains Mono";
     font-style: normal;
     font-weight: 400;
-    src: url("@richpods/shared/assets/fonts/JetBrainsMono-Regular.woff2")
-        format("woff2");
+    src: url("@richpods/shared/assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
 }
 
 :root {

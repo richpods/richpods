@@ -2,9 +2,15 @@
     <modal-dialog :aria-labelledby="headingId" ref="dialog">
         <h1 :id="headingId" class="title">{{ t("chapterDialog.title") }}</h1>
         <div class="chapter-list">
-            <button @click="seekTo(chapter.beginSeconds)" v-for="(chapter, index) of sortedChapters" :key="index + chapterKey(chapter)">
+            <button
+                @click="seekTo(chapter.beginSeconds)"
+                v-for="(chapter, index) of sortedChapters"
+                :key="index + chapterKey(chapter)"
+            >
                 <span class="chapter-title">
-                    <span class="visually-hidden">{{ t("chapterDialog.chapterN", { n: index + 1 }) }}</span>
+                    <span class="visually-hidden">{{
+                        t("chapterDialog.chapterN", { n: index + 1 })
+                    }}</span>
                     {{ getChapterTitle(chapter) }}
                 </span>
                 <span class="chapter-offset">
@@ -45,7 +51,10 @@ function isPollEnclosure(enclosure: SortedChapter["enclosure"]): enclosure is Po
 
 function getChapterTitle(chapter: SortedChapter): string {
     if (isPollEnclosure(chapter.enclosure)) {
-        const pollTitle = getPollTitle(chapter.enclosure.coloeus.endpoint, chapter.enclosure.coloeus.pollId);
+        const pollTitle = getPollTitle(
+            chapter.enclosure.coloeus.endpoint,
+            chapter.enclosure.coloeus.pollId,
+        );
         return pollTitle ?? t("common.ellipsis");
     }
     return (chapter.enclosure as { title: string }).title;

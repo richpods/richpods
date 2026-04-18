@@ -74,9 +74,7 @@ function sanitizeMarkdown(markdown: string): string {
 export function useFactboxTipTapEditor() {
     const richpodStore = useRichPodStore();
     const { currentChapter } = storeToRefs(richpodStore);
-    const isFactbox = computed(
-        () => currentChapter.value?.enclosure.__typename === "Factbox"
-    );
+    const isFactbox = computed(() => currentChapter.value?.enclosure.__typename === "Factbox");
     const editor = shallowRef<Editor | null>(null);
 
     const editorToMarkdown = (editorInstance: MarkdownEditorLike): string => {
@@ -162,9 +160,7 @@ export function useFactboxTipTapEditor() {
             }
 
             const text =
-                typeof chapterValue.enclosure.text === "string"
-                    ? chapterValue.enclosure.text
-                    : "";
+                typeof chapterValue.enclosure.text === "string" ? chapterValue.enclosure.text : "";
 
             if (!editor.value) {
                 initializeEditor(text);
@@ -176,7 +172,7 @@ export function useFactboxTipTapEditor() {
                 }
             }
         },
-        { immediate: true }
+        { immediate: true },
     );
 
     const onDestroy = () => {

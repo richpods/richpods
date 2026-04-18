@@ -81,7 +81,7 @@ withDefaults(defineProps<Props>(), {
 .variant-compact {
     width: 26px;
     padding: 0;
-    border: 1px solid #FFFFFF;
+    border: 1px solid #ffffff;
     border-radius: 50%;
 
     @media (max-width: 23.75em) {

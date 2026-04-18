@@ -23,7 +23,11 @@
                 {{ t("pollDeleteModal.description") }}
             </p>
 
-            <div class="space-y-3" role="group" :aria-label="t('pollDeleteModal.deleteOptionsAriaLabel')">
+            <div
+                class="space-y-3"
+                role="group"
+                :aria-label="t('pollDeleteModal.deleteOptionsAriaLabel')"
+            >
                 <button
                     type="button"
                     role="button"
@@ -34,7 +38,9 @@
                     @keydown.enter="handleDeleteChapterOnly"
                     @keydown.space.prevent="handleDeleteChapterOnly"
                 >
-                    <span class="font-medium text-blue-900">{{ t("pollDeleteModal.removeChapterOnly") }}</span>
+                    <span class="font-medium text-blue-900">{{
+                        t("pollDeleteModal.removeChapterOnly")
+                    }}</span>
                     <p class="text-sm text-blue-700 mt-1">
                         {{ t("pollDeleteModal.removeChapterOnlyHint") }}
                     </p>
@@ -51,7 +57,11 @@
                     @keydown.space.prevent="handleDeleteBoth"
                 >
                     <span class="font-medium text-gray-700">
-                        {{ isDeleting ? t("pollDeleteModal.deletingPoll") : t("pollDeleteModal.deleteBoth") }}
+                        {{
+                            isDeleting
+                                ? t("pollDeleteModal.deletingPoll")
+                                : t("pollDeleteModal.deleteBoth")
+                        }}
                     </span>
                     <p class="text-sm text-gray-500 mt-1">
                         {{ t("pollDeleteModal.deleteBothHint") }}

@@ -1,6 +1,8 @@
 <template>
     <div class="space-y-2">
-        <label class="block text-sm font-medium text-gray-700">{{ t("markdownEditor.contentLabel") }}</label>
+        <label class="block text-sm font-medium text-gray-700">{{
+            t("markdownEditor.contentLabel")
+        }}</label>
         <div class="tiptap-editor-container">
             <div v-if="editor" class="editor-toolbar" :class="{ 'raw-mode': rawMode }">
                 <div class="toolbar-group">
@@ -13,8 +15,16 @@
                         :aria-label="t('markdownEditor.bold')"
                         :title="t('markdownEditor.bold')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"
+                            />
                         </svg>
                     </button>
                     <button
@@ -26,8 +36,16 @@
                         :aria-label="t('markdownEditor.italic')"
                         :title="t('markdownEditor.italic')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"
+                            />
                         </svg>
                     </button>
                     <button
@@ -39,8 +57,16 @@
                         :aria-label="t('markdownEditor.strikethrough')"
                         :title="t('markdownEditor.strikethrough')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M10 19h4v-3h-4v3zM5 4v3h5v3h4V7h5V4H5zM3 14h18v-2H3v2z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M10 19h4v-3h-4v3zM5 4v3h5v3h4V7h5V4H5zM3 14h18v-2H3v2z"
+                            />
                         </svg>
                     </button>
                     <button
@@ -52,8 +78,16 @@
                         :aria-label="t('markdownEditor.code')"
                         :title="t('markdownEditor.code')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"
+                            />
                         </svg>
                     </button>
                 </div>
@@ -104,8 +138,16 @@
                         :aria-label="t('markdownEditor.bulletList')"
                         :title="t('markdownEditor.bulletList')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M7 5h14v2H7V5zm0 8v-2h14v2H7zm0 6v-2h14v2H7zM4 5c0 .55-.45 1-1 1s-1-.45-1-1 .45-1 1-1 1 .45 1 1zm0 6c0 .55-.45 1-1 1s-1-.45-1-1 .45-1 1-1 1 .45 1 1zm0 6c0 .55-.45 1-1 1s-1-.45-1-1 .45-1 1-1 1 .45 1 1z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M7 5h14v2H7V5zm0 8v-2h14v2H7zm0 6v-2h14v2H7zM4 5c0 .55-.45 1-1 1s-1-.45-1-1 .45-1 1-1 1 .45 1 1zm0 6c0 .55-.45 1-1 1s-1-.45-1-1 .45-1 1-1 1 .45 1 1zm0 6c0 .55-.45 1-1 1s-1-.45-1-1 .45-1 1-1 1 .45 1 1z"
+                            />
                         </svg>
                     </button>
                     <button
@@ -116,8 +158,16 @@
                         :aria-label="t('markdownEditor.orderedList')"
                         :title="t('markdownEditor.orderedList')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"
+                            />
                         </svg>
                     </button>
                     <button
@@ -128,8 +178,16 @@
                         :aria-label="t('markdownEditor.quote')"
                         :title="t('markdownEditor.quote')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"
+                            />
                         </svg>
                     </button>
                     <button
@@ -140,8 +198,16 @@
                         :aria-label="t('markdownEditor.codeBlock')"
                         :title="t('markdownEditor.codeBlock')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M3 3h18v18H3V3zm16 16V8h-6v11h6zm-8 0v-5H5v5h6zm0-7V5H5v7h6z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M3 3h18v18H3V3zm16 16V8h-6v11h6zm-8 0v-5H5v5h6zm0-7V5H5v7h6z"
+                            />
                         </svg>
                     </button>
                 </div>
@@ -157,8 +223,16 @@
                         :aria-label="t('markdownEditor.addLink')"
                         :title="t('markdownEditor.addLink')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
+                            />
                         </svg>
                     </button>
                     <button
@@ -168,8 +242,16 @@
                         :aria-label="t('markdownEditor.addImage')"
                         :title="t('markdownEditor.addImage')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+                            />
                         </svg>
                     </button>
                 </div>
@@ -198,8 +280,16 @@
                         :aria-label="t('markdownEditor.undo')"
                         :title="t('markdownEditor.undo')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"
+                            />
                         </svg>
                     </button>
                     <button
@@ -210,8 +300,16 @@
                         :aria-label="t('markdownEditor.redo')"
                         :title="t('markdownEditor.redo')"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                            <path fill="currentColor" d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                        >
+                            <path
+                                fill="currentColor"
+                                d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"
+                            />
                         </svg>
                     </button>
                 </div>
@@ -271,7 +369,7 @@ watch(
             newEditor.on("update", debouncedValidation);
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 const announceToScreenReader = (message: string) => {
@@ -463,14 +561,20 @@ onBeforeUnmount(() => {
             pointer-events: none;
         }
 
-        h1, h2, h3, h4, h5, h6 {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
             line-height: 1.2;
             margin-top: 1.25rem;
             margin-bottom: 0.5rem;
             text-wrap: pretty;
         }
 
-        h1, h2 {
+        h1,
+        h2 {
             margin-top: 1.5rem;
         }
 
@@ -489,7 +593,8 @@ onBeforeUnmount(() => {
             font-weight: 600;
         }
 
-        ul, ol {
+        ul,
+        ol {
             padding: 0 1rem;
             margin: 1.25rem 1rem 1.25rem 0.4rem;
 
@@ -523,7 +628,7 @@ onBeforeUnmount(() => {
             background-color: #f3f4f6;
             border-radius: 0.25rem;
             color: #1f2937;
-            font-family: 'JetBrains Mono', 'SF Mono', Monaco, Consolas, monospace;
+            font-family: "JetBrains Mono", "SF Mono", Monaco, Consolas, monospace;
             font-size: 0.85rem;
             padding: 0.125rem 0.25rem;
         }
@@ -532,7 +637,7 @@ onBeforeUnmount(() => {
             background: #1e293b;
             border-radius: 0.5rem;
             color: #f1f5f9;
-            font-family: 'JetBrains Mono', 'SF Mono', Monaco, Consolas, monospace;
+            font-family: "JetBrains Mono", "SF Mono", Monaco, Consolas, monospace;
             margin: 1.5rem 0;
             padding: 0.75rem 1rem;
             overflow-x: auto;

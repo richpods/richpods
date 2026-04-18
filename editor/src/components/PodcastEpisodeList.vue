@@ -1,16 +1,14 @@
 <template>
     <div class="podcast-episode-list">
         <div class="mb-4">
-            <h3 class="text-lg font-medium text-gray-900">{{ t("episodeSearch.availableEpisodes") }}</h3>
+            <h3 class="text-lg font-medium text-gray-900">
+                {{ t("episodeSearch.availableEpisodes") }}
+            </h3>
             <p class="text-sm text-gray-500">{{ t("episodeSearch.selectEpisode") }}</p>
         </div>
 
         <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
-            <div
-                v-for="episode in episodes"
-                :key="episode.guid"
-                class="p-3 sm:p-4"
-            >
+            <div v-for="episode in episodes" :key="episode.guid" class="p-3 sm:p-4">
                 <div class="flex space-x-3 sm:space-x-4">
                     <!-- Episode artwork -->
                     <div class="flex-shrink-0">
@@ -25,7 +23,10 @@
                             v-else
                             class="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center"
                         >
-                            <Icon icon="ion:musical-notes-outline" class="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                            <Icon
+                                icon="ion:musical-notes-outline"
+                                class="w-6 h-6 sm:w-8 sm:h-8 text-gray-400"
+                            />
                         </div>
                     </div>
 
@@ -34,7 +35,10 @@
                         <h4 class="text-sm sm:text-base font-medium text-gray-900 line-clamp-2">
                             {{ episode.title }}
                         </h4>
-                        <p v-if="episode.podcastTitle" class="text-xs sm:text-sm text-gray-600 truncate mt-0.5">
+                        <p
+                            v-if="episode.podcastTitle"
+                            class="text-xs sm:text-sm text-gray-600 truncate mt-0.5"
+                        >
                             {{ episode.podcastTitle }}
                         </p>
 
@@ -44,7 +48,9 @@
                             </p>
                         </div>
 
-                        <div class="mt-1.5 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-gray-500">
+                        <div
+                            class="mt-1.5 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-gray-500"
+                        >
                             <span
                                 v-if="episode.publicationDate"
                                 class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 rounded-full"
@@ -76,7 +82,10 @@
                                 rel="noopener noreferrer"
                                 class="text-blue-600 hover:text-blue-800 inline-flex items-center"
                             >
-                                <Icon icon="ion:open-outline" class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                                <Icon
+                                    icon="ion:open-outline"
+                                    class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1"
+                                />
                                 {{ t("episodeSearch.episodeLink") }}
                             </a>
                             <a
@@ -86,7 +95,10 @@
                                 rel="noopener noreferrer"
                                 class="text-blue-600 hover:text-blue-800 inline-flex items-center"
                             >
-                                <Icon icon="ion:download-outline" class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                                <Icon
+                                    icon="ion:download-outline"
+                                    class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1"
+                                />
                                 {{ t("episodeSearch.audioFile") }}
                             </a>
                         </div>
@@ -115,7 +127,9 @@
         <div v-if="!loading && episodes.length === 0" class="text-center py-8">
             <Icon icon="ion:document-outline" class="w-12 h-12 mx-auto text-gray-400 mb-3" />
             <p class="text-gray-500">{{ t("episodeSearch.noEpisodes") }}</p>
-            <p class="text-sm text-gray-400 mt-1">{{ t("episodeSearch.feedEmptyOrUnavailable") }}</p>
+            <p class="text-sm text-gray-400 mt-1">
+                {{ t("episodeSearch.feedEmptyOrUnavailable") }}
+            </p>
         </div>
     </div>
 </template>
@@ -167,7 +181,7 @@ function formatDate(dateString: string): string {
 function formatDuration(seconds: number): string {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (hours > 0) {
         return t("episodeSearch.durationHoursMinutes", { hours, minutes });
     } else if (minutes > 0) {
@@ -181,7 +195,7 @@ function formatDuration(seconds: number): string {
 function formatMediaType(type: string): string {
     const typeMap: Record<string, string> = {
         "audio/mpeg": "MP3",
-        "audio/mp3": "MP3", 
+        "audio/mp3": "MP3",
         "audio/mp4": "MP4",
         "audio/m4a": "M4A",
         "audio/wav": "WAV",
@@ -189,14 +203,15 @@ function formatMediaType(type: string): string {
         "audio/aac": "AAC",
         "audio/flac": "FLAC",
     };
-    
+
     return typeMap[type.toLowerCase()] || type.toUpperCase();
 }
 
 // Handle broken images
 function handleImageError(event: Event) {
     const img = event.target as HTMLImageElement;
-    img.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yOCAyMEMzMC4yMDkxIDIwIDMyIDIxLjc5MDkgMzIgMjRDMzIgMjYuMjA5MSAzMC4yMDkxIDI4IDI4IDI4QzI1Ljc5MDkgMjggMjQgMjYuMjA5MSAyNCAyNEMyNCAyMS43OTA5IDI1Ljc5MDkgMjAgMjggMjBaIiBmaWxsPSIjOTlBM0FGIi8+CjxwYXRoIGQ9Ik0yMCAzNkwyNCAxNkw0MCAyOEw0NCAzMkw0NCA0NEwyMCA0NFYzNloiIGZpbGw9IiM5OUEzQUYiLz4KPC9zdmc+";
+    img.src =
+        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yOCAyMEMzMC4yMDkxIDIwIDMyIDIxLjc5MDkgMzIgMjRDMzIgMjYuMjA5MSAzMC4yMDkxIDI4IDI4IDI4QzI1Ljc5MDkgMjggMjQgMjYuMjA5MSAyNCAyNEMyNCAyMS43OTA5IDI1Ljc5MDkgMjAgMjggMjBaIiBmaWxsPSIjOTlBM0FGIi8+CjxwYXRoIGQ9Ik0yMCAzNkwyNCAxNkw0MCAyOEw0NCAzMkw0NCA0NEwyMCA0NFYzNloiIGZpbGw9IiM5OUEzQUYiLz4KPC9zdmc+";
 }
 </script>
 

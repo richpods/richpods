@@ -1,16 +1,16 @@
 <template>
     <div class="podcast-search-results">
         <div class="mb-4">
-            <h3 class="text-lg font-medium text-gray-900">{{ t("episodeSearch.searchResults") }}</h3>
-            <p class="text-sm text-gray-500">{{ t("episodeSearch.podcastsFound", results.length) }}</p>
+            <h3 class="text-lg font-medium text-gray-900">
+                {{ t("episodeSearch.searchResults") }}
+            </h3>
+            <p class="text-sm text-gray-500">
+                {{ t("episodeSearch.podcastsFound", results.length) }}
+            </p>
         </div>
 
         <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
-            <div
-                v-for="(result, index) in results"
-                :key="index"
-                class="p-3 sm:p-4"
-            >
+            <div v-for="(result, index) in results" :key="index" class="p-3 sm:p-4">
                 <div class="flex space-x-3 sm:space-x-4">
                     <!-- Artwork -->
                     <div class="flex-shrink-0">
@@ -25,25 +25,39 @@
                             v-else
                             class="w-12 h-12 sm:w-16 sm:h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center"
                         >
-                            <Icon icon="ion:musical-notes-outline" class="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                            <Icon
+                                icon="ion:musical-notes-outline"
+                                class="w-6 h-6 sm:w-8 sm:h-8 text-gray-400"
+                            />
                         </div>
                     </div>
 
                     <!-- Content -->
                     <div class="flex-1 min-w-0">
-                        <h4 class="text-sm sm:text-base font-medium text-gray-900 line-clamp-2 leading-tight">
+                        <h4
+                            class="text-sm sm:text-base font-medium text-gray-900 line-clamp-2 leading-tight"
+                        >
                             {{ result.episodeTitle }}
                         </h4>
                         <p class="text-xs sm:text-sm text-gray-600 line-clamp-1 mt-0.5">
-                            {{ result.podcastTitle }}{{ result.creator ? ` • ${result.creator}` : '' }}
+                            {{ result.podcastTitle
+                            }}{{ result.creator ? ` • ${result.creator}` : "" }}
                         </p>
 
-                        <div class="mt-1.5 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-gray-500">
-                            <span v-if="result.date" class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 rounded-full">
+                        <div
+                            class="mt-1.5 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-gray-500"
+                        >
+                            <span
+                                v-if="result.date"
+                                class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 rounded-full"
+                            >
                                 <Icon icon="ion:calendar-outline" class="w-3 h-3 mr-1" />
                                 {{ formatDate(result.date) }}
                             </span>
-                            <span v-if="result.genre" class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 rounded-full">
+                            <span
+                                v-if="result.genre"
+                                class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 rounded-full"
+                            >
                                 <Icon icon="ion:musical-notes-outline" class="w-3 h-3 mr-1" />
                                 {{ result.genre }}
                             </span>

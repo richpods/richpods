@@ -56,21 +56,16 @@ export async function fetchUserPolls(page = 1, limit = 50): Promise<PollListResp
 
     const token = await user.getIdToken();
 
-    const response = await fetch(
-        `${COLOEUS_ENDPOINT}/admin/polls?page=${page}&limit=${limit}`,
-        {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
+    const response = await fetch(`${COLOEUS_ENDPOINT}/admin/polls?page=${page}&limit=${limit}`, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
         },
-    );
+    });
 
     if (!response.ok) {
-        const error = await response
-            .json()
-            .catch(() => ({ error: t("pollEditor.unknownError") }));
+        const error = await response.json().catch(() => ({ error: t("pollEditor.unknownError") }));
         throw new Error(
             error.error || t("pollEditor.fetchFailedWithStatus", { status: response.status }),
         );
@@ -103,9 +98,7 @@ export async function deleteColoeussPoll(pollId: string): Promise<void> {
     });
 
     if (!response.ok) {
-        const error = await response
-            .json()
-            .catch(() => ({ error: t("pollEditor.unknownError") }));
+        const error = await response.json().catch(() => ({ error: t("pollEditor.unknownError") }));
         throw new Error(
             error.error || t("pollEditor.deleteFailedWithStatus", { status: response.status }),
         );

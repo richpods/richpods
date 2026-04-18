@@ -97,9 +97,7 @@
                             >
                                 {{ richpod.updatedAt }}
                             </td>
-                            <td
-                                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                            >
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex gap-2 justify-end">
                                     <router-link
                                         :to="`/edit/${richpod.id}`"
@@ -231,7 +229,10 @@ async function loadRichPods() {
     error.value = "";
 
     try {
-        const response = await graphqlSdk.UserRichPods({ first: DEFAULT_PAGE_SIZE, state: RichPodState.Published });
+        const response = await graphqlSdk.UserRichPods({
+            first: DEFAULT_PAGE_SIZE,
+            state: RichPodState.Published,
+        });
         richPods.value = response.userRichPods.items;
         nextCursor.value = response.userRichPods.nextCursor ?? null;
     } catch (err: unknown) {

@@ -1,6 +1,11 @@
 <template>
     <article class="poll-enclosure">
-        <ColoeusPolls v-if="isConfigured" :lang="locale" :id="enclosure.coloeus.pollId" @voted="handleVoted" />
+        <ColoeusPolls
+            v-if="isConfigured"
+            :lang="locale"
+            :id="enclosure.coloeus.pollId"
+            @voted="handleVoted"
+        />
         <div v-else class="poll-enclosure__loading">{{ t("poll.loading") }}</div>
     </article>
 </template>

@@ -1,10 +1,6 @@
 import { graphqlSdk } from "@/lib/graphql";
 import i18n from "@/i18n";
-import {
-    EnclosureType,
-    type GetRichPodQuery,
-    type RichPodState,
-} from "@/graphql/generated";
+import { EnclosureType, type GetRichPodQuery, type RichPodState } from "@/graphql/generated";
 import type {
     EditorChapter,
     EditorEnclosure,
@@ -76,7 +72,8 @@ function mapEnclosure(enclosure: GraphQLRichPod["chapters"][number]["enclosure"]
                       }
                     : undefined,
                 description: enclosure.description ?? undefined,
-                coverSource: (enclosure.coverSource as "podcast" | "episode" | undefined) ?? undefined,
+                coverSource:
+                    (enclosure.coverSource as "podcast" | "episode" | undefined) ?? undefined,
                 quoteText: enclosure.quoteText ?? undefined,
                 citationSource: enclosure.citationSource ?? undefined,
                 citationUrl: enclosure.citationUrl ?? undefined,
@@ -157,13 +154,17 @@ function removeUndefined(value: unknown): unknown {
     return value;
 }
 
-function serializeEnclosure(enclosure: EditorEnclosure): { type: EnclosureType; payload: Record<string, unknown> } {
+function serializeEnclosure(enclosure: EditorEnclosure): {
+    type: EnclosureType;
+    payload: Record<string, unknown>;
+} {
     const { __typename, ...rest } = enclosure;
     const enclosureType = (__typename ?? "Markdown") as EnclosureType;
 
-    const payloadWithDefaults = __typename === "Factbox"
-        ? { ...rest, links: Array.isArray(rest.links) ? rest.links : [] }
-        : rest;
+    const payloadWithDefaults =
+        __typename === "Factbox"
+            ? { ...rest, links: Array.isArray(rest.links) ? rest.links : [] }
+            : rest;
 
     const payloadWithoutOutputOnlyFields = { ...payloadWithDefaults };
     if (__typename === "Card") {

@@ -6,7 +6,7 @@
             :style="{ '--marquee-duration': marqueeDuration }"
         >
             <div class="podcast-image">
-                <img :src="artworkUrl" :alt="richPod.origin.title">
+                <img :src="artworkUrl" :alt="richPod.origin.title" />
             </div>
             <h1 class="richpod-title">
                 <span class="marquee">
@@ -29,14 +29,71 @@
                 </button>
             </div>
         </div>
-        <div v-if="isUnverified" class="unverified-banner mobile-only" role="alert" ref="mobileBanner">
-            <svg class="unverified-banner-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M432 320V144a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v112m0 0V80a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v160m-64 1V96a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v224m128-80V48a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v192"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M432 320c0 117.4-64 176-152 176s-123.71-39.6-144-88L83.33 264c-6.66-18.05-3.64-34.79 11.87-43.6h0c15.52-8.82 35.91-4.28 44.31 11.68L176 320"/></svg>
-            <span>{{ publisherName ? t("disclaimer.unverified", { publisherName }) : t("disclaimer.unverifiedNoPublisher") }}</span>
+        <div
+            v-if="isUnverified"
+            class="unverified-banner mobile-only"
+            role="alert"
+            ref="mobileBanner"
+        >
+            <svg
+                class="unverified-banner-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512"
+                aria-hidden="true"
+            >
+                <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="32"
+                    d="M432 320V144a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v112m0 0V80a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v160m-64 1V96a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v224m128-80V48a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v192"
+                />
+                <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="32"
+                    d="M432 320c0 117.4-64 176-152 176s-123.71-39.6-144-88L83.33 264c-6.66-18.05-3.64-34.79 11.87-43.6h0c15.52-8.82 35.91-4.28 44.31 11.68L176 320"
+                />
+            </svg>
+            <span>{{
+                publisherName
+                    ? t("disclaimer.unverified", { publisherName })
+                    : t("disclaimer.unverifiedNoPublisher")
+            }}</span>
         </div>
         <aside class="desktop-sidebar">
             <div v-if="isUnverified" class="unverified-banner" role="alert">
-                <svg class="unverified-banner-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M432 320V144a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v112m0 0V80a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v160m-64 1V96a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v224m128-80V48a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v192"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M432 320c0 117.4-64 176-152 176s-123.71-39.6-144-88L83.33 264c-6.66-18.05-3.64-34.79 11.87-43.6h0c15.52-8.82 35.91-4.28 44.31 11.68L176 320"/></svg>
-                <span>{{ publisherName ? t("disclaimer.unverified", { publisherName }) : t("disclaimer.unverifiedNoPublisher") }}</span>
+                <svg
+                    class="unverified-banner-icon"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 512 512"
+                    aria-hidden="true"
+                >
+                    <path
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="32"
+                        d="M432 320V144a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v112m0 0V80a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v160m-64 1V96a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v224m128-80V48a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v192"
+                    />
+                    <path
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="32"
+                        d="M432 320c0 117.4-64 176-152 176s-123.71-39.6-144-88L83.33 264c-6.66-18.05-3.64-34.79 11.87-43.6h0c15.52-8.82 35.91-4.28 44.31 11.68L176 320"
+                    />
+                </svg>
+                <span>{{
+                    publisherName
+                        ? t("disclaimer.unverified", { publisherName })
+                        : t("disclaimer.unverifiedNoPublisher")
+                }}</span>
             </div>
             <h1 class="sidebar-title">{{ richPod.title }}</h1>
             <span v-if="richPod.explicit" class="explicit-badge">{{ t("player.explicit") }}</span>
@@ -44,7 +101,7 @@
                 {{ richPod.description }}
             </p>
             <div class="sidebar-artwork">
-                <img :src="artworkUrl" :alt="richPod.origin.title">
+                <img :src="artworkUrl" :alt="richPod.origin.title" />
             </div>
             <ShareIconButton
                 variant="labeled"
@@ -128,26 +185,27 @@ const reportMailtoLink = computed(() => {
 const mobileBannerRef = useTemplateRef<HTMLDivElement>("mobileBanner");
 const mobileBannerHeight = ref(0);
 
-watch(mobileBannerRef, (el, _old, onCleanup) => {
-    if (!el) {
-        mobileBannerHeight.value = 0;
-        return;
-    }
-    const observer = new ResizeObserver(([entry]) => {
-        mobileBannerHeight.value = entry.borderBoxSize[0].blockSize;
-    });
-    observer.observe(el);
-    onCleanup(() => observer.disconnect());
-}, { flush: "post" });
+watch(
+    mobileBannerRef,
+    (el, _old, onCleanup) => {
+        if (!el) {
+            mobileBannerHeight.value = 0;
+            return;
+        }
+        const observer = new ResizeObserver(([entry]) => {
+            mobileBannerHeight.value = entry.borderBoxSize[0].blockSize;
+        });
+        observer.observe(el);
+        onCleanup(() => observer.disconnect());
+    },
+    { flush: "post" },
+);
 
 const richPodId = computed(() => richPod.value?.id);
 usePlaybackProgress(richPodId);
 useDeepLink();
 
-const {
-    currentTime,
-    isPaused,
-} = useAudio(richPod.value?.origin.episode.media.url);
+const { currentTime, isPaused } = useAudio(richPod.value?.origin.episode.media.url);
 
 const isMarqueePaused = ref(isPaused.value);
 
@@ -192,9 +250,7 @@ function toggleShareDialog() {
 }
 
 .chapter-flow {
-    --chapter-flow-height: calc(
-        100dvh - var(--chapter-offset-top) - var(--chapter-offset-bottom)
-    );
+    --chapter-flow-height: calc(100dvh - var(--chapter-offset-top) - var(--chapter-offset-bottom));
 
     @media (min-width: #{theme.$richpod-desktop-breakpoint}) {
         --chapter-offset-top: 0px;
@@ -216,10 +272,13 @@ function toggleShareDialog() {
     padding: 12px;
 
     display: grid;
-    grid-template-columns: calc(6px + var(--title-line-height) + var(--description-line-height)) 1fr auto;
+    grid-template-columns: calc(
+            6px + var(--title-line-height) + var(--description-line-height)
+        ) 1fr auto;
     grid-template-rows: auto auto;
-    grid-template-areas: "image title        info"
-                         "image description  info";
+    grid-template-areas:
+        "image title        info"
+        "image description  info";
     gap: 0 12px;
     --marquee-duration: 10s;
 
@@ -285,7 +344,7 @@ function toggleShareDialog() {
 
     .info-button {
         appearance: none;
-        border: 1px solid #FFFFFF;
+        border: 1px solid #ffffff;
         height: 26px;
         box-shadow: 0 3px 6px #00000029;
         border-radius: 13px;
@@ -296,7 +355,7 @@ function toggleShareDialog() {
         font-size: 12px;
         letter-spacing: -0.24px;
 
-        background-image: url('@/assets/images/icon_infos.svg');
+        background-image: url("@/assets/images/icon_infos.svg");
         background-size: 2px 9px;
         background-position: left 10px center;
 
@@ -314,8 +373,12 @@ function toggleShareDialog() {
 }
 
 @keyframes marquee {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
 }
 
 .explicit-badge {
@@ -493,7 +556,7 @@ function toggleShareDialog() {
                 display: inline-block;
                 margin-top: 12px;
                 padding: 6px 16px;
-                border: 1px solid #FFFFFF;
+                border: 1px solid #ffffff;
                 border-radius: 13px;
                 background-color: var(--richpod-button-background);
                 color: var(--richpod-button-text);
@@ -532,4 +595,5 @@ function toggleShareDialog() {
         overflow-y: auto;
         min-height: 0;
     }
-}</style>
+}
+</style>

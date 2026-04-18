@@ -78,9 +78,7 @@ export function useHostedUpload() {
         );
 
         if (!response.ok) {
-            const body = await response
-                .json()
-                .catch(() => ({ error: "Failed to create episode" }));
+            const body = await response.json().catch(() => ({ error: "Failed to create episode" }));
             throw new Error(body.error || "Failed to create episode");
         }
 
@@ -182,21 +180,16 @@ export function useHostedUpload() {
         baseUrl: string,
         episodeId: string,
     ): Promise<CreateRichPodResponse> {
-        const response = await fetch(
-            `${baseUrl}/api/v1/hosted/episode/${episodeId}/richpod`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+        const response = await fetch(`${baseUrl}/api/v1/hosted/episode/${episodeId}/richpod`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
             },
-        );
+        });
 
         if (!response.ok) {
-            const body = await response
-                .json()
-                .catch(() => ({ error: "Failed to create RichPod" }));
+            const body = await response.json().catch(() => ({ error: "Failed to create RichPod" }));
             throw new Error(body.error || "Failed to create RichPod");
         }
 
@@ -214,11 +207,7 @@ export function useHostedUpload() {
             const baseUrl = getApiBaseUrl();
 
             // Step 1: Create episode (PENDING) and get signed upload policy
-            const { episodeId, uploadPolicy } = await createEpisode(
-                token,
-                baseUrl,
-                params,
-            );
+            const { episodeId, uploadPolicy } = await createEpisode(token, baseUrl, params);
             uploadProgress.value = 2;
 
             // Step 2: Upload cover image first (if provided)

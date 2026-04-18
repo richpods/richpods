@@ -22,7 +22,9 @@
             <span class="text-sm font-medium text-gray-700">
                 {{
                     t("chartEditor.modeLabel", {
-                        mode: isAdvancedMode ? t("chartEditor.modeAdvanced") : t("chartEditor.modeBasic"),
+                        mode: isAdvancedMode
+                            ? t("chartEditor.modeAdvanced")
+                            : t("chartEditor.modeBasic"),
                     })
                 }}
             </span>
@@ -43,7 +45,9 @@
                 >
                     <option value="BAR_CHART">{{ t("chartEditor.barChart") }}</option>
                     <option value="LINE_CHART">{{ t("chartEditor.lineChart") }}</option>
-                    <option value="SMOOTH_LINE_CHART">{{ t("chartEditor.smoothLineChart") }}</option>
+                    <option value="SMOOTH_LINE_CHART">
+                        {{ t("chartEditor.smoothLineChart") }}
+                    </option>
                     <option value="AREA_CHART">{{ t("chartEditor.areaChart") }}</option>
                     <option value="PIE_CHART">{{ t("chartEditor.pieChart") }}</option>
                     <option value="SCATTER_CHART">{{ t("chartEditor.scatterChart") }}</option>
@@ -72,7 +76,9 @@
             <!-- Spreadsheet -->
             <div>
                 <div class="flex items-center justify-between mb-2">
-                    <label class="block text-sm font-medium text-gray-700"> {{ t("chartEditor.dataLabel") }} </label>
+                    <label class="block text-sm font-medium text-gray-700">
+                        {{ t("chartEditor.dataLabel") }}
+                    </label>
                     <div class="flex flex-wrap gap-2">
                         <button
                             type="button"
@@ -119,7 +125,6 @@
                     {{ t("chartEditor.spreadsheetHint") }}
                 </p>
             </div>
-
         </template>
 
         <!-- Advanced Mode: JSON Editor -->
@@ -180,7 +185,9 @@
 
         <!-- Chart Preview -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t("chartEditor.preview") }}</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{
+                t("chartEditor.preview")
+            }}</label>
             <div
                 class="border border-gray-200 rounded-md bg-gray-50 overflow-hidden"
                 :style="previewContainerStyle"
@@ -291,8 +298,8 @@ const isNewChapter = computed(() => {
 });
 
 // Can switch from basic to advanced mode only on new chapters
-const canSwitchMode = computed(() =>
-    isNewChapter.value && !isAdvancedMode.value && existingChartMode.value !== "advanced"
+const canSwitchMode = computed(
+    () => isNewChapter.value && !isAdvancedMode.value && existingChartMode.value !== "advanced",
 );
 
 // Initialize mode based on existing data
@@ -340,7 +347,9 @@ const selectedChartType = computed({
         richpodStore.updateCurrentChapter((chapter) => {
             if (chapter.enclosure.__typename !== "InteractiveChart") return chapter;
             const chart = (chapter.enclosure.chart ?? {}) as Record<string, unknown>;
-            const existingMetadata = (chart.metadata ?? { aspectRatio: "16:9" }) as PlainDataChartMetadata;
+            const existingMetadata = (chart.metadata ?? {
+                aspectRatio: "16:9",
+            }) as PlainDataChartMetadata;
             return {
                 ...chapter,
                 enclosure: {

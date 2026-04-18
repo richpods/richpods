@@ -74,7 +74,7 @@ watch(
         const rawHtml = await marked.parse(newText);
         parsedHtml.value = DOMPurify.sanitize(rawHtml);
     },
-    { immediate: true }
+    { immediate: true },
 );
 </script>
 

@@ -17,7 +17,11 @@
                 :value="category.value"
                 :class="{ 'pl-4': category.isSubcategory }"
             >
-                {{ category.isSubcategory ? `\u00A0\u00A0\u00A0\u00A0${category.label}` : category.label }}
+                {{
+                    category.isSubcategory
+                        ? `\u00A0\u00A0\u00A0\u00A0${category.label}`
+                        : category.label
+                }}
             </option>
         </select>
     </div>

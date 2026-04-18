@@ -1,26 +1,26 @@
 mutation SignUp($input: SignUpInput!) {
-  signUp(input: $input) {
-    token
-    user {
-      ...CurrentUserFields
+    signUp(input: $input) {
+        token
+        user {
+            ...CurrentUserFields
+        }
     }
-  }
 }
 
 mutation SignIn($input: SignInInput!) {
-  signIn(input: $input) {
-    token
-    user {
-      ...CurrentUserFields
+    signIn(input: $input) {
+        token
+        user {
+            ...CurrentUserFields
+        }
     }
-  }
 }
 
 mutation SignInWithGoogle($idToken: String!) {
-  signInWithGoogle(idToken: $idToken) {
-    token
-    user {
-      ...CurrentUserFields
+    signInWithGoogle(idToken: $idToken) {
+        token
+        user {
+            ...CurrentUserFields
+        }
     }
-  }
 }

@@ -2,7 +2,9 @@
     <div class="my-podcasts px-3 py-4 sm:px-6 sm:py-6">
         <div class="mb-6 flex items-start justify-between">
             <div>
-                <h1 class="text-xl sm:text-2xl font-bold text-gray-900">{{ t("myRichPods.title") }}</h1>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-900">
+                    {{ t("myRichPods.title") }}
+                </h1>
             </div>
             <button
                 @click="createNewRichPod"
@@ -14,11 +16,19 @@
         </div>
 
         <!-- Filters -->
-        <div class="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center" v-if="richPods.length > 0">
+        <div
+            class="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between"
+        >
+            <div
+                class="flex flex-col sm:flex-row gap-3 items-start sm:items-center"
+                v-if="richPods.length > 0"
+            >
                 <!-- Filter input -->
                 <div class="relative">
-                    <Icon icon="ion:filter-outline" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Icon
+                        icon="ion:filter-outline"
+                        class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+                    />
                     <input
                         v-model="searchQuery"
                         type="text"
@@ -26,7 +36,7 @@
                         class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
                     />
                 </div>
-                
+
                 <!-- Status filter -->
                 <select
                     v-model="statusFilter"
@@ -36,7 +46,7 @@
                     <option value="draft">{{ t("myRichPods.draft") }}</option>
                     <option value="published">{{ t("myRichPods.published") }}</option>
                 </select>
-                
+
                 <!-- Verification filter -->
                 <select
                     v-model="verificationFilter"
@@ -59,7 +69,7 @@
                     <option value="year">{{ t("myRichPods.thisYear") }}</option>
                 </select>
             </div>
-            
+
             <div></div>
         </div>
 
@@ -124,10 +134,14 @@
                     >
                         <td class="px-6 py-4 align-top">
                             <router-link :to="`/edit/${richpod.id}`" class="block group/link">
-                                <div class="text-sm font-medium text-gray-900 group-hover/link:text-blue-600 break-words">
+                                <div
+                                    class="text-sm font-medium text-gray-900 group-hover/link:text-blue-600 break-words"
+                                >
                                     {{ richpod.title }}
                                 </div>
-                                <div class="text-xs text-gray-500 group-hover/link:text-blue-500 mt-1 line-clamp-2 break-words">
+                                <div
+                                    class="text-xs text-gray-500 group-hover/link:text-blue-500 mt-1 line-clamp-2 break-words"
+                                >
                                     {{ richpod.description }}
                                 </div>
                             </router-link>
@@ -144,10 +158,14 @@
                                         'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
                                         richpod.status === 'published'
                                             ? 'bg-green-100 text-green-800'
-                                            : 'bg-yellow-100 text-yellow-800'
+                                            : 'bg-yellow-100 text-yellow-800',
                                     ]"
                                 >
-                                    {{ richpod.status === 'published' ? t("myRichPods.published") : t("myRichPods.draft") }}
+                                    {{
+                                        richpod.status === "published"
+                                            ? t("myRichPods.published")
+                                            : t("myRichPods.draft")
+                                    }}
                                 </span>
                                 <span
                                     v-if="richpod.isHosted"
@@ -159,10 +177,16 @@
                                     v-else
                                     :class="[
                                         'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                                        richpod.verified ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600',
+                                        richpod.verified
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-gray-100 text-gray-600',
                                     ]"
                                 >
-                                    {{ richpod.verified ? t("verificationStatus.verified") : t("verificationStatus.unverified") }}
+                                    {{
+                                        richpod.verified
+                                            ? t("verificationStatus.verified")
+                                            : t("verificationStatus.unverified")
+                                    }}
                                 </span>
                             </div>
                         </td>
@@ -176,9 +200,7 @@
                         >
                             {{ richpod.updatedAt }}
                         </td>
-                        <td
-                            class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                        >
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex gap-2 justify-end">
                                 <a
                                     v-if="richpod.status === 'published' && playerUrlPattern"
@@ -227,9 +249,12 @@
                 <p class="text-gray-500">{{ t("myRichPods.noRichPodsYet") }}</p>
                 <p class="text-sm text-gray-400 mt-1">{{ t("myRichPods.createFirstRichPod") }}</p>
             </div>
-            
+
             <!-- Filtered empty state -->
-            <div v-else-if="!loading && richPods.length > 0 && filteredRichPods.length === 0" class="text-center py-12">
+            <div
+                v-else-if="!loading && richPods.length > 0 && filteredRichPods.length === 0"
+                class="text-center py-12"
+            >
                 <Icon icon="ion:search-outline" class="w-12 h-12 mx-auto text-gray-400 mb-3" />
                 <p class="text-gray-500">{{ t("myRichPods.noRichPodsMatchFilter") }}</p>
                 <p class="text-sm text-gray-400 mt-1">{{ t("myRichPods.adjustFilters") }}</p>
@@ -288,23 +313,24 @@ const filteredRichPods = computed(() => {
     // Apply search filter
     if (searchQuery.value.trim()) {
         const query = searchQuery.value.toLowerCase().trim();
-        filtered = filtered.filter(richPod =>
-            richPod.title.toLowerCase().includes(query) ||
-            richPod.description.toLowerCase().includes(query) ||
-            richPod.originalPodcast.name.toLowerCase().includes(query)
+        filtered = filtered.filter(
+            (richPod) =>
+                richPod.title.toLowerCase().includes(query) ||
+                richPod.description.toLowerCase().includes(query) ||
+                richPod.originalPodcast.name.toLowerCase().includes(query),
         );
     }
 
     // Apply status filter
     if (statusFilter.value !== "all") {
-        filtered = filtered.filter(richPod => richPod.status === statusFilter.value);
+        filtered = filtered.filter((richPod) => richPod.status === statusFilter.value);
     }
 
     // Apply verification filter
     if (verificationFilter.value === "verified") {
-        filtered = filtered.filter(richPod => richPod.verified);
+        filtered = filtered.filter((richPod) => richPod.verified);
     } else if (verificationFilter.value === "unverified") {
-        filtered = filtered.filter(richPod => !richPod.verified);
+        filtered = filtered.filter((richPod) => !richPod.verified);
     }
 
     // Apply date filter
@@ -316,7 +342,7 @@ const filteredRichPods = computed(() => {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-        filtered = filtered.filter(richPod => {
+        filtered = filtered.filter((richPod) => {
             const createdAt = richPod.createdAtDate;
             switch (dateFilter.value) {
                 case "today":

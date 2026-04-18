@@ -1,8 +1,8 @@
 <template>
-<div v-if="title || description" class="enclosure-header">
-    <h1 v-if="title" class="title">{{ title }}</h1>
-    <p v-if="description" class="description">{{ description }}</p>
-</div>
+    <div v-if="title || description" class="enclosure-header">
+        <h1 v-if="title" class="title">{{ title }}</h1>
+        <p v-if="description" class="description">{{ description }}</p>
+    </div>
 </template>
 <script setup lang="ts">
 import type { Enclosure, Poll } from "../../graphql/generated.ts";
@@ -10,7 +10,7 @@ import { computed, watch } from "vue";
 import { usePollTitles } from "../../composables/usePollTitles.ts";
 
 const props = defineProps<{
-    enclosure: Enclosure,
+    enclosure: Enclosure;
 }>();
 
 const { loadPollTitle, getPollTitle } = usePollTitles();

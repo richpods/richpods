@@ -1,14 +1,25 @@
 <template>
-    <div class="seek-bar-holder" :class="{ 'seeking-disabled': disableSeeking }" ref="seekBarHolder">
+    <div
+        class="seek-bar-holder"
+        :class="{ 'seeking-disabled': disableSeeking }"
+        ref="seekBarHolder"
+    >
         <div class="seek-bar" @click="seekBarClick">
             <div class="progress" ref="progress"></div>
         </div>
         <div class="chapters" v-if="isDurationReady">
             <template v-for="(chapter, index) of sortedChapters" :key="index + chapterKey(chapter)">
-                <button class="chapter-nibble"
-                        :class="['chapter-nibble', nibbleState(chapter), { 'nibble-invisible': isInvisibleCard(chapter) }]"
-                        @click="seekTo(chapter.beginSeconds)"
-                        :style="{ '--nibble-left-offset': `max(0%, calc(${chapter.beginSeconds / duration * 100}% - (var(--richpod-chapter-nibble-size) / 2)))` }"
+                <button
+                    class="chapter-nibble"
+                    :class="[
+                        'chapter-nibble',
+                        nibbleState(chapter),
+                        { 'nibble-invisible': isInvisibleCard(chapter) },
+                    ]"
+                    @click="seekTo(chapter.beginSeconds)"
+                    :style="{
+                        '--nibble-left-offset': `max(0%, calc(${(chapter.beginSeconds / duration) * 100}% - (var(--richpod-chapter-nibble-size) / 2)))`,
+                    }"
                 >
                     <span class="chapter-nibble-label">
                         {{ index + 1 }}. Kapitel: {{ getChapterTitle(chapter) }}
@@ -21,7 +32,12 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch, computed } from "vue";
 import type { Chapter, Poll } from "../graphql/generated.ts";
-import { chapterKey, sortedChapters as buildSortedChapters, currentChapterIndex as findCurrentChapterIndex, visibleChapters } from "../utils.ts";
+import {
+    chapterKey,
+    sortedChapters as buildSortedChapters,
+    currentChapterIndex as findCurrentChapterIndex,
+    visibleChapters,
+} from "../utils.ts";
 import type { SortedChapter } from "../types/player.ts";
 import { usePollTitles } from "../composables/usePollTitles.ts";
 
@@ -35,11 +51,15 @@ const props = defineProps<{
     showInvisibleChapters?: boolean;
 }>();
 
-const allSortedChapters = computed<SortedChapter[]>(() => buildSortedChapters(props.chapters || []));
+const allSortedChapters = computed<SortedChapter[]>(() =>
+    buildSortedChapters(props.chapters || []),
+);
 
 function isInvisibleCard(ch: SortedChapter): boolean {
-    return ch.enclosure.__typename === "Card"
-        && (ch.enclosure as { visibleAsChapter?: boolean }).visibleAsChapter === false;
+    return (
+        ch.enclosure.__typename === "Card" &&
+        (ch.enclosure as { visibleAsChapter?: boolean }).visibleAsChapter === false
+    );
 }
 
 // In player mode, filter out invisible cards; in editor mode show all
@@ -57,7 +77,10 @@ function isPollEnclosure(enclosure: SortedChapter["enclosure"]): enclosure is Po
 
 function getChapterTitle(chapter: SortedChapter): string {
     if (isPollEnclosure(chapter.enclosure)) {
-        return getPollTitle(chapter.enclosure.coloeus.endpoint, chapter.enclosure.coloeus.pollId) ?? "...";
+        return (
+            getPollTitle(chapter.enclosure.coloeus.endpoint, chapter.enclosure.coloeus.pollId) ??
+            "..."
+        );
     }
     return (chapter.enclosure as { title: string }).title;
 }
@@ -114,17 +137,17 @@ function updateSeekBarStyles() {
         } else {
             seekBarHolder.style.setProperty(
                 "--seek-bar-remaining-seconds",
-                `${remainingSeconds()}s`
+                `${remainingSeconds()}s`,
             );
 
             seekBarHolder.style.setProperty(
                 "--seek-bar-progress-percentage",
-                `${currentTime.value / duration.value * 100}%`
+                `${(currentTime.value / duration.value) * 100}%`,
             );
 
             seekBarHolder.setAttribute(
                 "data-remaining-short",
-                (remainingSeconds() <= 0.26).toString()
+                (remainingSeconds() <= 0.26).toString(),
             );
         }
     }
@@ -158,7 +181,9 @@ function seekTo(seconds: number) {
     updateSeekBarStyles();
 }
 
-const activeChapterIndex = computed(() => findCurrentChapterIndex(sortedChapters.value, currentTime.value));
+const activeChapterIndex = computed(() =>
+    findCurrentChapterIndex(sortedChapters.value, currentTime.value),
+);
 
 function nibbleState(chapter: SortedChapter): string {
     const chapters = sortedChapters.value;
@@ -170,13 +195,16 @@ function nibbleState(chapter: SortedChapter): string {
     return "upcoming";
 }
 
-watch(() => props.paused, (isPaused) => {
-    if (!isPaused) {
-        animationFrameId = requestAnimationFrame(updateSeekBarStyles);
-    } else if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-    }
-});
+watch(
+    () => props.paused,
+    (isPaused) => {
+        if (!isPaused) {
+            animationFrameId = requestAnimationFrame(updateSeekBarStyles);
+        } else if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+    },
+);
 
 onMounted(() => {
     animationFrameId = requestAnimationFrame(updateSeekBarStyles);
@@ -189,7 +217,6 @@ onBeforeUnmount(() => {
     props.audioElement.removeEventListener("durationchange", handleDurationUpdate);
     props.audioElement.removeEventListener("timeupdate", handleTimeUpdate);
 });
-
 </script>
 <style scoped lang="scss">
 @use "../assets/mixins.scss" as mixins;

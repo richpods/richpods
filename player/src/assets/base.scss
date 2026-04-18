@@ -7,8 +7,7 @@
     font-family: "Open Sans";
     font-style: normal;
     font-weight: 300 800;
-    src: url("@richpods/shared/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf")
-        format("truetype");
+    src: url("@richpods/shared/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf") format("truetype");
 }
 
 @font-face {
@@ -41,7 +40,15 @@ html {
         left: 0;
         bottom: 0;
         right: 0;
-        background: transparent radial-gradient(closest-side at 50% 45%, #B2BC57 0%, #B2BC57 47%, #F78A06 100%, #2F2C35 100%) no-repeat;
+        background: transparent
+            radial-gradient(
+                closest-side at 50% 45%,
+                #b2bc57 0%,
+                #b2bc57 47%,
+                #f78a06 100%,
+                #2f2c35 100%
+            )
+            no-repeat;
         background-position: 30vw 70vh;
         background-size: cover;
         z-index: -1;

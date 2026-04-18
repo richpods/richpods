@@ -18,7 +18,11 @@
                         &larr;
                     </button>
                     <h3 class="text-lg font-medium">
-                        {{ cardSubtypeView ? t("typeChooser.chooseCardType") : t("typeChooser.title") }}
+                        {{
+                            cardSubtypeView
+                                ? t("typeChooser.chooseCardType")
+                                : t("typeChooser.title")
+                        }}
                     </h3>
                 </div>
                 <button
@@ -43,9 +47,11 @@
                     :key="t.type"
                     type="button"
                     class="border rounded-md p-4 flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                    :class="isTypeDisabled(t.type)
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
-                        : 'hover:bg-gray-50'"
+                    :class="
+                        isTypeDisabled(t.type)
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                            : 'hover:bg-gray-50'
+                    "
                     @click="!isTypeDisabled(t.type) && handleChoose(t.type)"
                     :disabled="isTypeDisabled(t.type)"
                     :aria-label="getDisabledTooltip(t.type)"
@@ -68,9 +74,11 @@
                     :key="ct.cardType"
                     type="button"
                     class="border rounded-md p-4 flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                    :class="isCardTypeDisabled(ct.cardType)
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
-                        : 'hover:bg-gray-50'"
+                    :class="
+                        isCardTypeDisabled(ct.cardType)
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                            : 'hover:bg-gray-50'
+                    "
                     @click="!isCardTypeDisabled(ct.cardType) && handleChooseCardType(ct.cardType)"
                     :disabled="isCardTypeDisabled(ct.cardType)"
                     :title="getCardTypeTooltip(ct.cardType)"
@@ -148,7 +156,7 @@ watch(
                 dialogRef.value.close();
             }
         }
-    }
+    },
 );
 
 function handleClose() {

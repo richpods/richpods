@@ -1,12 +1,20 @@
 <template>
     <div class="auth-form">
         <div class="logo-container">
-            <img src="@richpods/shared/assets/images/logo-full.svg" :alt="t('common.richPods')" class="logo" />
+            <img
+                src="@richpods/shared/assets/images/logo-full.svg"
+                :alt="t('common.richPods')"
+                class="logo"
+            />
         </div>
 
         <div class="tabs">
-            <button @click="mode = 'signin'" :class="{ active: mode === 'signin' }">{{ t("auth.signIn") }}</button>
-            <button @click="mode = 'signup'" :class="{ active: mode === 'signup' }">{{ t("auth.signUp") }}</button>
+            <button @click="mode = 'signin'" :class="{ active: mode === 'signin' }">
+                {{ t("auth.signIn") }}
+            </button>
+            <button @click="mode = 'signup'" :class="{ active: mode === 'signup' }">
+                {{ t("auth.signUp") }}
+            </button>
         </div>
 
         <form @submit.prevent="handleSubmit">
@@ -30,7 +38,11 @@
                     type="password"
                     required
                     class="text-base"
-                    :placeholder="mode === 'signup' ? t('auth.passwordMinLength') : t('auth.passwordPlaceholder')"
+                    :placeholder="
+                        mode === 'signup'
+                            ? t('auth.passwordMinLength')
+                            : t('auth.passwordPlaceholder')
+                    "
                     :minlength="mode === 'signup' ? 8 : undefined"
                 />
             </div>
@@ -41,7 +53,13 @@
                     :icon="mode === 'signin' ? 'ion:log-in-outline' : 'ion:person-add-outline'"
                     class="icon"
                 />
-                {{ loading ? t("common.loading") : mode === "signin" ? t("auth.signIn") : t("auth.signUp") }}
+                {{
+                    loading
+                        ? t("common.loading")
+                        : mode === "signin"
+                          ? t("auth.signIn")
+                          : t("auth.signUp")
+                }}
             </button>
         </form>
 
@@ -57,9 +75,13 @@
         </div>
 
         <footer class="footer">
-            <a href="https://richpods.com" target="_blank" rel="noopener noreferrer">{{ t("auth.mainWebsite") }}</a>
+            <a href="https://richpods.com" target="_blank" rel="noopener noreferrer">{{
+                t("auth.mainWebsite")
+            }}</a>
             <span class="separator">•</span>
-            <a href="https://richpods.com/contact" target="_blank" rel="noopener noreferrer">{{ t("auth.contact") }}</a>
+            <a href="https://richpods.com/contact" target="_blank" rel="noopener noreferrer">{{
+                t("auth.contact")
+            }}</a>
         </footer>
     </div>
 </template>

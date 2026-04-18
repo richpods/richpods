@@ -1,10 +1,15 @@
 <template>
     <header class="header">
         <a :href="logoUrl" class="logo-link">
-            <img class="logo" src="@richpods/shared/assets/images/logo-type.svg" alt="RichPods">
+            <img class="logo" src="@richpods/shared/assets/images/logo-type.svg" alt="RichPods" />
         </a>
         <div class="menu">
-            <button aria-haspopup="true" :aria-expanded="!hideNavigation" aria-controls="header-navigation" @click="toggleNavigation">
+            <button
+                aria-haspopup="true"
+                :aria-expanded="!hideNavigation"
+                aria-controls="header-navigation"
+                @click="toggleNavigation"
+            >
                 <img src="@/assets/images/icon_hamburger.svg" :alt="t('header.menu')" />
             </button>
             <nav id="header-navigation" class="header-navigation" :hidden="hideNavigation">

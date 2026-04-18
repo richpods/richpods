@@ -9,12 +9,12 @@ const client = new GraphQLClient(import.meta.env.VITE_GRAPHQL_ENDPOINT);
 export const graphqlSdk = getSdk(client, async (action) => {
     const user = auth.currentUser;
     const token = user ? await user.getIdToken() : null;
-    
+
     const headers: Record<string, string> = {};
     if (token) {
         headers["Authorization"] = `Bearer ${token}`;
     }
-    
+
     return action(headers);
 });
 

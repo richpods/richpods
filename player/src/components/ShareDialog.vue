@@ -4,10 +4,7 @@
         <p class="share-description">{{ t("shareDialog.description") }}</p>
 
         <section class="share-section">
-            <ShareCopyField
-                :label="t('shareDialog.linkLabel')"
-                :value="shareUrl"
-            />
+            <ShareCopyField :label="t('shareDialog.linkLabel')" :value="shareUrl" />
             <button
                 v-if="canNativeShare"
                 type="button"

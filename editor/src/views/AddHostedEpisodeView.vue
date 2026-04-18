@@ -57,7 +57,10 @@
                                 class="hidden"
                                 @change="handleAudioSelect"
                             />
-                            <Icon icon="ion:cloud-upload-outline" class="w-10 h-10 mx-auto text-gray-400 mb-2" />
+                            <Icon
+                                icon="ion:cloud-upload-outline"
+                                class="w-10 h-10 mx-auto text-gray-400 mb-2"
+                            />
                             <p v-if="audioFile" class="text-sm font-medium text-gray-900">
                                 {{ audioFile.name }} ({{ formatFileSize(audioFile.size) }})
                             </p>
@@ -76,14 +79,20 @@
                             {{ t("addEpisode.episodeCoverLabel") }}
                         </label>
                         <div class="flex items-start gap-4">
-                            <div class="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 flex-shrink-0">
+                            <div
+                                class="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 flex-shrink-0"
+                            >
                                 <img
                                     v-if="episodeCoverPreview"
                                     :src="episodeCoverPreview"
                                     alt=""
                                     class="w-full h-full object-cover"
                                 />
-                                <Icon v-else icon="ion:image-outline" class="w-10 h-10 text-gray-400" />
+                                <Icon
+                                    v-else
+                                    icon="ion:image-outline"
+                                    class="w-10 h-10 text-gray-400"
+                                />
                             </div>
                             <div>
                                 <input
@@ -99,9 +108,15 @@
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium"
                                 >
                                     <Icon icon="ion:cloud-upload-outline" class="w-4 h-4" />
-                                    {{ episodeCoverPreview ? t("hostedForm.changeCoverImage") : t("hostedForm.chooseCoverImage") }}
+                                    {{
+                                        episodeCoverPreview
+                                            ? t("hostedForm.changeCoverImage")
+                                            : t("hostedForm.chooseCoverImage")
+                                    }}
                                 </button>
-                                <p class="text-xs text-gray-500 mt-2">{{ t("addEpisode.episodeCoverHint") }}</p>
+                                <p class="text-xs text-gray-500 mt-2">
+                                    {{ t("addEpisode.episodeCoverHint") }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -121,13 +136,22 @@
                     </div>
 
                     <!-- Validation in progress -->
-                    <div v-if="validating" class="flex items-start gap-3 py-4 px-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <Icon icon="ion:sync-outline" class="w-5 h-5 text-blue-600 animate-spin flex-shrink-0 mt-0.5" />
+                    <div
+                        v-if="validating"
+                        class="flex items-start gap-3 py-4 px-4 bg-blue-50 border border-blue-200 rounded-lg"
+                    >
+                        <Icon
+                            icon="ion:sync-outline"
+                            class="w-5 h-5 text-blue-600 animate-spin flex-shrink-0 mt-0.5"
+                        />
                         <p class="text-sm text-blue-800">{{ t("addEpisode.validatingInfo") }}</p>
                     </div>
 
                     <!-- File size error -->
-                    <div v-if="fileSizeError" class="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div
+                        v-if="fileSizeError"
+                        class="bg-red-50 border border-red-200 rounded-lg p-3"
+                    >
                         <p class="text-red-800 text-sm">{{ fileSizeError }}</p>
                     </div>
 
@@ -148,11 +172,16 @@
                             class="w-5 h-5 mr-2 inline animate-spin"
                         />
                         <Icon v-else icon="ion:cloud-upload-outline" class="w-5 h-5 mr-2 inline" />
-                        {{ uploading ? t("addEpisode.uploading") : validating ? t("addEpisode.validating") : t("addEpisode.uploadEpisode") }}
+                        {{
+                            uploading
+                                ? t("addEpisode.uploading")
+                                : validating
+                                  ? t("addEpisode.validating")
+                                  : t("addEpisode.uploadEpisode")
+                        }}
                     </button>
                 </div>
             </div>
-
         </div>
     </div>
 </template>

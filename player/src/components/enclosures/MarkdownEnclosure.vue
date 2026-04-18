@@ -50,7 +50,7 @@ watch(
         const rawHtml = await marked.parse(newText);
         parsedHtml.value = DOMPurify.sanitize(rawHtml, { ADD_ATTR: ["target"] });
     },
-    { immediate: true }
+    { immediate: true },
 );
 </script>
 <style lang="scss">
@@ -61,12 +61,16 @@ watch(
     font-size: 1rem;
     font-family: var(--richpod-font-family-text), "sans-serif";
 
-    h1, h2 {
+    h1,
+    h2 {
         font-size: 20px;
         margin: 0;
     }
 
-    h3, h4, h5, h6 {
+    h3,
+    h4,
+    h5,
+    h6 {
         font-size: 16px;
         margin: 0;
     }

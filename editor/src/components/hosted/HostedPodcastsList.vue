@@ -14,7 +14,10 @@
         </div>
 
         <!-- Empty state -->
-        <div v-else-if="podcasts.length === 0" class="bg-white rounded-lg border border-gray-200 text-center py-10">
+        <div
+            v-else-if="podcasts.length === 0"
+            class="bg-white rounded-lg border border-gray-200 text-center py-10"
+        >
             <Icon icon="ion:mic-outline" class="w-10 h-10 mx-auto text-gray-400 mb-3" />
             <p class="text-gray-500">{{ t("hosted.noPodcastsYet") }}</p>
             <p class="text-sm text-gray-400 mt-1">{{ t("hosted.noPodcastsHint") }}</p>
@@ -61,7 +64,10 @@
                 </div>
 
                 <!-- Episode list -->
-                <div v-if="showEpisodes && podcast.episodeCount > 0" class="mt-3 border-t border-gray-100 pt-3">
+                <div
+                    v-if="showEpisodes && podcast.episodeCount > 0"
+                    class="mt-3 border-t border-gray-100 pt-3"
+                >
                     <HostedEpisodeList :podcast-id="podcast.id" mode="richpod-only" />
                 </div>
             </div>

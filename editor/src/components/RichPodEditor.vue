@@ -13,14 +13,22 @@
             <div class="lg:hidden flex border-b border-gray-200 bg-white">
                 <button
                     class="flex-1 px-4 py-2.5 text-sm font-medium transition-colors"
-                    :class="activeEditorTab === 'details' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                    :class="
+                        activeEditorTab === 'details'
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-gray-500 hover:text-gray-700'
+                    "
                     @click="activeEditorTab = 'details'"
                 >
                     {{ t("editor.detailsTab") }}
                 </button>
                 <button
                     class="flex-1 px-4 py-2.5 text-sm font-medium transition-colors"
-                    :class="activeEditorTab === 'chapters' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                    :class="
+                        activeEditorTab === 'chapters'
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-gray-500 hover:text-gray-700'
+                    "
                     @click="activeEditorTab = 'chapters'"
                 >
                     {{ t("editor.chaptersTab") }}
@@ -49,7 +57,11 @@
                     @add-chapter="openTypeChooser"
                     @go-to-verification="goToVerification"
                 />
-                <aside v-else class="hidden lg:block w-full lg:w-96 bg-white border-r border-gray-200" :class="{ '!block': activeEditorTab === 'details' }"></aside>
+                <aside
+                    v-else
+                    class="hidden lg:block w-full lg:w-96 bg-white border-r border-gray-200"
+                    :class="{ '!block': activeEditorTab === 'details' }"
+                ></aside>
 
                 <div
                     class="flex-1 hidden lg:flex flex-col bg-gray-100"
@@ -234,9 +246,7 @@ async function saveChanges() {
     try {
         const updated = await saveRichPod(richpodId.value, richpod.value);
         richpodStore.setRichPod(updated);
-        richpodStore.setActiveChapterIndex(
-            Math.min(currentIndex, updated.chapters.length - 1),
-        );
+        richpodStore.setActiveChapterIndex(Math.min(currentIndex, updated.chapters.length - 1));
         editorUiStore.clearValidationErrors();
     } catch (err: unknown) {
         console.error("Error saving RichPod:", err);
@@ -283,16 +293,12 @@ onBeforeRouteLeave(async () => {
 
 const verificationBadgeLabel = computed(() => {
     if (isHosted.value) return t("sidebar.hostedBadge");
-    return isVerified.value
-        ? t("verificationStatus.verified")
-        : t("verificationStatus.unverified");
+    return isVerified.value ? t("verificationStatus.verified") : t("verificationStatus.unverified");
 });
 
 const verificationBadgeClass = computed(() => {
     if (isHosted.value) return "bg-blue-100 text-blue-800";
-    return isVerified.value
-        ? "bg-green-100 text-green-800"
-        : "bg-gray-100 text-gray-600";
+    return isVerified.value ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600";
 });
 
 const verificationMessage = computed(() => {
@@ -332,18 +338,13 @@ const enclosureComponentMap: Record<string, Component> = {
 
 function componentFor(type?: string): Component {
     if (!type) {
-        return () =>
-            h("div", { class: "text-gray-500 p-4" }, t("editor.noComponentTypeSpecified"));
+        return () => h("div", { class: "text-gray-500 p-4" }, t("editor.noComponentTypeSpecified"));
     }
 
     const component = enclosureComponentMap[type];
     if (!component) {
         return () =>
-            h(
-                "div",
-                { class: "text-red-500 p-4" },
-                t("editor.unknownComponentType", { type }),
-            );
+            h("div", { class: "text-red-500 p-4" }, t("editor.unknownComponentType", { type }));
     }
 
     return component;
@@ -518,8 +519,8 @@ function chooseCardType(cardType: "LINK" | "COVER" | "CITATION" | "IMAGE" | "BLA
             enclosure.coverSource = hasPodcastArtwork.value
                 ? "podcast"
                 : hasEpisodeArtwork.value
-                    ? "episode"
-                    : "podcast";
+                  ? "episode"
+                  : "podcast";
             break;
         case "CITATION":
             enclosure.title = "";
@@ -555,7 +556,11 @@ const formattedCurrentTime = computed(() => {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 });
 
-function chapterAddStateFor(time: number, successMessage: string, skipIndex = -1): StartTimeAddState {
+function chapterAddStateFor(
+    time: number,
+    successMessage: string,
+    skipIndex = -1,
+): StartTimeAddState {
     if (!richpod.value.origin?.episode?.media?.url) {
         return { disabled: true, reason: t("editor.loadAudioToAddChapters") };
     }

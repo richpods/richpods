@@ -3,7 +3,9 @@
         <div class="flex flex-col flex-1">
             <div class="flex-1 overflow-y-auto">
                 <div class="max-w-4xl mx-auto py-4 sm:py-6 px-3 sm:px-4">
-                    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">{{ t("profile.title") }}</h1>
+                    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">
+                        {{ t("profile.title") }}
+                    </h1>
 
                     <!-- RichPods Profile -->
                     <div class="bg-white rounded-lg shadow p-6">
@@ -54,9 +56,7 @@
                             </div>
 
                             <div v-if="user?.metadata?.creationTime">
-                                <span class="text-gray-400">{{
-                                    t("profile.accountCreated")
-                                }}</span>
+                                <span class="text-gray-400">{{ t("profile.accountCreated") }}</span>
                                 <p class="text-gray-600">
                                     {{ formatDate(user.metadata.creationTime) }}
                                 </p>

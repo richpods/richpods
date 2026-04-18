@@ -47,7 +47,10 @@
             </div>
 
             <!-- Partial load warning -->
-            <div v-if="feedErrors.length > 0" class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <div
+                v-if="feedErrors.length > 0"
+                class="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
+            >
                 <p class="text-sm text-yellow-800 font-medium">
                     <Icon icon="ion:warning-outline" class="w-4 h-4 inline mr-1" />
                     {{ t("myPodcastEpisodes.partialLoadWarning") }}
@@ -58,7 +61,8 @@
                         :key="idx"
                         class="text-sm text-yellow-700"
                     >
-                        <strong>{{ fe.podcastTitle }}</strong>:
+                        <strong>{{ fe.podcastTitle }}</strong
+                        >:
                         {{ humanReadableError(fe.message) }}
                     </li>
                     <li v-if="feedErrors.length > 5" class="text-sm text-yellow-600 italic">
@@ -121,13 +125,20 @@
                                         v-if="episode.hasRichPod"
                                         class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full font-medium"
                                     >
-                                        {{ t("myPodcastEpisodes.richPodExists", episode.richPodIds.length) }}
+                                        {{
+                                            t(
+                                                "myPodcastEpisodes.richPodExists",
+                                                episode.richPodIds.length,
+                                            )
+                                        }}
                                     </span>
                                 </div>
                             </div>
 
                             <!-- Actions -->
-                            <div class="flex-shrink-0 w-28 flex flex-col items-stretch justify-center gap-3">
+                            <div
+                                class="flex-shrink-0 w-28 flex flex-col items-stretch justify-center gap-3"
+                            >
                                 <template v-if="episode.hasRichPod">
                                     <RouterLink
                                         :to="`/edit/${episode.richPodIds[0]}`"
@@ -245,9 +256,7 @@ const filteredEpisodes = computed(() => {
     if (searchFilter.value.trim()) {
         const q = searchFilter.value.toLowerCase();
         episodes = episodes.filter(
-            (e) =>
-                e.title.toLowerCase().includes(q) ||
-                e.podcastTitle.toLowerCase().includes(q),
+            (e) => e.title.toLowerCase().includes(q) || e.podcastTitle.toLowerCase().includes(q),
         );
     }
 
@@ -364,8 +373,7 @@ async function processRichPodsPage(items: RichPodItem[]) {
 
     // Sort by publication date, newest first
     allEpisodes.value.sort(
-        (a, b) =>
-            new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime(),
+        (a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime(),
     );
 }
 

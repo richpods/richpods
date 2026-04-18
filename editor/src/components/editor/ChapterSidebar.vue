@@ -63,11 +63,15 @@
                 v-if="validationErrors.length > 0"
                 class="bg-red-50 border border-red-200 rounded-lg p-3"
             >
-                <p class="text-sm font-medium text-red-800 mb-2">{{ t("sidebar.validationErrors") }}</p>
+                <p class="text-sm font-medium text-red-800 mb-2">
+                    {{ t("sidebar.validationErrors") }}
+                </p>
                 <div class="space-y-3">
                     <!-- Global errors -->
                     <div v-if="validationErrorsByChapter.has('global')">
-                        <p class="text-xs font-medium text-red-700 mb-1">{{ t("sidebar.general") }}</p>
+                        <p class="text-xs font-medium text-red-700 mb-1">
+                            {{ t("sidebar.general") }}
+                        </p>
                         <ul class="text-sm text-red-800 list-disc list-inside space-y-1">
                             <li
                                 v-for="(error, idx) in validationErrorsByChapter.get('global')"
@@ -85,7 +89,12 @@
                         :key="`chapter-${chapterIndex}`"
                     >
                         <p class="text-xs font-medium text-red-700 mb-1">
-                            {{ t("sidebar.chapterN", { n: (chapterIndex as number) + 1, time: formatChapterTime(chapterIndex as number) }) }}
+                            {{
+                                t("sidebar.chapterN", {
+                                    n: (chapterIndex as number) + 1,
+                                    time: formatChapterTime(chapterIndex as number),
+                                })
+                            }}
                         </p>
                         <ul class="text-sm text-red-800 list-disc list-inside space-y-1">
                             <li
@@ -104,9 +113,9 @@
             </div>
 
             <div>
-                <label for="richpod-title" class="block text-sm font-medium text-gray-700 mb-2"
-                    >{{ t("sidebar.titleLabel") }}</label
-                >
+                <label for="richpod-title" class="block text-sm font-medium text-gray-700 mb-2">{{
+                    t("sidebar.titleLabel")
+                }}</label>
                 <input
                     id="richpod-title"
                     v-model="titleValue"
@@ -151,14 +160,16 @@
                     class="text-right text-xs text-gray-500 mt-1"
                     aria-live="off"
                 >
-                    {{ formatNumber(descriptionLength) }}/{{ formatNumber(RICHPOD_DESCRIPTION_MAX_LENGTH) }}
+                    {{ formatNumber(descriptionLength) }}/{{
+                        formatNumber(RICHPOD_DESCRIPTION_MAX_LENGTH)
+                    }}
                 </div>
             </div>
 
             <div>
-                <label for="richpod-state" class="block text-sm font-medium text-gray-700 mb-2"
-                    >{{ t("sidebar.publicationStatus") }}</label
-                >
+                <label for="richpod-state" class="block text-sm font-medium text-gray-700 mb-2">{{
+                    t("sidebar.publicationStatus")
+                }}</label>
                 <select
                     id="richpod-state"
                     v-model="stateValue"
@@ -167,10 +178,17 @@
                     :disabled="publishSelectDisabled"
                 >
                     <option :value="RichPodState.Draft">{{ t("sidebar.draftStatus") }}</option>
-                    <option :value="RichPodState.Published">{{ t("sidebar.publishedStatus") }}</option>
+                    <option :value="RichPodState.Published">
+                        {{ t("sidebar.publishedStatus") }}
+                    </option>
                 </select>
                 <p class="text-xs text-gray-500 mt-1">
-                    {{ publishDisabledReason || (stateValue === 'published' ? t("sidebar.publishedHint") : t("sidebar.draftHint")) }}
+                    {{
+                        publishDisabledReason ||
+                        (stateValue === "published"
+                            ? t("sidebar.publishedHint")
+                            : t("sidebar.draftHint"))
+                    }}
                 </p>
             </div>
 
@@ -181,7 +199,9 @@
                         v-model="explicitValue"
                         class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                     />
-                    <span class="text-sm font-medium text-gray-700">{{ t("sidebar.explicitLabel") }}</span>
+                    <span class="text-sm font-medium text-gray-700">{{
+                        t("sidebar.explicitLabel")
+                    }}</span>
                 </label>
                 <p class="text-xs text-gray-500 mt-1">{{ t("sidebar.explicitHint") }}</p>
             </div>
@@ -218,7 +238,9 @@
                                 :title="t('sidebar.changeCover')"
                             >
                                 <Icon icon="ion:camera" class="w-6 h-6 text-white" />
-                                <span class="text-xs text-white mt-1">{{ t("sidebar.changeCover") }}</span>
+                                <span class="text-xs text-white mt-1">{{
+                                    t("sidebar.changeCover")
+                                }}</span>
                             </button>
                             <div
                                 v-else
@@ -227,7 +249,10 @@
                                 <RipoSpinner :size="24" color="#ffffff" />
                             </div>
                         </template>
-                        <p v-if="coverUploadError" class="absolute -bottom-5 left-0 right-0 text-xs text-red-600 truncate">
+                        <p
+                            v-if="coverUploadError"
+                            class="absolute -bottom-5 left-0 right-0 text-xs text-red-600 truncate"
+                        >
                             {{ coverUploadError }}
                         </p>
                     </div>
@@ -281,17 +306,28 @@
 
                     <!-- Hosted episode validation status -->
                     <div v-if="isHosted" class="mt-3">
-                        <div v-if="hostedValidationStatus === 'pending'" class="flex items-center gap-2 text-sm text-yellow-700">
-                            <div class="w-4 h-4 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
+                        <div
+                            v-if="hostedValidationStatus === 'pending'"
+                            class="flex items-center gap-2 text-sm text-yellow-700"
+                        >
+                            <div
+                                class="w-4 h-4 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"
+                            ></div>
                             {{ t("sidebar.validating") }}
                         </div>
                         <Transition name="fade-validation">
-                            <div v-if="showValidBanner" class="flex items-center gap-2 text-sm text-green-700">
+                            <div
+                                v-if="showValidBanner"
+                                class="flex items-center gap-2 text-sm text-green-700"
+                            >
                                 <Icon icon="ion:checkmark-circle" class="w-4 h-4" />
                                 {{ t("sidebar.validationValid") }}
                             </div>
                         </Transition>
-                        <div v-if="hostedValidationStatus === 'invalid'" class="text-sm text-red-700">
+                        <div
+                            v-if="hostedValidationStatus === 'invalid'"
+                            class="text-sm text-red-700"
+                        >
                             <div class="flex items-center gap-2">
                                 <Icon icon="ion:close-circle" class="w-4 h-4" />
                                 {{ t("sidebar.validationInvalid") }}
@@ -386,7 +422,11 @@ const editorUiStore = useEditorUiStore();
 const { richpod, isDirty, chapters, hostedEpisodeId } = storeToRefs(richpodStore);
 const { validationErrors, validationErrorsByChapter, canEditorSave } = storeToRefs(editorUiStore);
 const { runValidation } = useValidation();
-const { uploading: coverUploading, uploadError: coverUploadError, uploadCover } = useEpisodeCoverUpload();
+const {
+    uploading: coverUploading,
+    uploadError: coverUploadError,
+    uploadCover,
+} = useEpisodeCoverUpload();
 
 const coverFileInput = ref<HTMLInputElement | null>(null);
 
@@ -474,7 +514,7 @@ const explicitValue = computed({
 
 const stateValue = computed({
     get: () => richpod.value.state,
-    set: (value: typeof RichPodState[keyof typeof RichPodState]) => {
+    set: (value: (typeof RichPodState)[keyof typeof RichPodState]) => {
         richpodStore.setState(value);
     },
 });

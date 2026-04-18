@@ -1,33 +1,62 @@
 <template>
     <footer :class="['player-controls', modeClass, isPaused ? 'player-paused' : 'player-playing']">
-        <PodSeekBar v-if="audioElement"
-                    :audio-element="audioElement"
-                    :paused="isPaused"
-                    :chapters="props.chapters || []"
-                    :disable-seeking="props.disableSeeking"
-                    :show-invisible-chapters="props.showInvisibleChapters"
+        <PodSeekBar
+            v-if="audioElement"
+            :audio-element="audioElement"
+            :paused="isPaused"
+            :chapters="props.chapters || []"
+            :disable-seeking="props.disableSeeking"
+            :show-invisible-chapters="props.showInvisibleChapters"
         />
 
         <div class="control-bar">
             <div v-if="!props.hideChapterButton" class="addition-controls">
-                <button @click="toggleChapterDialog" class="control-button chapter-dialog-button" :disabled="!(props.chapters?.length)">{{ t("player.chapters") }}</button>
+                <button
+                    @click="toggleChapterDialog"
+                    class="control-button chapter-dialog-button"
+                    :disabled="!props.chapters?.length"
+                >
+                    {{ t("player.chapters") }}
+                </button>
             </div>
-            <div  class="media-buttons">
+            <div class="media-buttons">
                 <div class="left">
-                    <button class="control-button skip-button skip-backward" :disabled="props.disableSeeking" @click="skip(-15)" :aria-label="t('player.skipBackward')">15s</button>
+                    <button
+                        class="control-button skip-button skip-backward"
+                        :disabled="props.disableSeeking"
+                        @click="skip(-15)"
+                        :aria-label="t('player.skipBackward')"
+                    >
+                        15s
+                    </button>
                 </div>
                 <div class="center">
-                    <button class="play-button" :disabled="!canPlay || disablePlay" @click="handleTogglePlay">
-                        <img :src="playIcon" :alt="playButtonLabel">
+                    <button
+                        class="play-button"
+                        :disabled="!canPlay || disablePlay"
+                        @click="handleTogglePlay"
+                    >
+                        <img :src="playIcon" :alt="playButtonLabel" />
                     </button>
                 </div>
                 <div class="right">
-                    <button class="control-button skip-button skip-forward" :disabled="props.disableSeeking" @click="skip(15)" :aria-label="t('player.skipForward')">15s</button>
+                    <button
+                        class="control-button skip-button skip-forward"
+                        :disabled="props.disableSeeking"
+                        @click="skip(15)"
+                        :aria-label="t('player.skipForward')"
+                    >
+                        15s
+                    </button>
                 </div>
             </div>
         </div>
     </footer>
-    <ChapterDialog v-if="!props.hideChapterButton" ref="chapterDialog" :chapters="props.chapters || []" />
+    <ChapterDialog
+        v-if="!props.hideChapterButton"
+        ref="chapterDialog"
+        :chapters="props.chapters || []"
+    />
 </template>
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
@@ -45,7 +74,7 @@ import ChapterDialog from "./ChapterDialog.vue";
 const props = defineProps<{
     audioUrl?: string;
     chapters?: Chapter[];
-    mode?: 'fixed' | 'inline';
+    mode?: "fixed" | "inline";
     disablePlay?: boolean;
     disableSeeking?: boolean;
     hideChapterButton?: boolean;
@@ -53,12 +82,21 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: 'timeupdate', currentTime: number): void;
-    (e: 'durationchange', duration: number): void;
-    (e: 'playback-change', state: 'playing' | 'paused'): void;
+    (e: "timeupdate", currentTime: number): void;
+    (e: "durationchange", duration: number): void;
+    (e: "playback-change", state: "playing" | "paused"): void;
 }>();
 
-const { canPlay, isPaused, togglePlay, audioElement, setAudio, disposeAudio, currentTime, mediaDuration } = useAudio();
+const {
+    canPlay,
+    isPaused,
+    togglePlay,
+    audioElement,
+    setAudio,
+    disposeAudio,
+    currentTime,
+    mediaDuration,
+} = useAudio();
 
 if (props.audioUrl) {
     setAudio(props.audioUrl);
@@ -68,12 +106,12 @@ watch(
     () => props.audioUrl,
     (url) => {
         if (url) setAudio(url);
-    }
+    },
 );
 
 // Bubble up current time and duration for editor integration
-watch(currentTime, (t) => emit('timeupdate', t));
-watch(mediaDuration, (d) => emit('durationchange', d));
+watch(currentTime, (t) => emit("timeupdate", t));
+watch(mediaDuration, (d) => emit("durationchange", d));
 
 const playButtonLabel = computed(() => (isPaused.value ? t("player.play") : t("player.pause")));
 const playIcon = computed(() => (isPaused.value ? play : pause));
@@ -82,12 +120,12 @@ const disablePlay = computed(() => !!props.disablePlay);
 watch(
     isPaused,
     (paused) => {
-        emit('playback-change', paused ? 'paused' : 'playing');
+        emit("playback-change", paused ? "paused" : "playing");
     },
     { immediate: true },
 );
 
-const modeClass = computed(() => (props.mode === 'inline' ? 'player-inline' : 'player-fixed'));
+const modeClass = computed(() => (props.mode === "inline" ? "player-inline" : "player-fixed"));
 
 function skip(seconds: number) {
     if (!audioElement.value) {
@@ -124,7 +162,7 @@ onBeforeUnmount(() => {
     z-index: 50;
     height: var(--richpod-controls-height);
     background: var(--richpod-controls-background-color);
-    box-shadow: -5px -5px 6px #0000006E;
+    box-shadow: -5px -5px 6px #0000006e;
 
     &.player-inline {
         position: static;
@@ -140,7 +178,9 @@ onBeforeUnmount(() => {
     .control-bar {
         display: grid;
         grid-template-columns: auto 1fr;
-        padding-top: calc(var(--richpod-seek-bar-height) + (var(--richpod-chapter-nibble-size) / 3));
+        padding-top: calc(
+            var(--richpod-seek-bar-height) + (var(--richpod-chapter-nibble-size) / 3)
+        );
     }
 
     .media-buttons {
@@ -173,7 +213,6 @@ onBeforeUnmount(() => {
         align-items: center;
         padding-left: 12px;
         gap: 10px;
-
     }
 
     .play-button {
@@ -181,7 +220,13 @@ onBeforeUnmount(() => {
         width: 58px;
         height: 58px;
         border-radius: 58px;
-        background: transparent linear-gradient(162deg, var(--richpod-play-button-gradient-start) 0%, var(--richpod-play-button-gradient-end) 100%) 0 0 no-repeat padding-box;
+        background: transparent
+            linear-gradient(
+                162deg,
+                var(--richpod-play-button-gradient-start) 0%,
+                var(--richpod-play-button-gradient-end) 100%
+            )
+            0 0 no-repeat padding-box;
         box-shadow: 0 3px 6px #00000029;
         border: 1px solid var(--richpod-play-button-border);
         display: flex;
@@ -195,10 +240,18 @@ onBeforeUnmount(() => {
 
         &:disabled {
             cursor: not-allowed;
-            background: transparent linear-gradient(162deg, var(--richpod-play-button-gradient-start-disabled) 0%, var(--richpod-play-button-gradient-end-disabled) 100%) 0 0 no-repeat padding-box;
+            background: transparent
+                linear-gradient(
+                    162deg,
+                    var(--richpod-play-button-gradient-start-disabled) 0%,
+                    var(--richpod-play-button-gradient-end-disabled) 100%
+                )
+                0 0 no-repeat padding-box;
             border-color: var(--richpod-play-button-border-disabled);
             box-shadow: none;
-            > img { filter: grayscale(100%) opacity(0.5); }
+            > img {
+                filter: grayscale(100%) opacity(0.5);
+            }
         }
     }
 
@@ -232,14 +285,14 @@ onBeforeUnmount(() => {
 
     .skip-button {
         &.skip-forward {
-        background-image: url('../assets/images/icon_skip_forward.svg');
+            background-image: url("../assets/images/icon_skip_forward.svg");
             background-position: right $bg-offset center;
             padding-left: $bg-offset;
             padding-right: $padding;
         }
 
         &.skip-backward {
-        background-image: url('../assets/images/icon_skip_backward.svg');
+            background-image: url("../assets/images/icon_skip_backward.svg");
             background-position: left $bg-offset center;
             padding-left: $padding;
             padding-right: $bg-offset;
@@ -247,7 +300,7 @@ onBeforeUnmount(() => {
     }
 
     .chapter-dialog-button {
-        background-image: url('../assets/images/icon_chevron_right.svg');
+        background-image: url("../assets/images/icon_chevron_right.svg");
         background-size: 6px 10px;
         background-position: left $bg-offset center;
         padding-left: 18px;

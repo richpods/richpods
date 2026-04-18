@@ -23,7 +23,11 @@
                 :key="episode.id"
                 :to="episode.richPodId ? `/edit/${episode.richPodId}` : undefined"
                 class="border border-gray-200 rounded-lg p-4 block"
-                :class="episode.richPodId ? 'hover:border-blue-300 hover:bg-blue-50/30 transition-colors cursor-pointer' : ''"
+                :class="
+                    episode.richPodId
+                        ? 'hover:border-blue-300 hover:bg-blue-50/30 transition-colors cursor-pointer'
+                        : ''
+                "
             >
                 <!-- Episode header row -->
                 <div class="flex items-start gap-3">
@@ -78,7 +82,10 @@
                     </div>
 
                     <!-- Delete button (only for orphaned episodes without a RichPod) -->
-                    <div v-if="mode === 'full' && !episode.richPodId" class="flex-shrink-0 flex items-center gap-1">
+                    <div
+                        v-if="mode === 'full' && !episode.richPodId"
+                        class="flex-shrink-0 flex items-center gap-1"
+                    >
                         <button
                             @click.prevent="handleDeleteEpisode(episode)"
                             :disabled="deletingEpisodeId === episode.id"
@@ -225,16 +232,13 @@ async function handleRecoverRichPod(episode: Episode) {
         const token = await getAuthToken();
         const baseUrl = getApiBaseUrl();
 
-        const response = await fetch(
-            `${baseUrl}/api/v1/hosted/episode/${episode.id}/richpod`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+        const response = await fetch(`${baseUrl}/api/v1/hosted/episode/${episode.id}/richpod`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
             },
-        );
+        });
 
         if (!response.ok) {
             const body = await response.json().catch(() => ({ error: "Failed to create RichPod" }));

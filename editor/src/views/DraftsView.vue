@@ -107,9 +107,7 @@
                             >
                                 {{ richpod.updatedAt }}
                             </td>
-                            <td
-                                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                            >
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex gap-2 justify-end">
                                     <router-link
                                         :to="`/edit/${richpod.id}`"
@@ -145,7 +143,10 @@
 
             <!-- Empty state -->
             <div v-if="!loading && richPods.length === 0" class="text-center py-12">
-                <Icon icon="ion:document-text-outline" class="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                <Icon
+                    icon="ion:document-text-outline"
+                    class="w-12 h-12 mx-auto text-gray-400 mb-3"
+                />
                 <p class="text-gray-500">{{ t("drafts.noDrafts") }}</p>
                 <p class="text-sm text-gray-400 mt-1">{{ t("drafts.createFirst") }}</p>
                 <router-link
@@ -248,7 +249,10 @@ async function loadRichPods() {
     error.value = "";
 
     try {
-        const response = await graphqlSdk.UserRichPods({ first: DEFAULT_PAGE_SIZE, state: RichPodState.Draft, });
+        const response = await graphqlSdk.UserRichPods({
+            first: DEFAULT_PAGE_SIZE,
+            state: RichPodState.Draft,
+        });
         richPods.value = response.userRichPods.items;
         nextCursor.value = response.userRichPods.nextCursor ?? null;
     } catch (err: unknown) {

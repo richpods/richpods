@@ -23,16 +23,16 @@ import { useRichPod } from "@/composables/useRichPod.ts";
 import { currentChapter as findCurrentChapter } from "@/utils.ts";
 
 const enclosureComponentMap: Record<string, Component> = {
-    "InteractiveChart": InteractiveChartEnclosure,
-    "GeoMap": GeoMapEnclosure,
-    "Markdown": MarkdownEnclosure,
-    "Slideshow": SlideshowEnclosure,
-    "Poll": PollEnclosure,
-    "Factbox": FactboxEnclosure,
-    "Card": CardEnclosure,
+    InteractiveChart: InteractiveChartEnclosure,
+    GeoMap: GeoMapEnclosure,
+    Markdown: MarkdownEnclosure,
+    Slideshow: SlideshowEnclosure,
+    Poll: PollEnclosure,
+    Factbox: FactboxEnclosure,
+    Card: CardEnclosure,
 };
 
-function componentFor(type: string|undefined) {
+function componentFor(type: string | undefined) {
     return enclosureComponentMap[type ?? "___invalid___"] ?? UnsupportedEnclosure;
 }
 
@@ -40,9 +40,7 @@ const props = defineProps<{
     currentTime: number;
 }>();
 
-const {
-    sortedChapters,
-} = useRichPod();
+const { sortedChapters } = useRichPod();
 
 const currentChapter = computed(() => findCurrentChapter(sortedChapters.value, props.currentTime));
 </script>

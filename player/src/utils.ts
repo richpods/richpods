@@ -64,7 +64,8 @@ export function currentChapterIndex(chapters: SortedChapter[], timeSeconds: numb
     if (!chapters || chapters.length === 0) return -1;
     let idx = -1;
     for (let i = 0; i < chapters.length; i++) {
-        if (chapters[i].beginSeconds <= timeSeconds) idx = i; else break;
+        if (chapters[i].beginSeconds <= timeSeconds) idx = i;
+        else break;
     }
     return idx;
 }
@@ -72,7 +73,10 @@ export function currentChapterIndex(chapters: SortedChapter[], timeSeconds: numb
 /**
  * Returns the current chapter object for a given time, or null if none started.
  */
-export function currentChapter(chapters: SortedChapter[], timeSeconds: number): SortedChapter | null {
+export function currentChapter(
+    chapters: SortedChapter[],
+    timeSeconds: number,
+): SortedChapter | null {
     const idx = currentChapterIndex(chapters, timeSeconds);
     return idx >= 0 ? chapters[idx] : null;
 }

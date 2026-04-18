@@ -2,12 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { toSeconds } from "@player/utils.ts";
 import { RichPodState } from "@/graphql/generated";
-import type {
-    EditorChapter,
-    EditorEnclosure,
-    EditorSlide,
-    RichPodForEdit,
-} from "@/types/editor";
+import type { EditorChapter, EditorEnclosure, EditorSlide, RichPodForEdit } from "@/types/editor";
 
 function cloneSlide(slide: EditorSlide): EditorSlide {
     return { ...slide };
@@ -94,9 +89,7 @@ export const useRichPodStore = defineStore("richpod", () => {
         isDirty.value = false;
         if (chapterIndex !== undefined && chapterIndex >= 0) {
             activeChapterIndex.value =
-                next.chapters.length > 0
-                    ? Math.min(chapterIndex, next.chapters.length - 1)
-                    : -1;
+                next.chapters.length > 0 ? Math.min(chapterIndex, next.chapters.length - 1) : -1;
         } else {
             activeChapterIndex.value = next.chapters.length > 0 ? 0 : -1;
         }

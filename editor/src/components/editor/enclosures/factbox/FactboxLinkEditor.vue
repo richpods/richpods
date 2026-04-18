@@ -25,7 +25,8 @@
                 :key="linkKeys[index]"
                 class="flex items-start gap-2 p-3 border border-gray-200 rounded-md bg-gray-50"
                 :class="{
-                    'border-blue-400 bg-blue-50/50': dragOverIndex === index && dragOverIndex !== dragIndex,
+                    'border-blue-400 bg-blue-50/50':
+                        dragOverIndex === index && dragOverIndex !== dragIndex,
                     'opacity-50': dragIndex === index,
                 }"
                 :draggable="canReorder"
@@ -36,10 +37,7 @@
                 @dragend="onDragEnd"
             >
                 <!-- Drag handle + touch reorder buttons -->
-                <div
-                    v-if="canReorder"
-                    class="flex flex-col items-center gap-0.5 pt-1 shrink-0"
-                >
+                <div v-if="canReorder" class="flex flex-col items-center gap-0.5 pt-1 shrink-0">
                     <!-- Drag handle (hidden on touch) -->
                     <div
                         class="drag-handle cursor-grab text-gray-400 hover:text-gray-600 touch-hidden"
@@ -118,7 +116,13 @@
                             type="text"
                             :placeholder="t('factboxEditor.linkEditor.linkLabelPlaceholder')"
                             class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            @input="updateLink(index, 'label', ($event.target as HTMLInputElement).value)"
+                            @input="
+                                updateLink(
+                                    index,
+                                    'label',
+                                    ($event.target as HTMLInputElement).value,
+                                )
+                            "
                             @blur="handleBlur"
                         />
                     </div>
@@ -133,10 +137,15 @@
                             :placeholder="t('factboxEditor.linkEditor.linkUrlPlaceholder')"
                             class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                             :class="{ 'border-red-300': !isValidUrl(link.url) && link.url }"
-                            @input="updateLink(index, 'url', ($event.target as HTMLInputElement).value)"
+                            @input="
+                                updateLink(index, 'url', ($event.target as HTMLInputElement).value)
+                            "
                             @blur="handleBlur"
                         />
-                        <p v-if="!isValidUrl(link.url) && link.url" class="mt-1 text-xs text-red-600">
+                        <p
+                            v-if="!isValidUrl(link.url) && link.url"
+                            class="mt-1 text-xs text-red-600"
+                        >
                             {{ t("factboxEditor.linkEditor.invalidUrl") }}
                         </p>
                     </div>

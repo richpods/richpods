@@ -44,7 +44,8 @@ export function useUpload() {
             formData.append("richPodId", richPodId);
 
             // Derive API endpoint from GraphQL endpoint
-            const graphqlEndpoint = import.meta.env.VITE_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
+            const graphqlEndpoint =
+                import.meta.env.VITE_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
             const apiUrl = graphqlEndpoint.replace(/\/graphql$/, "");
             const uploadUrl = `${apiUrl}/api/v1/upload`;
 

@@ -109,7 +109,8 @@ export const SUPPORTED_LANGUAGES: Record<string, string> = {
  * Get the user's preferred language from the browser
  */
 export function getBrowserLanguage(): string {
-    const lang = navigator.language || (navigator as { userLanguage?: string }).userLanguage || "en";
+    const lang =
+        navigator.language || (navigator as { userLanguage?: string }).userLanguage || "en";
     // Extract just the language code (e.g., "en" from "en-US")
     return lang.split("-")[0].toLowerCase();
 }
@@ -147,7 +148,7 @@ export function getPrioritizedLanguages(userLang: string): string[] {
 export async function searchWikidata(
     query: string,
     language: string = "en",
-    limit: number = 10
+    limit: number = 10,
 ): Promise<WikidataSearchResult[]> {
     if (!query.trim()) return [];
 
@@ -177,7 +178,7 @@ export async function searchWikidata(
             label: item.label || item.id,
             description: item.description || "",
             language,
-        })
+        }),
     );
 
     setCache(cacheKey, results);
@@ -199,7 +200,7 @@ export type LanguageGroupedResults = {
 export async function searchWikidataMultiLang(
     query: string,
     languages: string[],
-    limit: number = 5
+    limit: number = 5,
 ): Promise<LanguageGroupedResults[]> {
     if (!query.trim()) return [];
 
@@ -241,7 +242,7 @@ type RawProperty = {
  */
 export async function getWikidataEntity(
     entityId: string,
-    language: string = "en"
+    language: string = "en",
 ): Promise<WikidataEntityDetail> {
     const messages = resolveWikidataMessages(language);
     const cacheKey = `entity:${language}:${entityId}`;
@@ -392,15 +393,18 @@ type ExtractedClaimValue = {
 /**
  * Extract a value from a Wikidata claim, returning entity reference if applicable
  */
-function extractClaimValueWithRef(claim: {
-    mainsnak?: {
-        datatype?: string;
-        datavalue?: {
-            type?: string;
-            value?: unknown;
+function extractClaimValueWithRef(
+    claim: {
+        mainsnak?: {
+            datatype?: string;
+            datavalue?: {
+                type?: string;
+                value?: unknown;
+            };
         };
-    };
-}, language: string = "en"): ExtractedClaimValue {
+    },
+    language: string = "en",
+): ExtractedClaimValue {
     const datavalue = claim.mainsnak?.datavalue;
     if (!datavalue) return null;
 
@@ -495,7 +499,7 @@ function getCommonsImageUrl(filename: string, width: number = 300): string {
  */
 export async function generateFactboxFromWikidata(
     entityId: string,
-    language: string = "en"
+    language: string = "en",
 ): Promise<FactboxTemplate> {
     const messages = resolveWikidataMessages(language);
     const entity = await getWikidataEntity(entityId, language);
@@ -546,7 +550,7 @@ export async function generateFactboxFromWikidata(
  */
 export async function getEntityLabels(
     entityIds: string[],
-    language: string = "en"
+    language: string = "en",
 ): Promise<Record<string, string>> {
     if (entityIds.length === 0) return {};
 

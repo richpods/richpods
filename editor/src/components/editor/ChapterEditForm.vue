@@ -1,7 +1,9 @@
 <template>
     <fieldset v-if="hasChapter" :disabled="isSaving" class="m-0 p-0 border-0 space-y-4">
         <div v-if="!isSlideshow && !isGeoMap && !isPoll && !isFactbox && !isCard">
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t("chapterEdit.titleLabel") }}</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{
+                t("chapterEdit.titleLabel")
+            }}</label>
             <input
                 v-model="chapterTitle"
                 type="text"

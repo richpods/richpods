@@ -1,9 +1,20 @@
 <template>
     <div class="flex-1 flex items-start justify-center p-2 lg:p-6 overflow-y-auto pb-28 w-full">
-        <div :class="['w-full mx-auto p-0 bg-white border border-gray-200 rounded-lg shadow-sm', wideMode ? '' : 'max-w-4xl']">
+        <div
+            :class="[
+                'w-full mx-auto p-0 bg-white border border-gray-200 rounded-lg shadow-sm',
+                wideMode ? '' : 'max-w-4xl',
+            ]"
+        >
             <template v-if="isLoading">
-                <div class="px-3 lg:px-6 py-16 flex flex-col items-center justify-center text-gray-600">
-                    <RipoSpinner :size="40" color="#2563eb" :label="t('editor.loadingChapterEditor')" />
+                <div
+                    class="px-3 lg:px-6 py-16 flex flex-col items-center justify-center text-gray-600"
+                >
+                    <RipoSpinner
+                        :size="40"
+                        color="#2563eb"
+                        :label="t('editor.loadingChapterEditor')"
+                    />
                     <p class="mt-4 text-sm">{{ t("editor.loadingChapterEditor") }}</p>
                 </div>
             </template>
@@ -30,48 +41,64 @@
                                         : 'border-transparent text-gray-600 hover:text-gray-800',
                                 ]"
                             >
-                                <Icon :icon="tabIcons[tab]" class="w-4 h-4 mr-1.5 inline" />{{ tabLabels[tab] }}
+                                <Icon :icon="tabIcons[tab]" class="w-4 h-4 mr-1.5 inline" />{{
+                                    tabLabels[tab]
+                                }}
                             </button>
                         </div>
 
-                        <ChapterEditForm
-                            v-if="activeTab === 'Edit'"
-                            :is-saving="isSaving"
-                        />
+                        <ChapterEditForm v-if="activeTab === 'Edit'" :is-saving="isSaving" />
 
                         <ChapterPreviewPane
                             v-else-if="activeTab === 'Preview'"
                             :component-for="componentFor"
                         />
 
-                        <fieldset v-else-if="activeTab === 'Actions'" :disabled="isSaving" class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-4 items-center pt-2">
+                        <fieldset
+                            v-else-if="activeTab === 'Actions'"
+                            :disabled="isSaving"
+                            class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-4 items-center pt-2"
+                        >
                             <button
                                 class="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
-                                @click="moveCurrentChapter(); activeTab = 'Edit'"
+                                @click="
+                                    moveCurrentChapter();
+                                    activeTab = 'Edit';
+                                "
                                 :disabled="moveToCurrentTimeState.disabled"
                                 :title="moveToCurrentTimeState.reason"
                             >
                                 {{ t("editor.moveToCurrentTime") }}
                             </button>
-                            <p class="text-sm text-gray-500">{{ t("editor.moveToCurrentTimeDescription") }}</p>
+                            <p class="text-sm text-gray-500">
+                                {{ t("editor.moveToCurrentTimeDescription") }}
+                            </p>
 
                             <template v-if="isFirstChapterNotAtBeginning">
                                 <button
                                     class="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
-                                    @click="moveCurrentChapterToBeginning(); activeTab = 'Edit'"
+                                    @click="
+                                        moveCurrentChapterToBeginning();
+                                        activeTab = 'Edit';
+                                    "
                                     :disabled="moveToBeginningState.disabled"
                                     :title="moveToBeginningState.reason"
                                 >
                                     {{ t("editor.moveToBeginning") }}
                                 </button>
-                                <p class="text-sm text-gray-500">{{ t("editor.moveToBeginningDescription") }}</p>
+                                <p class="text-sm text-gray-500">
+                                    {{ t("editor.moveToBeginningDescription") }}
+                                </p>
                             </template>
 
                             <div class="flex items-center gap-2">
                                 <button
                                     class="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
                                     :disabled="!canMoveEarlier"
-                                    @click="moveCurrentChapterBySeconds(-moveBySeconds); activeTab = 'Edit'"
+                                    @click="
+                                        moveCurrentChapterBySeconds(-moveBySeconds);
+                                        activeTab = 'Edit';
+                                    "
                                 >
                                     &laquo;
                                 </button>
@@ -84,7 +111,10 @@
                                 <button
                                     class="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
                                     :disabled="!canMoveLater"
-                                    @click="moveCurrentChapterBySeconds(moveBySeconds); activeTab = 'Edit'"
+                                    @click="
+                                        moveCurrentChapterBySeconds(moveBySeconds);
+                                        activeTab = 'Edit';
+                                    "
                                 >
                                     &raquo;
                                 </button>
@@ -95,25 +125,43 @@
 
                             <button
                                 class="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
-                                @click="duplicateCurrentChapter(); activeTab = 'Edit'"
+                                @click="
+                                    duplicateCurrentChapter();
+                                    activeTab = 'Edit';
+                                "
                                 :disabled="duplicateAtCurrentTimeState.disabled"
                                 :title="duplicateAtCurrentTimeState.reason"
                             >
                                 {{ t("editor.duplicateAtCurrentTime") }}
                             </button>
-                            <p class="text-sm text-gray-500">{{ t("editor.duplicateAtCurrentTimeDescription") }}</p>
+                            <p class="text-sm text-gray-500">
+                                {{ t("editor.duplicateAtCurrentTimeDescription") }}
+                            </p>
 
                             <hr class="col-span-2 border-gray-200 my-3" />
 
                             <button
                                 class="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50 hover:border-red-400 disabled:opacity-40 disabled:cursor-not-allowed"
-                                @click="removeCurrentChapter(); activeTab = 'Edit'"
-                                :disabled="!currentChapter || isDeleting || isLastChapterOfPublished"
-                                :title="isLastChapterOfPublished ? t('editor.cannotDeleteLastPublishedChapter') : currentChapter ? t('editor.removeThisChapter') : t('editor.noChapterToRemove')"
+                                @click="
+                                    removeCurrentChapter();
+                                    activeTab = 'Edit';
+                                "
+                                :disabled="
+                                    !currentChapter || isDeleting || isLastChapterOfPublished
+                                "
+                                :title="
+                                    isLastChapterOfPublished
+                                        ? t('editor.cannotDeleteLastPublishedChapter')
+                                        : currentChapter
+                                          ? t('editor.removeThisChapter')
+                                          : t('editor.noChapterToRemove')
+                                "
                             >
                                 {{ t("editor.deleteChapter") }}
                             </button>
-                            <p class="text-sm text-gray-500">{{ t("editor.deleteChapterDescription") }}</p>
+                            <p class="text-sm text-gray-500">
+                                {{ t("editor.deleteChapterDescription") }}
+                            </p>
                         </fieldset>
                     </div>
                 </template>
@@ -230,12 +278,10 @@ const isLastChapterOfPublished = computed(
     () => state.value === RichPodState.Published && chapters.value.length <= 1,
 );
 
-const wideMode = computed(
-    () => currentChapter.value?.enclosure.__typename === "GeoMap",
-);
+const wideMode = computed(() => currentChapter.value?.enclosure.__typename === "GeoMap");
 
 const tabs = ["Edit", "Preview", "Actions"] as const;
-type Tab = typeof tabs[number];
+type Tab = (typeof tabs)[number];
 const activeTab = ref<Tab>("Edit");
 
 const tabLabels = computed<Record<Tab, string>>(() => ({

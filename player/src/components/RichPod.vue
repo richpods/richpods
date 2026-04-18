@@ -30,19 +30,13 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const {
-    richPod,
-    loading,
-    error,
-    load,
-} = useRichPod();
+const { richPod, loading, error, load } = useRichPod();
 
 load(props.id);
 
 function reload() {
     load(props.id);
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -52,5 +46,4 @@ function reload() {
     justify-content: center;
     min-height: 300px;
 }
-
 </style>

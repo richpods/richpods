@@ -1,8 +1,6 @@
 <template>
     <div class="flex-1 flex items-start justify-center p-2 lg:p-6 overflow-y-auto pb-28 w-full">
-        <div
-            class="w-full max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg shadow-sm"
-        >
+        <div class="w-full max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg shadow-sm">
             <div class="px-3 lg:px-6 py-16 flex flex-col items-center justify-center">
                 <Icon icon="ion:alert-circle-outline" class="w-12 h-12 text-amber-500 mb-4" />
                 <h2 class="text-lg font-semibold text-gray-800 mb-2">
@@ -24,9 +22,7 @@
                         class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
                     />
                     {{
-                        isRefreshing
-                            ? t("brokenMedia.refreshing")
-                            : t("brokenMedia.refreshButton")
+                        isRefreshing ? t("brokenMedia.refreshing") : t("brokenMedia.refreshButton")
                     }}
                 </button>
             </div>
@@ -47,10 +43,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (
-        e: "media-refreshed",
-        media: { url: string; mimeType: string },
-    ): void;
+    (e: "media-refreshed", media: { url: string; mimeType: string }): void;
 }>();
 
 const isRefreshing = ref(false);

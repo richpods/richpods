@@ -17,7 +17,9 @@
 
         <!-- Title Input -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t("factboxEditor.titleLabel") }}</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{
+                t("factboxEditor.titleLabel")
+            }}</label>
             <input
                 v-model="factboxTitle"
                 type="text"
@@ -29,7 +31,9 @@
 
         <!-- Content Editor (TipTap) -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t("factboxEditor.contentLabel") }}</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{
+                t("factboxEditor.contentLabel")
+            }}</label>
             <div class="tiptap-editor-container">
                 <div v-if="editor" class="editor-toolbar">
                     <div class="toolbar-group">
@@ -302,7 +306,7 @@ watch(
             newEditor.on("update", debouncedValidation);
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 const factboxTitle = computed({

@@ -1,11 +1,39 @@
 <template>
     <modal-dialog :aria-labelledby="headingId" ref="dialog">
         <div v-if="isUnverified" class="unverified-banner" role="alert">
-            <svg class="unverified-banner-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M432 320V144a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v112m0 0V80a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v160m-64 1V96a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v224m128-80V48a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v192"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M432 320c0 117.4-64 176-152 176s-123.71-39.6-144-88L83.33 264c-6.66-18.05-3.64-34.79 11.87-43.6h0c15.52-8.82 35.91-4.28 44.31 11.68L176 320"/></svg>
-            <span>{{ publisherName ? t("disclaimer.unverified", { publisherName }) : t("disclaimer.unverifiedNoPublisher") }}</span>
+            <svg
+                class="unverified-banner-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512"
+                aria-hidden="true"
+            >
+                <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="32"
+                    d="M432 320V144a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v112m0 0V80a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v160m-64 1V96a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v224m128-80V48a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v192"
+                />
+                <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="32"
+                    d="M432 320c0 117.4-64 176-152 176s-123.71-39.6-144-88L83.33 264c-6.66-18.05-3.64-34.79 11.87-43.6h0c15.52-8.82 35.91-4.28 44.31 11.68L176 320"
+                />
+            </svg>
+            <span>{{
+                publisherName
+                    ? t("disclaimer.unverified", { publisherName })
+                    : t("disclaimer.unverifiedNoPublisher")
+            }}</span>
         </div>
         <h2 :id="headingId">{{ richPod?.title }}</h2>
-        <span v-if="richPod?.explicit" class="explicit-indicator">{{ t("infoDialog.explicit") }}</span>
+        <span v-if="richPod?.explicit" class="explicit-indicator">{{
+            t("infoDialog.explicit")
+        }}</span>
         <div class="info-content">
             <p class="description">{{ richPod?.description }}</p>
 
@@ -13,7 +41,9 @@
                 <h3>{{ t("infoDialog.originalPodcastTitle") }}</h3>
                 <p>{{ richPod.origin.title }}</p>
                 <p v-if="richPod.origin.link">
-                    <a :href="richPod.origin.link" target="_blank" rel="noopener ugc">{{ richPod.origin.link }}</a>
+                    <a :href="richPod.origin.link" target="_blank" rel="noopener ugc">{{
+                        richPod.origin.link
+                    }}</a>
                 </p>
 
                 <h3>{{ t("infoDialog.episode") }}</h3>
@@ -48,9 +78,7 @@ const { t } = useI18n();
 const dialog = useTemplateRef("dialog");
 const headingId = `dialog-heading-${Math.floor(Math.random() * 100)}`;
 
-const {
-    richPod,
-} = useRichPod();
+const { richPod } = useRichPod();
 
 const isUnverified = computed(() => !richPod.value?.origin.verified);
 const publisherName = computed(() => richPod.value?.editor?.publicName);

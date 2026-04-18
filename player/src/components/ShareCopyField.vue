@@ -18,7 +18,7 @@
                 :value="value"
                 readonly
                 @focus="selectContent"
-            >
+            />
             <button type="button" class="copy-button" @click="copy">
                 {{ copied ? t("shareDialog.copied") : (copyLabel ?? t("shareDialog.copy")) }}
             </button>

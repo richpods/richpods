@@ -56,7 +56,11 @@
                         :disabled="!linkUrl || linkUrl.length > 500 || isFetchingOg"
                         @click="fetchOgData"
                     >
-                        {{ isFetchingOg ? t("cardEditor.link.fetching") : t("cardEditor.link.fetchOg") }}
+                        {{
+                            isFetchingOg
+                                ? t("cardEditor.link.fetching")
+                                : t("cardEditor.link.fetchOg")
+                        }}
                     </button>
                 </div>
                 <p v-if="linkUrl && linkUrl.length > 500" class="text-xs text-red-500 mt-1">
@@ -101,7 +105,11 @@
                     <div class="grid grid-cols-2 gap-3">
                         <label
                             class="flex flex-col items-center gap-2 cursor-pointer rounded-lg border p-3"
-                            :class="coverSource === 'podcast' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'"
+                            :class="
+                                coverSource === 'podcast'
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-200'
+                            "
                         >
                             <div class="flex items-center gap-2 self-start">
                                 <input
@@ -112,7 +120,9 @@
                                     @change="setCoverSource('podcast')"
                                     class="text-blue-600 focus:ring-blue-500"
                                 />
-                                <span class="text-sm">{{ t("cardEditor.cover.podcastCover") }}</span>
+                                <span class="text-sm">{{
+                                    t("cardEditor.cover.podcastCover")
+                                }}</span>
                             </div>
                             <img
                                 v-if="podcastArtworkUrl"
@@ -123,7 +133,11 @@
                         </label>
                         <label
                             class="flex flex-col items-center gap-2 cursor-pointer rounded-lg border p-3"
-                            :class="coverSource === 'episode' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'"
+                            :class="
+                                coverSource === 'episode'
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-200'
+                            "
                         >
                             <div class="flex items-center gap-2 self-start">
                                 <input
@@ -134,7 +148,9 @@
                                     @change="setCoverSource('episode')"
                                     class="text-blue-600 focus:ring-blue-500"
                                 />
-                                <span class="text-sm">{{ t("cardEditor.cover.episodeCover") }}</span>
+                                <span class="text-sm">{{
+                                    t("cardEditor.cover.episodeCover")
+                                }}</span>
                             </div>
                             <img
                                 v-if="episodeArtworkUrl"
@@ -171,9 +187,7 @@
                     :placeholder="t('cardEditor.citation.quotePlaceholder')"
                     @blur="handleBlur"
                 ></textarea>
-                <p class="text-xs text-gray-500 mt-0.5">
-                    {{ (quoteText?.length ?? 0) }}/1500
-                </p>
+                <p class="text-xs text-gray-500 mt-0.5">{{ quoteText?.length ?? 0 }}/1500</p>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -187,9 +201,7 @@
                     :placeholder="t('cardEditor.citation.sourcePlaceholder')"
                     @blur="handleBlur"
                 />
-                <p class="text-xs text-gray-500 mt-0.5">
-                    {{ (citationSource?.length ?? 0) }}/100
-                </p>
+                <p class="text-xs text-gray-500 mt-0.5">{{ citationSource?.length ?? 0 }}/100</p>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -223,7 +235,7 @@
                     @blur="handleBlur"
                 />
                 <p class="text-xs text-gray-500 mt-0.5">
-                    {{ (imageAlt?.length ?? 0) }}/500 - {{ t("cardEditor.image.altHint") }}
+                    {{ imageAlt?.length ?? 0 }}/500 - {{ t("cardEditor.image.altHint") }}
                 </p>
             </div>
             <div>
@@ -252,7 +264,11 @@
                         @click="triggerImageUpload"
                         :disabled="uploading"
                     >
-                        {{ uploading ? t("slideshowEditor.uploading") : t("slideshowEditor.chooseImage") }}
+                        {{
+                            uploading
+                                ? t("slideshowEditor.uploading")
+                                : t("slideshowEditor.chooseImage")
+                        }}
                     </button>
                 </div>
                 <p class="text-xs text-gray-500 mt-1">{{ t("slideshowEditor.acceptedFormats") }}</p>
@@ -280,7 +296,10 @@
         </template>
 
         <!-- Blank Card -->
-        <div v-if="cardType === 'BLANK'" class="text-sm text-gray-500 bg-gray-50 border border-dashed border-gray-300 rounded-md p-4 text-center">
+        <div
+            v-if="cardType === 'BLANK'"
+            class="text-sm text-gray-500 bg-gray-50 border border-dashed border-gray-300 rounded-md p-4 text-center"
+        >
             {{ t("cardEditor.blank.description") }}
         </div>
     </div>
@@ -334,11 +353,17 @@ const linkDescription = computed({
 });
 
 const ogTitle = computed(() => currentChapter.value?.enclosure.openGraph?.ogTitle ?? "");
-const ogDescription = computed(() => currentChapter.value?.enclosure.openGraph?.ogDescription ?? "");
+const ogDescription = computed(
+    () => currentChapter.value?.enclosure.openGraph?.ogDescription ?? "",
+);
 const ogImageUrl = computed(() => currentChapter.value?.enclosure.openGraph?.ogImageUrl ?? "");
 const hasOgData = computed(() => !!(ogTitle.value || ogDescription.value || ogImageUrl.value));
-const ogImageWidth = computed(() => currentChapter.value?.enclosure.openGraph?.ogImageWidth ?? null);
-const ogImageHeight = computed(() => currentChapter.value?.enclosure.openGraph?.ogImageHeight ?? null);
+const ogImageWidth = computed(
+    () => currentChapter.value?.enclosure.openGraph?.ogImageWidth ?? null,
+);
+const ogImageHeight = computed(
+    () => currentChapter.value?.enclosure.openGraph?.ogImageHeight ?? null,
+);
 const ogImageStyle = computed(() => {
     if (ogImageWidth.value && ogImageHeight.value) {
         return { aspectRatio: `${ogImageWidth.value} / ${ogImageHeight.value}` };
@@ -450,7 +475,8 @@ async function fetchOgData() {
         }
 
         const token = await user.getIdToken();
-        const graphqlEndpoint = import.meta.env.VITE_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
+        const graphqlEndpoint =
+            import.meta.env.VITE_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
         const apiUrl = graphqlEndpoint.replace(/\/graphql$/, "");
 
         const response = await fetch(`${apiUrl}/api/v1/og/parse`, {

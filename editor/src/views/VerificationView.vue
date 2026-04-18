@@ -2,24 +2,36 @@
     <div class="min-h-full bg-gray-50 py-4 sm:py-6">
         <div class="max-w-4xl mx-auto px-3 sm:px-4 space-y-4 sm:space-y-6">
             <header>
-                <h1 class="text-xl sm:text-2xl font-bold text-gray-900">{{ t("verification.title") }}</h1>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-900">
+                    {{ t("verification.title") }}
+                </h1>
                 <p class="mt-2 text-sm text-gray-600">
                     {{ t("verification.subtitle") }}
                 </p>
             </header>
 
             <section class="bg-white rounded-lg shadow p-6 space-y-4">
-                <h2 class="text-lg font-semibold text-gray-900">{{ t("verification.startVerification") }}</h2>
+                <h2 class="text-lg font-semibold text-gray-900">
+                    {{ t("verification.startVerification") }}
+                </h2>
 
-                <div v-if="errorMessage" class="rounded border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800">
+                <div
+                    v-if="errorMessage"
+                    class="rounded border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800"
+                >
                     {{ errorMessage }}
                 </div>
-                <div v-if="statusMessage" class="rounded border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-800">
+                <div
+                    v-if="statusMessage"
+                    class="rounded border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-800"
+                >
                     {{ statusMessage }}
                 </div>
 
                 <div class="space-y-3">
-                    <label for="feed-url" class="block text-sm font-medium text-gray-700">{{ t("verification.feedUrlLabel") }}</label>
+                    <label for="feed-url" class="block text-sm font-medium text-gray-700">{{
+                        t("verification.feedUrlLabel")
+                    }}</label>
                     <input
                         ref="feedUrlInput"
                         id="feed-url"
@@ -44,13 +56,20 @@
                         {{ t("verification.sendVerificationEmail") }}
                     </button>
                     <span v-if="activePending" class="text-sm text-yellow-700">
-                        {{ t("verification.verificationSent", { email: activePending.email, expiresAt: formatDateTime(activePending.expiresAt) }) }}
+                        {{
+                            t("verification.verificationSent", {
+                                email: activePending.email,
+                                expiresAt: formatDateTime(activePending.expiresAt),
+                            })
+                        }}
                     </span>
                 </div>
             </section>
 
             <section v-if="uniqueOrigins.length" class="bg-white rounded-lg shadow p-6 space-y-4">
-                <h2 class="text-lg font-semibold text-gray-900">{{ t("verification.yourFeeds") }}</h2>
+                <h2 class="text-lg font-semibold text-gray-900">
+                    {{ t("verification.yourFeeds") }}
+                </h2>
                 <p class="text-sm text-gray-600">{{ t("verification.selectFeedHint") }}</p>
                 <ul class="space-y-3">
                     <li
@@ -61,19 +80,28 @@
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
                                 <p class="font-medium text-gray-900">{{ origin.title }}</p>
-                                <span v-if="origin.isVerified" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span
+                                    v-if="origin.isVerified"
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                                >
                                     <Icon icon="ion:checkmark-circle" class="mr-1 h-3 w-3" />
                                     {{ t("verificationStatus.verified") }}
                                 </span>
                             </div>
-                            <p v-if="!origin.isHosted" class="break-all text-sm text-gray-500">{{ origin.feedUrl }}</p>
+                            <p v-if="!origin.isHosted" class="break-all text-sm text-gray-500">
+                                {{ origin.feedUrl }}
+                            </p>
                         </div>
                         <button
                             v-if="!origin.isHosted"
                             class="inline-flex items-center gap-2 self-start rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:border-gray-400 hover:bg-gray-50"
                             @click="selectFeed(origin.feedUrl)"
                         >
-                            {{ origin.isVerified ? t("verification.reVerify") : t("verification.useFeed") }}
+                            {{
+                                origin.isVerified
+                                    ? t("verification.reVerify")
+                                    : t("verification.useFeed")
+                            }}
                         </button>
                     </li>
                 </ul>
@@ -90,9 +118,16 @@
             </section>
 
             <section v-if="activePending" class="bg-white rounded-lg shadow p-6 space-y-4">
-                <h2 class="text-lg font-semibold text-gray-900">{{ t("verification.enterCode") }}</h2>
+                <h2 class="text-lg font-semibold text-gray-900">
+                    {{ t("verification.enterCode") }}
+                </h2>
                 <p class="text-sm text-gray-600">
-                    {{ t("verification.enterCodeHint", { email: activePending.email, feedUrl: activePending.feedUrl }) }}
+                    {{
+                        t("verification.enterCodeHint", {
+                            email: activePending.email,
+                            feedUrl: activePending.feedUrl,
+                        })
+                    }}
                 </p>
                 <div class="flex flex-wrap items-center gap-3">
                     <input
@@ -118,7 +153,9 @@
 
             <section class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">{{ t("verification.history") }}</h2>
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        {{ t("verification.history") }}
+                    </h2>
                     <button
                         class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
                         @click="refreshData"
@@ -128,25 +165,43 @@
                         {{ t("common.refresh") }}
                     </button>
                 </div>
-                <div v-if="loading" class="py-6 text-sm text-gray-500">{{ t("verification.loadingVerifications") }}</div>
-                <div v-else-if="!verifications.length" class="py-6 text-sm text-gray-500">{{ t("verification.noVerifications") }}</div>
+                <div v-if="loading" class="py-6 text-sm text-gray-500">
+                    {{ t("verification.loadingVerifications") }}
+                </div>
+                <div v-else-if="!verifications.length" class="py-6 text-sm text-gray-500">
+                    {{ t("verification.noVerifications") }}
+                </div>
                 <div v-else class="mt-4 overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 text-sm">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-4 py-2 text-left font-medium text-gray-500">{{ t("verification.feed") }}</th>
-                                <th class="px-4 py-2 text-left font-medium text-gray-500">{{ t("verification.email") }}</th>
-                                <th class="px-4 py-2 text-left font-medium text-gray-500">{{ t("verification.status") }}</th>
-                                <th class="px-4 py-2 text-left font-medium text-gray-500">{{ t("verification.created") }}</th>
-                                <th class="px-4 py-2 text-left font-medium text-gray-500">{{ t("verification.verifiedAt") }}</th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-500">
+                                    {{ t("verification.feed") }}
+                                </th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-500">
+                                    {{ t("verification.email") }}
+                                </th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-500">
+                                    {{ t("verification.status") }}
+                                </th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-500">
+                                    {{ t("verification.created") }}
+                                </th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-500">
+                                    {{ t("verification.verifiedAt") }}
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             <tr v-for="verification in verifications" :key="verification.id">
                                 <td class="px-4 py-2 align-top">
-                                    <p class="font-medium text-gray-900">{{ verification.feedUrl }}</p>
+                                    <p class="font-medium text-gray-900">
+                                        {{ verification.feedUrl }}
+                                    </p>
                                 </td>
-                                <td class="px-4 py-2 align-top text-gray-600">{{ verification.email }}</td>
+                                <td class="px-4 py-2 align-top text-gray-600">
+                                    {{ verification.email }}
+                                </td>
                                 <td class="px-4 py-2 align-top">
                                     <span
                                         :class="[
@@ -157,9 +212,15 @@
                                         {{ verificationStatusLabel(verification.state) }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-2 align-top text-gray-600">{{ formatDateTime(verification.createdAt) }}</td>
                                 <td class="px-4 py-2 align-top text-gray-600">
-                                    {{ verification.verificationTimestamp ? formatDateTime(verification.verificationTimestamp) : '--' }}
+                                    {{ formatDateTime(verification.createdAt) }}
+                                </td>
+                                <td class="px-4 py-2 align-top text-gray-600">
+                                    {{
+                                        verification.verificationTimestamp
+                                            ? formatDateTime(verification.verificationTimestamp)
+                                            : "--"
+                                    }}
                                 </td>
                             </tr>
                         </tbody>
@@ -249,16 +310,23 @@ async function loadMoreRichPods() {
 }
 
 const uniqueOrigins = computed(() => {
-    const items: Array<{ title: string; feedUrl: string; isVerified: boolean; isHosted: boolean }> = [];
+    const items: Array<{ title: string; feedUrl: string; isVerified: boolean; isHosted: boolean }> =
+        [];
     const seen = new Set<string>();
     for (const pod of richPods.value) {
         const url = pod.origin.feedUrl;
         if (!seen.has(url)) {
             seen.add(url);
-            const isVerified = pod.isHosted || pod.origin.verified || verifications.value.some(
-                v => v.feedUrl === url && v.state === "verified"
-            );
-            items.push({ title: pod.origin.title, feedUrl: url, isVerified, isHosted: pod.isHosted });
+            const isVerified =
+                pod.isHosted ||
+                pod.origin.verified ||
+                verifications.value.some((v) => v.feedUrl === url && v.state === "verified");
+            items.push({
+                title: pod.origin.title,
+                feedUrl: url,
+                isVerified,
+                isHosted: pod.isHosted,
+            });
         }
     }
     return items.sort((a, b) => a.title.localeCompare(b.title));
@@ -348,14 +416,17 @@ async function startVerification() {
     errorMessage.value = "";
     statusMessage.value = "";
     try {
-        const response = await graphqlSdk.StartRichPodVerification({ feedUrl: feedUrl.value.trim() });
-        statusMessage.value = t("verification.emailSent", { email: response.startRichPodVerification.email });
+        const response = await graphqlSdk.StartRichPodVerification({
+            feedUrl: feedUrl.value.trim(),
+        });
+        statusMessage.value = t("verification.emailSent", {
+            email: response.startRichPodVerification.email,
+        });
         verificationCode.value = "";
         await loadData();
     } catch (error: unknown) {
         console.error("Failed to start verification", error);
-        errorMessage.value =
-            error instanceof Error ? error.message : t("verification.startFailed");
+        errorMessage.value = error instanceof Error ? error.message : t("verification.startFailed");
     } finally {
         isSubmitting.value = false;
     }
@@ -371,7 +442,9 @@ async function completeVerification() {
             feedUrl: activePending.value.feedUrl,
             code: verificationCode.value.trim(),
         });
-        statusMessage.value = t("verification.verificationSuccess", { feedUrl: response.completeRichPodVerification.feedUrl });
+        statusMessage.value = t("verification.verificationSuccess", {
+            feedUrl: response.completeRichPodVerification.feedUrl,
+        });
         verificationCode.value = "";
         await loadData();
     } catch (error: unknown) {
@@ -388,5 +461,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

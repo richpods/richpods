@@ -23,14 +23,11 @@ export function useEpisodeCoverUpload() {
             const formData = new FormData();
             formData.append("cover", file);
 
-            const response = await fetch(
-                `${baseUrl}/api/v1/hosted/episode/${episodeId}/cover`,
-                {
-                    method: "POST",
-                    headers: { Authorization: `Bearer ${token}` },
-                    body: formData,
-                },
-            );
+            const response = await fetch(`${baseUrl}/api/v1/hosted/episode/${episodeId}/cover`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+            });
 
             if (!response.ok) {
                 const body = await response

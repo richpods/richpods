@@ -31,13 +31,15 @@
             class="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-800"
             role="alert"
         >
-            <strong>{{ t("slideshowEditor.verificationRequired") }}</strong> {{ t("slideshowEditor.verificationHint") }}
+            <strong>{{ t("slideshowEditor.verificationRequired") }}</strong>
+            {{ t("slideshowEditor.verificationHint") }}
         </div>
 
         <div v-else>
             <div class="flex items-center justify-between mb-3">
                 <h4 class="text-sm font-medium text-gray-700">
-                    {{ t("slideshowEditor.slides") }} {{ slides.length > 0 ? `(${slides.length}/50)` : "" }}
+                    {{ t("slideshowEditor.slides") }}
+                    {{ slides.length > 0 ? `(${slides.length}/50)` : "" }}
                 </h4>
                 <button
                     type="button"
@@ -147,7 +149,8 @@
                                 @blur="handleBlur"
                             />
                             <p class="text-xs text-gray-500 mt-1">
-                                {{ slide.imageAlt?.length ?? 0 }}/500 - {{ t("slideshowEditor.imageAltHint") }}
+                                {{ slide.imageAlt?.length ?? 0 }}/500 -
+                                {{ t("slideshowEditor.imageAltHint") }}
                             </p>
                         </div>
 
@@ -211,7 +214,11 @@
                             <p class="text-xs text-gray-500 mt-2">
                                 {{ t("slideshowEditor.acceptedFormats") }}
                                 <span v-if="quotaInfo && !hasPrivilegedRole()">
-                                    {{ t("slideshowEditor.quotaRemaining", { remaining: formattedRemaining }) }}
+                                    {{
+                                        t("slideshowEditor.quotaRemaining", {
+                                            remaining: formattedRemaining,
+                                        })
+                                    }}
                                 </span>
                             </p>
                         </div>

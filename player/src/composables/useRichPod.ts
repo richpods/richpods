@@ -29,7 +29,9 @@ export function useRichPod() {
         }
     };
 
-    const sortedChapters = computed<SortedChapter[]>(() => buildSortedChapters(richPod.value?.chapters || []));
+    const sortedChapters = computed<SortedChapter[]>(() =>
+        buildSortedChapters(richPod.value?.chapters || []),
+    );
 
     return { richPod, sortedChapters, loading, error, load };
 }

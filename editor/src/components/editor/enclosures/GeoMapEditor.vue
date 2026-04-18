@@ -59,10 +59,7 @@
         </div>
 
         <div v-else-if="activeTab === 'Description'">
-            <label
-                class="block text-sm font-medium text-gray-700 mb-1"
-                for="geomap-description"
-            >
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="geomap-description">
                 {{ t("geoMapEditor.descriptionLabel") }}
             </label>
             <textarea
@@ -111,7 +108,11 @@ import { useValidation } from "@/composables/useValidation";
 import { validateGeoJsonRfc7946 } from "@/utils/geoJsonValidation";
 import { useSaveNow } from "@/composables/useSaveNow";
 import { GeoJsonEditor, PHOTON_PUBLIC_URL } from "@richpods/tiny-geojson-tool";
-import type { EditorFeatureCollection, EditorProps, GeoJsonBbox } from "@richpods/tiny-geojson-tool";
+import type {
+    EditorFeatureCollection,
+    EditorProps,
+    GeoJsonBbox,
+} from "@richpods/tiny-geojson-tool";
 
 const { t, locale } = useI18n();
 
