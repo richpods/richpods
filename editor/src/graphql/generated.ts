@@ -346,6 +346,12 @@ export type PaginatedHostedPodcasts = {
     nextCursor?: Maybe<Scalars["String"]["output"]>;
 };
 
+export type PaginatedPublicHostedEpisodes = {
+    __typename?: "PaginatedPublicHostedEpisodes";
+    items: Array<PublicHostedEpisode>;
+    nextCursor?: Maybe<Scalars["String"]["output"]>;
+};
+
 export type PaginatedRichPods = {
     __typename?: "PaginatedRichPods";
     items: Array<RichPod>;
@@ -455,6 +461,50 @@ export type Poll = {
     coloeus: Coloeus;
 };
 
+/**
+ * Public, unauthenticated projection of a published hosted episode.
+ * Title, description, publishedAt and explicit come from the linked RichPod,
+ * which is the single source of truth for listener-visible metadata.
+ */
+export type PublicHostedEpisode = {
+    __typename?: "PublicHostedEpisode";
+    audioByteSize: Scalars["Int"]["output"];
+    audioDurationSeconds?: Maybe<Scalars["Float"]["output"]>;
+    audioUrl: Scalars["String"]["output"];
+    description: Scalars["String"]["output"];
+    episodeCoverUrl?: Maybe<Scalars["String"]["output"]>;
+    explicit: Scalars["Boolean"]["output"];
+    id: Scalars["ID"]["output"];
+    publishedAt: Scalars["String"]["output"];
+    richPodId: Scalars["ID"]["output"];
+    title: Scalars["String"]["output"];
+};
+
+/**
+ * Public, unauthenticated projection of a hosted podcast. Used by the
+ * auto-generated podcast website. Excludes editor-only fields.
+ */
+export type PublicHostedPodcast = {
+    __typename?: "PublicHostedPodcast";
+    copyright?: Maybe<Scalars["String"]["output"]>;
+    coverImageUrl: Scalars["String"]["output"];
+    customWebsite: Scalars["Boolean"]["output"];
+    description: Scalars["String"]["output"];
+    feedUrl: Scalars["String"]["output"];
+    id: Scalars["ID"]["output"];
+    itunesAuthor: Scalars["String"]["output"];
+    itunesCategory: Scalars["String"]["output"];
+    itunesExplicit: Scalars["Boolean"]["output"];
+    itunesType?: Maybe<Scalars["String"]["output"]>;
+    language: Scalars["String"]["output"];
+    link: Scalars["String"]["output"];
+    platformLinkAmazonMusic?: Maybe<Scalars["String"]["output"]>;
+    platformLinkApplePodcasts?: Maybe<Scalars["String"]["output"]>;
+    platformLinkSpotify?: Maybe<Scalars["String"]["output"]>;
+    platformLinkYouTubeMusic?: Maybe<Scalars["String"]["output"]>;
+    title: Scalars["String"]["output"];
+};
+
 export type Query = {
     __typename?: "Query";
     currentUser?: Maybe<User>;
@@ -466,6 +516,8 @@ export type Query = {
     instanceInfo: InstanceInfo;
     podcastEpisodeSearch: Array<PodcastEpisodeSearchResult>;
     podcastMetadata: PodcastMetadata;
+    publicHostedPodcast?: Maybe<PublicHostedPodcast>;
+    publicHostedPodcastEpisodes: PaginatedPublicHostedEpisodes;
     recentPublishedRichPods: PaginatedRichPods;
     richPod?: Maybe<RichPod>;
     user?: Maybe<User>;
@@ -505,6 +557,16 @@ export type QueryPodcastEpisodeSearchArgs = {
 export type QueryPodcastMetadataArgs = {
     episodeGuid?: InputMaybe<Scalars["String"]["input"]>;
     feedUrl: Scalars["String"]["input"];
+};
+
+export type QueryPublicHostedPodcastArgs = {
+    id: Scalars["ID"]["input"];
+};
+
+export type QueryPublicHostedPodcastEpisodesArgs = {
+    after?: InputMaybe<Scalars["String"]["input"]>;
+    first?: InputMaybe<Scalars["Int"]["input"]>;
+    podcastId: Scalars["ID"]["input"];
 };
 
 export type QueryRecentPublishedRichPodsArgs = {
