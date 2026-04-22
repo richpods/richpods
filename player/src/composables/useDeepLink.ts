@@ -6,7 +6,7 @@ import { visibleChapters } from "../utils";
 
 export function useDeepLink(): void {
     const route = useRoute();
-    const { canPlay, audioElement, mediaDuration } = useAudio();
+    const { canPlay, mediaDuration, seekTo } = useAudio();
     const { sortedChapters } = useRichPod();
 
     let applied = false;
@@ -35,9 +35,7 @@ export function useDeepLink(): void {
         if (seconds < 0) return;
         if (mediaDuration.value > 0 && seconds > mediaDuration.value) return;
 
-        if (audioElement.value) {
-            audioElement.value.currentTime = seconds;
-        }
+        seekTo(seconds);
     }
 
     function applyChapterIndex(raw: string): void {
@@ -47,9 +45,6 @@ export function useDeepLink(): void {
         const chapters = visibleChapters(sortedChapters.value);
         if (index < 1 || index > chapters.length) return;
 
-        const chapter = chapters[index - 1];
-        if (audioElement.value) {
-            audioElement.value.currentTime = chapter.beginSeconds;
-        }
+        seekTo(chapters[index - 1].beginSeconds);
     }
 }

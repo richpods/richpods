@@ -24,7 +24,7 @@
                     <button
                         class="control-button skip-button skip-backward"
                         :disabled="props.disableSeeking"
-                        @click="skip(-15)"
+                        @click="seekBy(-15)"
                         :aria-label="t('player.skipBackward')"
                     >
                         15s
@@ -43,7 +43,7 @@
                     <button
                         class="control-button skip-button skip-forward"
                         :disabled="props.disableSeeking"
-                        @click="skip(15)"
+                        @click="seekBy(15)"
                         :aria-label="t('player.skipForward')"
                     >
                         15s
@@ -96,6 +96,7 @@ const {
     disposeAudio,
     currentTime,
     mediaDuration,
+    seekBy,
 } = useAudio();
 
 if (props.audioUrl) {
@@ -126,15 +127,6 @@ watch(
 );
 
 const modeClass = computed(() => (props.mode === "inline" ? "player-inline" : "player-fixed"));
-
-function skip(seconds: number) {
-    if (!audioElement.value) {
-        return;
-    }
-    const duration = audioElement.value.duration;
-    const newTime = audioElement.value.currentTime + seconds;
-    audioElement.value.currentTime = Math.max(0, Math.min(newTime, duration));
-}
 
 const chapterDialog = useTemplateRef("chapterDialog");
 function toggleChapterDialog() {
@@ -179,8 +171,12 @@ onBeforeUnmount(() => {
         display: grid;
         grid-template-columns: auto 1fr;
         padding-top: calc(
-            var(--richpod-seek-bar-height) + (var(--richpod-chapter-nibble-size) / 3)
+            var(--richpod-seek-bar-height) + (var(--richpod-seek-bar-thumb-size) / 3)
         );
+
+        @media (min-width: 1024px) {
+            grid-template-columns: 1fr;
+        }
     }
 
     .media-buttons {
@@ -213,6 +209,10 @@ onBeforeUnmount(() => {
         align-items: center;
         padding-left: 12px;
         gap: 10px;
+
+        @media (min-width: 1024px) {
+            display: none;
+        }
     }
 
     .play-button {

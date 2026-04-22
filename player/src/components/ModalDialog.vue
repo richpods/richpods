@@ -5,7 +5,9 @@
                 <button class="close-button">{{ t("common.close") }}</button>
             </form>
         </slot>
-        <slot />
+        <div class="modal-dialog-body">
+            <slot />
+        </div>
     </dialog>
 </template>
 
@@ -53,12 +55,20 @@ defineExpose({
     border: none;
     border-radius: 11px;
     box-shadow: 0 3px 6px #00000029;
+    overflow: hidden;
+    padding: 0;
+
+    &[open] {
+        display: flex;
+        flex-direction: column;
+    }
 
     .close-button {
         appearance: none;
         position: absolute;
         top: 6px;
         right: 6px;
+        z-index: 1;
         background-color: transparent;
         background-image: url("../assets/images/icon_close.svg");
         background-size: contain;
@@ -68,5 +78,12 @@ defineExpose({
         border-radius: 50%;
         text-indent: -9999rem;
     }
+}
+
+.modal-dialog-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 1em;
 }
 </style>

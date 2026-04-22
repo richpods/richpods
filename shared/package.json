@@ -21,6 +21,10 @@
             "types": "./dist/utils/itunesCategories.d.ts",
             "import": "./dist/utils/itunesCategories.js"
         },
+        "./utils/time": {
+            "types": "./dist/utils/time.d.ts",
+            "import": "./dist/utils/time.js"
+        },
         "./media/types": {
             "types": "./dist/media/types.d.ts",
             "import": "./dist/media/types.js"

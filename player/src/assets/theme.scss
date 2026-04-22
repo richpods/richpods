@@ -1,9 +1,13 @@
 $richpod-app-max-width: 520px;
 $richpod-desktop-breakpoint: 1024px;
+$richpod-desktop-wide-breakpoint: 1200px;
+$richpod-desktop-xwide-breakpoint: 1600px;
 
 :root {
     --richpod-sidebar-width: 320px;
     --richpod-desktop-max-width: 1200px;
+    --richpod-desktop-wide-max-width: 1800px;
+    --richpod-content-max-width: 960px;
     --richpod-color: #fff;
     --richpod-background-color: #2f2c35;
     --richpod-header-height: 65px;
@@ -31,6 +35,8 @@ $richpod-desktop-breakpoint: 1024px;
     --richpod-seek-bar-color: #fff;
     --richpod-seek-bar-progress-color: #fa8702;
     --richpod-seek-bar-progress-radius: calc(var(--richpod-seek-bar-height) / 2);
+    --richpod-seek-bar-thumb-size: 16px;
+    --richpod-chapter-segment-gap: 3px;
     --richpod-chapter-nibble-size: 20px;
     --richpod-chapter-nibble-border-width: 1px;
     --richpod-chapter-nibble-past: #fffaf4;
@@ -91,4 +97,8 @@ $richpod-desktop-breakpoint: 1024px;
         var(--richpod-chapter-nibble-upcoming) 50%,
         gray
     );
+
+    @media (min-width: #{$richpod-desktop-breakpoint}) {
+        --richpod-chapter-segment-gap: 5px;
+    }
 }

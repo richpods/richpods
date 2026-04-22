@@ -64,87 +64,17 @@
                     : t("disclaimer.unverifiedNoPublisher")
             }}</span>
         </div>
-        <aside class="desktop-sidebar">
-            <div v-if="isUnverified" class="unverified-banner" role="alert">
-                <svg
-                    class="unverified-banner-icon"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 512 512"
-                    aria-hidden="true"
-                >
-                    <path
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="32"
-                        d="M432 320V144a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v112m0 0V80a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v160m-64 1V96a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v224m128-80V48a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v192"
-                    />
-                    <path
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="32"
-                        d="M432 320c0 117.4-64 176-152 176s-123.71-39.6-144-88L83.33 264c-6.66-18.05-3.64-34.79 11.87-43.6h0c15.52-8.82 35.91-4.28 44.31 11.68L176 320"
-                    />
-                </svg>
-                <span>{{
-                    publisherName
-                        ? t("disclaimer.unverified", { publisherName })
-                        : t("disclaimer.unverifiedNoPublisher")
-                }}</span>
-            </div>
-            <h1 class="sidebar-title">{{ richPod.title }}</h1>
-            <span v-if="richPod.explicit" class="explicit-badge">{{ t("player.explicit") }}</span>
-            <p v-if="richPod.description" class="sidebar-description">
-                {{ richPod.description }}
-            </p>
-            <div class="sidebar-artwork">
-                <img :src="artworkUrl" :alt="richPod.origin.title" />
-            </div>
-            <ShareIconButton
-                variant="labeled"
-                class="sidebar-share"
-                :label="t('player.share')"
-                @click="toggleShareDialog"
-            />
-            <div v-if="richPod.origin" class="sidebar-info">
-                <h3>{{ t("infoDialog.originalPodcastTitle") }}</h3>
-                <p>
-                    {{ richPod.origin.title }}
-                </p>
-                <p v-if="richPod.origin.link">
-                    <a :href="richPod.origin.link" target="_blank" rel="noopener ugc">
-                        {{ richPod.origin.link }}
-                    </a>
-                </p>
-                <h3>{{ t("infoDialog.episode") }}</h3>
-                <p>
-                    {{ richPod.origin.episode.title }}
-                </p>
-                <a
-                    v-if="richPod.origin.episode.link"
-                    :href="richPod.origin.episode.link"
-                    target="_blank"
-                    rel="noopener ugc"
-                    class="sidebar-episode-link"
-                >
-                    {{ t("sidebar.openEpisode") }}
-                </a>
-            </div>
-            <a v-if="isUnverified" :href="reportMailtoLink" class="sidebar-report-button">
-                {{ t("infoDialog.reportRichPod") }}
-            </a>
-        </aside>
+        <PlayerSidebar @share="toggleShareDialog">
+            <ChapterList :chapters="richPod?.chapters || []" @seek="seekTo" />
+        </PlayerSidebar>
+        <div class="chapter-flow" :style="{ '--banner-offset': `${mobileBannerHeight}px` }">
+            <ChapterFlow :currentTime="currentTime" />
+        </div>
         <div class="controls-area">
             <PlayerControls
                 :audio-url="richPod?.origin.episode.media.url"
                 :chapters="richPod?.chapters || []"
             />
-        </div>
-        <div class="chapter-flow" :style="{ '--banner-offset': `${mobileBannerHeight}px` }">
-            <ChapterFlow :currentTime="currentTime" />
         </div>
         <InfoDialog ref="infoDialog" />
         <ShareDialog ref="shareDialog" />
@@ -154,17 +84,17 @@
 import { ref, computed, watch, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import ChapterFlow from "@/components/ChapterFlow.vue";
+import ChapterList from "@/components/ChapterList.vue";
 import { useRichPod } from "@/composables/useRichPod.ts";
 import { useAudio } from "@/composables/useAudio.ts";
 import { usePlaybackProgress } from "@/composables/usePlaybackProgress.ts";
 import { useDeepLink } from "@/composables/useDeepLink.ts";
 import { useMediaSession } from "@/composables/useMediaSession.ts";
 import PlayerControls from "@/components/PlayerControls.vue";
+import PlayerSidebar from "@/components/PlayerSidebar.vue";
 import InfoDialog from "@/components/InfoDialog.vue";
 import ShareDialog from "@/components/ShareDialog.vue";
 import ShareIconButton from "@/components/ShareIconButton.vue";
-
-const REPORT_EMAIL = import.meta.env.VITE_REPORT_EMAIL || "contact@richpods.org";
 
 const { t } = useI18n();
 const { richPod } = useRichPod();
@@ -174,13 +104,6 @@ useMediaSession(richPod);
 const isUnverified = computed(() => !richPod.value?.origin.verified);
 
 const publisherName = computed(() => richPod.value?.editor?.publicName);
-
-const reportMailtoLink = computed(() => {
-    const title = richPod.value?.title ?? "";
-    const id = richPod.value?.id ?? "";
-    const subject = encodeURIComponent(`Report ${title} (${id})`);
-    return `mailto:${REPORT_EMAIL}?subject=${subject}`;
-});
 
 const mobileBannerRef = useTemplateRef<HTMLDivElement>("mobileBanner");
 const mobileBannerHeight = ref(0);
@@ -205,7 +128,7 @@ const richPodId = computed(() => richPod.value?.id);
 usePlaybackProgress(richPodId);
 useDeepLink();
 
-const { currentTime, isPaused } = useAudio(richPod.value?.origin.episode.media.url);
+const { currentTime, isPaused, seekTo } = useAudio(richPod.value?.origin.episode.media.url);
 
 const isMarqueePaused = ref(isPaused.value);
 
@@ -272,9 +195,9 @@ function toggleShareDialog() {
     padding: 12px;
 
     display: grid;
-    grid-template-columns: calc(
-            6px + var(--title-line-height) + var(--description-line-height)
-        ) 1fr auto;
+    grid-template-columns:
+        calc(6px + var(--title-line-height) + var(--description-line-height))
+        1fr auto;
     grid-template-rows: auto auto;
     grid-template-areas:
         "image title        info"
@@ -427,10 +350,6 @@ function toggleShareDialog() {
     z-index: 10;
 }
 
-.desktop-sidebar {
-    display: none;
-}
-
 .chapter-flow {
     --chapter-offset-top: calc(var(--richpod-meta-height) + var(--banner-offset, 0px));
     --chapter-offset-bottom: var(--richpod-controls-height);
@@ -445,14 +364,14 @@ function toggleShareDialog() {
     background: var(--richpod-chapter-background);
 }
 
-// Desktop layout
+// Desktop layout: content on the left, integrated sidebar on the right.
 @media (min-width: #{theme.$richpod-desktop-breakpoint}) {
     .player-wrapper {
         display: grid;
         grid-template-rows: 1fr auto;
-        grid-template-columns: var(--richpod-sidebar-width) 1fr;
+        grid-template-columns: minmax(var(--richpod-sidebar-width), 1fr) 3fr;
         grid-template-areas:
-            "sidebar  content"
+            "sidebar content"
             "controls controls";
     }
 
@@ -472,120 +391,10 @@ function toggleShareDialog() {
         &::before {
             content: "";
             position: absolute;
-            top: calc(-1 * var(--richpod-chapter-nibble-size));
+            top: calc(-1 * var(--richpod-seek-bar-thumb-size));
             left: 0;
             right: 0;
-            height: var(--richpod-chapter-nibble-size);
-        }
-    }
-
-    .desktop-sidebar {
-        display: block;
-        grid-area: sidebar;
-        overflow-y: auto;
-        padding: 20px;
-        color: var(--richpod-color);
-
-        > .unverified-banner {
-            margin: -20px -20px 16px;
-        }
-
-        .sidebar-artwork > img {
-            display: block;
-            width: 100%;
-            border-radius: 10px;
-        }
-
-        .sidebar-title {
-            font-size: 20px;
-            line-height: 26px;
-            font-weight: 700;
-            letter-spacing: -0.4px;
-            margin: 0 0 4px;
-        }
-
-        .sidebar-share {
-            margin-bottom: 16px;
-        }
-
-        > .explicit-badge {
-            margin-bottom: 8px;
-        }
-
-        .sidebar-description {
-            font-size: 14px;
-            line-height: 20px;
-            margin: 0 0 12px;
-            opacity: 0.85;
-        }
-
-        .sidebar-artwork {
-            margin-bottom: 16px;
-        }
-
-        .sidebar-info {
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            padding-top: 12px;
-            font-size: 13px;
-            line-height: 18px;
-
-            h3 {
-                font-size: 14px;
-                margin: 16px 0 6px;
-
-                &:first-child {
-                    margin-top: 0;
-                }
-            }
-
-            p {
-                margin: 4px 0;
-                word-break: break-word;
-            }
-
-            a {
-                color: var(--richpod-header-background-color);
-                text-decoration: none;
-
-                &:hover {
-                    text-decoration: underline;
-                }
-            }
-
-            .sidebar-episode-link {
-                display: inline-block;
-                margin-top: 12px;
-                padding: 6px 16px;
-                border: 1px solid #ffffff;
-                border-radius: 13px;
-                background-color: var(--richpod-button-background);
-                color: var(--richpod-button-text);
-                font-size: 13px;
-                text-decoration: none;
-
-                &:hover {
-                    text-decoration: none;
-                    opacity: 0.9;
-                }
-            }
-        }
-
-        .sidebar-report-button {
-            display: inline-block;
-            margin-top: 16px;
-            padding: 6px 16px;
-            border: none;
-            border-radius: 13px;
-            background-color: var(--richpod-unverified-warning-background);
-            color: #fff;
-            font-size: 13px;
-            line-height: 18px;
-            text-decoration: none;
-
-            &:hover {
-                text-decoration: none;
-                opacity: 0.9;
-            }
+            height: var(--richpod-seek-bar-thumb-size);
         }
     }
 

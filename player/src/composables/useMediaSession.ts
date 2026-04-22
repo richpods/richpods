@@ -22,7 +22,7 @@ export function useMediaSession(richPod: Ref<RichPod | null>) {
         return;
     }
 
-    const { audioElement, currentTime, mediaDuration } = useAudio();
+    const { audioElement, currentTime, mediaDuration, seekTo, seekBy } = useAudio();
 
     function playAudio() {
         const audio = audioElement.value;
@@ -34,18 +34,6 @@ export function useMediaSession(richPod: Ref<RichPod | null>) {
         const audio = audioElement.value;
         if (!audio || audio.paused) return;
         audio.pause();
-    }
-
-    function seekBy(seconds: number) {
-        const audio = audioElement.value;
-        if (!audio) return;
-        audio.currentTime = Math.max(0, Math.min(audio.currentTime + seconds, audio.duration));
-    }
-
-    function seekTo(time: number) {
-        const audio = audioElement.value;
-        if (!audio) return;
-        audio.currentTime = Math.max(0, Math.min(time, audio.duration));
     }
 
     navigator.mediaSession.setActionHandler("play", playAudio);

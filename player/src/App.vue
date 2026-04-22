@@ -23,6 +23,10 @@ const { isEmbedded } = useEmbedMode();
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.47);
     }
 
+    @media (min-width: #{theme.$richpod-desktop-wide-breakpoint}) {
+        max-width: var(--richpod-desktop-wide-max-width);
+    }
+
     &.embedded {
         padding-top: 0;
 

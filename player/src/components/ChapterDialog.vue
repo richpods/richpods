@@ -1,97 +1,37 @@
 <template>
     <modal-dialog :aria-labelledby="headingId" ref="dialog">
         <h1 :id="headingId" class="title">{{ t("chapterDialog.title") }}</h1>
-        <div class="chapter-list">
-            <button
-                @click="seekTo(chapter.beginSeconds)"
-                v-for="(chapter, index) of sortedChapters"
-                :key="index + chapterKey(chapter)"
-            >
-                <span class="chapter-title">
-                    <span class="visually-hidden">{{
-                        t("chapterDialog.chapterN", { n: index + 1 })
-                    }}</span>
-                    {{ getChapterTitle(chapter) }}
-                </span>
-                <span class="chapter-offset">
-                    {{ formatTime(chapter.beginSeconds) }}
-                </span>
-            </button>
-        </div>
+        <ChapterList ref="chapterList" :chapters="chapters" @seek="seekTo" />
     </modal-dialog>
 </template>
 <script setup lang="ts">
-import { useTemplateRef, computed, watch } from "vue";
+import { nextTick, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
-import type { Chapter, Poll } from "../graphql/generated.ts";
-import type { SortedChapter } from "../types/player.ts";
-import { chapterKey, sortedChapters as buildSortedChapters, visibleChapters } from "../utils.ts";
+import type { Chapter } from "../graphql/generated.ts";
 import { useAudio } from "../composables/useAudio.ts";
-import { usePollTitles } from "../composables/usePollTitles.ts";
 import ModalDialog from "./ModalDialog.vue";
+import ChapterList from "./ChapterList.vue";
 
 const { t } = useI18n();
 const dialog = useTemplateRef("dialog");
+const chapterList = useTemplateRef("chapterList");
 const headingId = `dialog-heading-${Math.floor(Math.random() * 100)}`;
 
-const props = defineProps<{
+defineProps<{
     chapters: Chapter[];
 }>();
 
-const allSortedChapters = computed(() => buildSortedChapters(props.chapters || []));
-
-const sortedChapters = computed(() => visibleChapters(allSortedChapters.value));
-
-const { audioElement } = useAudio();
-const { loadPollTitle, getPollTitle } = usePollTitles();
-
-function isPollEnclosure(enclosure: SortedChapter["enclosure"]): enclosure is Poll {
-    return enclosure.__typename === "Poll";
-}
-
-function getChapterTitle(chapter: SortedChapter): string {
-    if (isPollEnclosure(chapter.enclosure)) {
-        const pollTitle = getPollTitle(
-            chapter.enclosure.coloeus.endpoint,
-            chapter.enclosure.coloeus.pollId,
-        );
-        return pollTitle ?? t("common.ellipsis");
-    }
-    return (chapter.enclosure as { title: string }).title;
-}
-
-watch(
-    sortedChapters,
-    (chapters) => {
-        for (const chapter of chapters) {
-            if (isPollEnclosure(chapter.enclosure)) {
-                loadPollTitle(chapter.enclosure.coloeus.endpoint, chapter.enclosure.coloeus.pollId);
-            }
-        }
-    },
-    { immediate: true },
-);
+const { seekTo: seekAudioTo } = useAudio();
 
 function seekTo(seconds: number) {
-    if (audioElement.value) {
-        audioElement.value.currentTime = seconds;
-        dialog.value?.close();
-    }
+    seekAudioTo(seconds);
+    dialog.value?.close();
 }
 
-function formatTime(seconds: number): string {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    if (h > 0) {
-        return `${h}:${pad(m)}:${pad(s)}`;
-    }
-    return `${pad(m)}:${pad(s)}`;
-}
-
-function toggle() {
+async function toggle() {
     dialog.value?.toggle();
+    await nextTick();
+    chapterList.value?.scrollActiveIntoView();
 }
 
 defineExpose({
@@ -107,59 +47,18 @@ defineExpose({
         backdrop-filter: blur(2px);
     }
 
-    background: var(--richpod-overlay-background-color);
-    border: none;
+    background: var(--richpod-background-color);
+    color: var(--richpod-color);
+    border: 1px solid color-mix(in srgb, var(--richpod-color) 22%, transparent);
     border-radius: 11px;
     box-shadow: 0 3px 6px #00000029;
+}
 
-    .title {
-        @include mixins.visually-hidden();
-    }
+:deep(.modal-dialog-body) {
+    padding: 44px 36px 24px 24px;
+}
 
-    .close-button {
-        appearance: none;
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        background-color: transparent;
-        background-image: url("../assets/images/icon_close.svg");
-        background-size: contain;
-        width: 22px;
-        height: 22px;
-        border: none;
-        text-indent: -9999rem;
-    }
-
-    .chapter-list {
-        padding-top: 12px;
-
-        button {
-            appearance: none;
-            border: none;
-            background-color: var(--richpod-chapter-background);
-            color: var(--richpod-chapter-color);
-            display: grid;
-            grid-template-columns: 1fr 8ch;
-            width: 100%;
-            text-align: left;
-
-            border-radius: 13px;
-            min-height: 36px;
-            padding: 10px;
-
-            font-family: var(--richpod-font-family-text), sans-serif;
-            font-weight: normal;
-            font-size: 14px;
-            line-height: 18px;
-        }
-
-        .chapter-offset {
-            text-align: right;
-        }
-
-        button + button {
-            margin-top: 10px;
-        }
-    }
+.title {
+    @include mixins.visually-hidden();
 }
 </style>

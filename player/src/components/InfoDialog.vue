@@ -39,11 +39,15 @@
 
             <div v-if="richPod?.origin" class="podcast-origin">
                 <h3>{{ t("infoDialog.originalPodcastTitle") }}</h3>
-                <p>{{ richPod.origin.title }}</p>
-                <p v-if="richPod.origin.link">
-                    <a :href="richPod.origin.link" target="_blank" rel="noopener ugc">{{
-                        richPod.origin.link
-                    }}</a>
+                <p>
+                    <a
+                        v-if="richPod.origin.link"
+                        :href="richPod.origin.link"
+                        target="_blank"
+                        rel="noopener ugc"
+                        >{{ richPod.origin.title }}</a
+                    >
+                    <template v-else>{{ richPod.origin.title }}</template>
                 </p>
 
                 <h3>{{ t("infoDialog.episode") }}</h3>

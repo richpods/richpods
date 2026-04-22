@@ -59,7 +59,7 @@ function isNearEnd(time: number, duration: number): boolean {
 }
 
 export function usePlaybackProgress(richPodId: Ref<string | undefined>): void {
-    const { canPlay, currentTime, mediaDuration, audioElement, isPaused } = useAudio();
+    const { canPlay, currentTime, mediaDuration, seekTo, isPaused } = useAudio();
 
     let restoredForId: string | null = null;
     let lastSaveAt = 0;
@@ -89,12 +89,8 @@ export function usePlaybackProgress(richPodId: Ref<string | undefined>): void {
             const id = richPodId.value;
             if (ready && id && restoredForId !== id) {
                 const entry = readStore()[id];
-                if (entry && audioElement.value) {
-                    try {
-                        audioElement.value.currentTime = entry.time;
-                    } catch {
-                        // Ignore seek failures from browser/media state edge cases.
-                    }
+                if (entry) {
+                    seekTo(entry.time);
                 }
                 restoredForId = id;
             }

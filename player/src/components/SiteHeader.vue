@@ -63,6 +63,10 @@ $border-radius: 25px;
         border-bottom-right-radius: 0;
     }
 
+    @media (min-width: #{theme.$richpod-desktop-wide-breakpoint}) {
+        max-width: var(--richpod-desktop-wide-max-width);
+    }
+
     .logo-link {
         grid-column: logo;
         display: flex;

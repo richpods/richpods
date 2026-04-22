@@ -88,6 +88,25 @@ function togglePlay() {
     }
 }
 
+function seekTo(seconds: number) {
+    const audio = audioElement.value;
+    if (!audio) return;
+    const duration = audio.duration;
+    const max = Number.isFinite(duration) && duration > 0 ? duration : seconds;
+    const clamped = Math.max(0, Math.min(seconds, max));
+    try {
+        audio.currentTime = clamped;
+    } catch {
+        // Ignore seek failures from browser/media state edge cases.
+    }
+}
+
+function seekBy(seconds: number) {
+    const audio = audioElement.value;
+    if (!audio) return;
+    seekTo(audio.currentTime + seconds);
+}
+
 export function useAudio(url?: string) {
     if (url) {
         setAudio(url);
@@ -101,6 +120,8 @@ export function useAudio(url?: string) {
         currentTime,
         mediaDuration,
         togglePlay,
+        seekTo,
+        seekBy,
         volume,
         playbackRate,
         setAudio,
