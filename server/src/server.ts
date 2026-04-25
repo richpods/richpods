@@ -14,6 +14,7 @@ import { ogRouter } from "./routes/og.router.js";
 import { audioRouter } from "./routes/audio.router.js";
 import { parseIntEnv } from "./utils/env.js";
 import { hostingConfig } from "./config/hosting.js";
+import { verifySigningCapability } from "./services/hosted-storage.service.js";
 
 // Validate required environment variables at startup
 const requiredEnvVars = [
@@ -145,6 +146,13 @@ if (process.env.NODE_ENV !== "production") {
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(ruruHTML({ endpoint: "/graphql" }));
     });
+}
+
+try {
+    await verifySigningCapability();
+} catch (error) {
+    console.error("❌ GCS signing capability check failed:", error);
+    process.exit(1);
 }
 
 app.listen(4000, () => {

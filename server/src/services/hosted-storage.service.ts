@@ -100,6 +100,20 @@ export async function createSignedUploadPolicy(
     return { url: policy.url, fields: policy.fields };
 }
 
+/**
+ * Signs a throwaway POST policy at boot so IAM misconfiguration surfaces
+ * before the first user upload. If the service account lacks the
+ * iam.serviceAccounts.signBlob permission, this rejects and the caller
+ * should crash the process so Cloud Run keeps traffic on the old revision.
+ */
+export async function verifySigningCapability(): Promise<void> {
+    const bucket = getBucket();
+    await bucket.file("__healthcheck__").generateSignedPostPolicyV4({
+        expires: Date.now() + 60_000,
+        conditions: [["content-length-range", 0, 1]],
+    });
+}
+
 export type GcsObjectInfo = {
     size: number;
     contentType: string;

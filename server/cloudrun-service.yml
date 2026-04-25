@@ -15,6 +15,7 @@ spec:
             annotations:
                 run.googleapis.com/cpu-throttling: "true"
         spec:
+            serviceAccountName: richpods-server@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com
             containerConcurrency: 90
             containers:
                 - image: $IMAGE
