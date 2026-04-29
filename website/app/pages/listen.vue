@@ -23,7 +23,9 @@
                         :description="pod.description"
                         :podcast-title="pod.origin.title"
                         :episode-title="pod.origin.episode.title"
-                        :artwork-url="pod.origin.artworkUrl ?? undefined"
+                        :artwork-url="
+                            pod.origin.episode.artworkUrl ?? pod.origin.artworkUrl ?? undefined
+                        "
                         :verified="pod.origin.verified"
                         :created-at="pod.createdAt"
                         :player-url="expandPlayerUrl(pod.id)"
@@ -76,6 +78,7 @@ type RichPodResponse = {
         verified: boolean;
         episode: {
             title: string;
+            artworkUrl: string | null;
         };
     };
     createdAt: string;
@@ -106,6 +109,7 @@ const RICHPODS_QUERY = `
                     verified
                     episode {
                         title
+                        artworkUrl
                     }
                 }
                 createdAt
