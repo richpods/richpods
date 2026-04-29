@@ -64,11 +64,13 @@ export type Card = BaseEnclosure & {
 
 export type CardOpenGraph = {
     __typename?: "CardOpenGraph";
+    mimeType?: Maybe<Scalars["String"]["output"]>;
     ogDescription?: Maybe<Scalars["String"]["output"]>;
     ogImageHeight?: Maybe<Scalars["Int"]["output"]>;
     ogImageUrl?: Maybe<Scalars["String"]["output"]>;
     ogImageWidth?: Maybe<Scalars["Int"]["output"]>;
     ogTitle?: Maybe<Scalars["String"]["output"]>;
+    resourceSize?: Maybe<Scalars["Int"]["output"]>;
 };
 
 export const CardType = {
@@ -107,6 +109,7 @@ export type Coloeus = {
 export type CreateHostedPodcastInput = {
     applePodcastsVerifyTxt?: InputMaybe<Scalars["String"]["input"]>;
     copyright?: InputMaybe<Scalars["String"]["input"]>;
+    customWebsite?: InputMaybe<Scalars["Boolean"]["input"]>;
     description: Scalars["String"]["input"];
     itunesAuthor: Scalars["String"]["input"];
     itunesCategory: Scalars["String"]["input"];
@@ -114,6 +117,10 @@ export type CreateHostedPodcastInput = {
     itunesType?: InputMaybe<Scalars["String"]["input"]>;
     language: Scalars["String"]["input"];
     link?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkAmazonMusic?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkApplePodcasts?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkSpotify?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkYouTubeMusic?: InputMaybe<Scalars["String"]["input"]>;
     title: Scalars["String"]["input"];
 };
 
@@ -182,6 +189,7 @@ export type HostedEpisode = {
     hostedPodcastId: Scalars["ID"]["output"];
     id: Scalars["ID"]["output"];
     richPodId?: Maybe<Scalars["ID"]["output"]>;
+    richPodTitle?: Maybe<Scalars["String"]["output"]>;
     updatedAt: Scalars["String"]["output"];
     validationError?: Maybe<Scalars["String"]["output"]>;
     validationStatus: HostedEpisodeValidationStatus;
@@ -201,6 +209,7 @@ export type HostedPodcast = {
     copyright?: Maybe<Scalars["String"]["output"]>;
     coverImageUrl: Scalars["String"]["output"];
     createdAt: Scalars["String"]["output"];
+    customWebsite: Scalars["Boolean"]["output"];
     description: Scalars["String"]["output"];
     episodeCount: Scalars["Int"]["output"];
     feedUrl: Scalars["String"]["output"];
@@ -211,13 +220,26 @@ export type HostedPodcast = {
     itunesType?: Maybe<Scalars["String"]["output"]>;
     language: Scalars["String"]["output"];
     link: Scalars["String"]["output"];
+    platformLinkAmazonMusic?: Maybe<Scalars["String"]["output"]>;
+    platformLinkApplePodcasts?: Maybe<Scalars["String"]["output"]>;
+    platformLinkSpotify?: Maybe<Scalars["String"]["output"]>;
+    platformLinkYouTubeMusic?: Maybe<Scalars["String"]["output"]>;
     title: Scalars["String"]["output"];
     updatedAt: Scalars["String"]["output"];
+};
+
+export type HostingLimits = {
+    __typename?: "HostingLimits";
+    mp3MaxBitrateKbps: Scalars["Int"]["output"];
+    mp3MaxDurationMinutes: Scalars["Int"]["output"];
+    mp3MaxFileSizeBytes: Scalars["Int"]["output"];
+    mp3MinFileSizeBytes: Scalars["Int"]["output"];
 };
 
 export type InstanceInfo = {
     __typename?: "InstanceInfo";
     commitHash: Scalars["String"]["output"];
+    hosting: HostingLimits;
     serverVersion: Scalars["String"]["output"];
     version: Scalars["String"]["output"];
 };
@@ -243,6 +265,7 @@ export type Mutation = {
     deleteHostedEpisode: Scalars["Boolean"]["output"];
     deleteHostedPodcast: Scalars["Boolean"]["output"];
     deleteRichPod: Scalars["Boolean"]["output"];
+    refreshEpisodeMedia: PodcastMedia;
     setRichPodChapters: RichPod;
     signIn: AuthPayload;
     signInWithGoogle: AuthPayload;
@@ -272,6 +295,10 @@ export type MutationDeleteHostedPodcastArgs = {
 
 export type MutationDeleteRichPodArgs = {
     id: Scalars["ID"]["input"];
+};
+
+export type MutationRefreshEpisodeMediaArgs = {
+    richPodId: Scalars["ID"]["input"];
 };
 
 export type MutationSetRichPodChaptersArgs = {
@@ -321,6 +348,12 @@ export type PaginatedHostedPodcasts = {
     nextCursor?: Maybe<Scalars["String"]["output"]>;
 };
 
+export type PaginatedPublicHostedEpisodes = {
+    __typename?: "PaginatedPublicHostedEpisodes";
+    items: Array<PublicHostedEpisode>;
+    nextCursor?: Maybe<Scalars["String"]["output"]>;
+};
+
 export type PaginatedRichPods = {
     __typename?: "PaginatedRichPods";
     items: Array<RichPod>;
@@ -339,6 +372,7 @@ export type PodcastEpisode = {
     guid: Scalars["String"]["output"];
     link?: Maybe<Scalars["String"]["output"]>;
     media: PodcastMedia;
+    pubDate?: Maybe<Scalars["String"]["output"]>;
     title: Scalars["String"]["output"];
 };
 
@@ -347,6 +381,7 @@ export type PodcastEpisodeInput = {
     guid: Scalars["String"]["input"];
     link?: InputMaybe<Scalars["String"]["input"]>;
     media: PodcastMediaInput;
+    pubDate?: InputMaybe<Scalars["String"]["input"]>;
     title: Scalars["String"]["input"];
 };
 
@@ -375,8 +410,20 @@ export type PodcastMedia = {
     __typename?: "PodcastMedia";
     checksum: Scalars["String"]["output"];
     length: Scalars["Int"]["output"];
+    mediaCheck?: Maybe<PodcastMediaCheck>;
     type: Scalars["String"]["output"];
     url: Scalars["String"]["output"];
+};
+
+export type PodcastMediaCheck = {
+    __typename?: "PodcastMediaCheck";
+    checkedAt: Scalars["String"]["output"];
+    checkedUrl: Scalars["String"]["output"];
+    contentLength?: Maybe<Scalars["Int"]["output"]>;
+    etag?: Maybe<Scalars["String"]["output"]>;
+    httpStatus?: Maybe<Scalars["Int"]["output"]>;
+    lastModified?: Maybe<Scalars["String"]["output"]>;
+    status: Scalars["String"]["output"];
 };
 
 export type PodcastMediaInput = {
@@ -416,6 +463,50 @@ export type Poll = {
     coloeus: Coloeus;
 };
 
+/**
+ * Public, unauthenticated projection of a published hosted episode.
+ * Title, description, publishedAt and explicit come from the linked RichPod,
+ * which is the single source of truth for listener-visible metadata.
+ */
+export type PublicHostedEpisode = {
+    __typename?: "PublicHostedEpisode";
+    audioByteSize: Scalars["Int"]["output"];
+    audioDurationSeconds?: Maybe<Scalars["Float"]["output"]>;
+    audioUrl: Scalars["String"]["output"];
+    description: Scalars["String"]["output"];
+    episodeCoverUrl?: Maybe<Scalars["String"]["output"]>;
+    explicit: Scalars["Boolean"]["output"];
+    id: Scalars["ID"]["output"];
+    publishedAt: Scalars["String"]["output"];
+    richPodId: Scalars["ID"]["output"];
+    title: Scalars["String"]["output"];
+};
+
+/**
+ * Public, unauthenticated projection of a hosted podcast. Used by the
+ * auto-generated podcast website. Excludes editor-only fields.
+ */
+export type PublicHostedPodcast = {
+    __typename?: "PublicHostedPodcast";
+    copyright?: Maybe<Scalars["String"]["output"]>;
+    coverImageUrl: Scalars["String"]["output"];
+    customWebsite: Scalars["Boolean"]["output"];
+    description: Scalars["String"]["output"];
+    feedUrl: Scalars["String"]["output"];
+    id: Scalars["ID"]["output"];
+    itunesAuthor: Scalars["String"]["output"];
+    itunesCategory: Scalars["String"]["output"];
+    itunesExplicit: Scalars["Boolean"]["output"];
+    itunesType?: Maybe<Scalars["String"]["output"]>;
+    language: Scalars["String"]["output"];
+    link: Scalars["String"]["output"];
+    platformLinkAmazonMusic?: Maybe<Scalars["String"]["output"]>;
+    platformLinkApplePodcasts?: Maybe<Scalars["String"]["output"]>;
+    platformLinkSpotify?: Maybe<Scalars["String"]["output"]>;
+    platformLinkYouTubeMusic?: Maybe<Scalars["String"]["output"]>;
+    title: Scalars["String"]["output"];
+};
+
 export type Query = {
     __typename?: "Query";
     currentUser?: Maybe<User>;
@@ -427,6 +518,8 @@ export type Query = {
     instanceInfo: InstanceInfo;
     podcastEpisodeSearch: Array<PodcastEpisodeSearchResult>;
     podcastMetadata: PodcastMetadata;
+    publicHostedPodcast?: Maybe<PublicHostedPodcast>;
+    publicHostedPodcastEpisodes: PaginatedPublicHostedEpisodes;
     recentPublishedRichPods: PaginatedRichPods;
     richPod?: Maybe<RichPod>;
     user?: Maybe<User>;
@@ -466,6 +559,16 @@ export type QueryPodcastEpisodeSearchArgs = {
 export type QueryPodcastMetadataArgs = {
     episodeGuid?: InputMaybe<Scalars["String"]["input"]>;
     feedUrl: Scalars["String"]["input"];
+};
+
+export type QueryPublicHostedPodcastArgs = {
+    id: Scalars["ID"]["input"];
+};
+
+export type QueryPublicHostedPodcastEpisodesArgs = {
+    after?: InputMaybe<Scalars["String"]["input"]>;
+    first?: InputMaybe<Scalars["Int"]["input"]>;
+    podcastId: Scalars["ID"]["input"];
 };
 
 export type QueryRecentPublishedRichPodsArgs = {
@@ -552,6 +655,7 @@ export type Slideshow = BaseEnclosure & {
 export type UpdateHostedPodcastInput = {
     applePodcastsVerifyTxt?: InputMaybe<Scalars["String"]["input"]>;
     copyright?: InputMaybe<Scalars["String"]["input"]>;
+    customWebsite?: InputMaybe<Scalars["Boolean"]["input"]>;
     description?: InputMaybe<Scalars["String"]["input"]>;
     itunesAuthor?: InputMaybe<Scalars["String"]["input"]>;
     itunesCategory?: InputMaybe<Scalars["String"]["input"]>;
@@ -559,6 +663,10 @@ export type UpdateHostedPodcastInput = {
     itunesType?: InputMaybe<Scalars["String"]["input"]>;
     language?: InputMaybe<Scalars["String"]["input"]>;
     link?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkAmazonMusic?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkApplePodcasts?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkSpotify?: InputMaybe<Scalars["String"]["input"]>;
+    platformLinkYouTubeMusic?: InputMaybe<Scalars["String"]["input"]>;
     title?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -642,6 +750,8 @@ export type RichPodQuery = {
                           ogImageUrl?: string | null;
                           ogImageWidth?: number | null;
                           ogImageHeight?: number | null;
+                          mimeType?: string | null;
+                          resourceSize?: number | null;
                       } | null;
                   }
                 | {
@@ -767,6 +877,8 @@ export const RichPodDocument = gql`
                             ogImageUrl
                             ogImageWidth
                             ogImageHeight
+                            mimeType
+                            resourceSize
                         }
                         description
                         coverSource
@@ -825,12 +937,15 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         RichPod(
             variables: RichPodQueryVariables,
             requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
         ): Promise<RichPodQuery> {
             return withWrapper(
                 (wrappedRequestHeaders) =>
-                    client.request<RichPodQuery>(RichPodDocument, variables, {
-                        ...requestHeaders,
-                        ...wrappedRequestHeaders,
+                    client.request<RichPodQuery>({
+                        document: RichPodDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
                     }),
                 "RichPod",
                 "query",

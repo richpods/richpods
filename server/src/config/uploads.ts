@@ -1,5 +1,7 @@
 import { parseIntEnv } from "../utils/env.js";
 
+export { allowedImageMimeTypes } from "@richpods/shared/media/mime";
+
 const ONE_MEGABYTE = 1024 * 1024;
 
 export const uploadConfig = {
@@ -17,10 +19,4 @@ export const uploadConfig = {
     }),
     quotaCacheTtlMs: parseIntEnv("UPLOAD_QUOTA_CACHE_TTL_MS", 30_000, { min: 1_000 }),
     quotaCacheMaxEntries: parseIntEnv("UPLOAD_QUOTA_CACHE_MAX_ENTRIES", 500, { min: 10 }),
-};
-
-export const allowedImageMimeTypes: Record<string, string> = {
-    "image/png": "png",
-    "image/jpeg": "jpg",
-    "image/webp": "webp",
 };

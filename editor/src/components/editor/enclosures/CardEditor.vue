@@ -90,8 +90,11 @@
                         :style="ogImageStyle"
                     />
                 </div>
-                <p v-if="ogTitle" class="text-sm font-medium">{{ ogTitle }}</p>
+                <p v-if="ogTitle" class="text-sm font-medium break-all">{{ ogTitle }}</p>
                 <p v-if="ogDescription" class="text-xs text-gray-600 mt-1">{{ ogDescription }}</p>
+                <p v-if="resourceInfoLabel" class="text-xs text-gray-500 mt-1">
+                    {{ resourceInfoLabel }}
+                </p>
             </div>
         </template>
 
@@ -309,6 +312,7 @@
 import { computed, ref, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
+import { formatBytes } from "@richpods/shared/utils/bytes";
 import { useRichPodStore } from "@/stores/useRichPodStore";
 import { useValidation } from "@/composables/useValidation";
 import { useUpload } from "@/composables/useUpload";
@@ -357,7 +361,20 @@ const ogDescription = computed(
     () => currentChapter.value?.enclosure.openGraph?.ogDescription ?? "",
 );
 const ogImageUrl = computed(() => currentChapter.value?.enclosure.openGraph?.ogImageUrl ?? "");
-const hasOgData = computed(() => !!(ogTitle.value || ogDescription.value || ogImageUrl.value));
+const ogMimeType = computed(() => currentChapter.value?.enclosure.openGraph?.mimeType ?? null);
+const ogResourceSize = computed(
+    () => currentChapter.value?.enclosure.openGraph?.resourceSize ?? null,
+);
+const hasOgData = computed(
+    () =>
+        !!(
+            ogTitle.value ||
+            ogDescription.value ||
+            ogImageUrl.value ||
+            ogMimeType.value ||
+            ogResourceSize.value
+        ),
+);
 const ogImageWidth = computed(
     () => currentChapter.value?.enclosure.openGraph?.ogImageWidth ?? null,
 );
@@ -369,6 +386,17 @@ const ogImageStyle = computed(() => {
         return { aspectRatio: `${ogImageWidth.value} / ${ogImageHeight.value}` };
     }
     return { aspectRatio: "1.91 / 1" };
+});
+
+const resourceInfoLabel = computed(() => {
+    const parts: string[] = [];
+    if (ogMimeType.value) {
+        parts.push(ogMimeType.value);
+    }
+    if (ogResourceSize.value !== null && ogResourceSize.value !== undefined) {
+        parts.push(formatBytes(ogResourceSize.value));
+    }
+    return parts.join(" · ");
 });
 
 // Cover card fields
@@ -506,6 +534,9 @@ async function fetchOgData() {
                     ogImageUrl: data.ogImageUrl || null,
                     ogImageWidth: data.ogImageWidth || null,
                     ogImageHeight: data.ogImageHeight || null,
+                    mimeType: data.mimeType || null,
+                    resourceSize:
+                        typeof data.resourceSize === "number" ? data.resourceSize : null,
                 },
             },
         }));

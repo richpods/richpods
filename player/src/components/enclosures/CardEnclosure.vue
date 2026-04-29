@@ -17,6 +17,21 @@
                             class="card-link-image"
                             :style="ogImageStyle"
                         />
+                        <div
+                            v-else-if="showMimePlaceholder"
+                            class="card-link-placeholder"
+                            :class="`card-link-placeholder-${mimeCategory}`"
+                        >
+                            <MimeTypeIcon :category="mimeCategory" class="card-link-placeholder-icon" />
+                            <div class="card-link-placeholder-meta">
+                                <span v-if="mimeType" class="card-link-placeholder-mime">
+                                    {{ mimeType }}
+                                </span>
+                                <span v-if="resourceSizeLabel" class="card-link-placeholder-size">
+                                    {{ resourceSizeLabel }}
+                                </span>
+                            </div>
+                        </div>
                         <div class="card-link-text">
                             <p v-if="ogTitle" class="card-link-title">{{ ogTitle }}</p>
                             <p v-if="ogDescription" class="card-link-description">
@@ -139,6 +154,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { classifyMimeType, MimeCategory } from "@richpods/shared/media/mime";
+import { formatBytes } from "@richpods/shared/utils/bytes";
+import MimeTypeIcon from "./MimeTypeIcon.vue";
 import type { Card } from "../../graphql/generated.ts";
 
 const props = defineProps<{
@@ -162,6 +180,22 @@ const ogImageStyle = computed(() => {
         return { aspectRatio: `${w} / ${h}` };
     }
     return { aspectRatio: "1.91 / 1" };
+});
+
+// Non-HTML link metadata
+const mimeType = computed(() => props.enclosure.openGraph?.mimeType ?? null);
+const resourceSize = computed(() => props.enclosure.openGraph?.resourceSize ?? null);
+const mimeCategory = computed(() => classifyMimeType(mimeType.value));
+const showMimePlaceholder = computed(
+    () => !ogImageUrl.value && mimeCategory.value !== MimeCategory.HTML && mimeType.value !== null,
+);
+
+const resourceSizeLabel = computed(() => {
+    const size = resourceSize.value;
+    if (size === null || size === undefined) {
+        return null;
+    }
+    return formatBytes(size);
 });
 
 // Cover card - resolved by server
@@ -242,6 +276,49 @@ const quoteLines = computed(() => {
     width: 100%;
     object-fit: cover;
     display: block;
+}
+
+.card-link-placeholder {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--richpod-surface-muted-color, #f3f4f6);
+    color: var(--richpod-text-secondary-color, #6b7280);
+    border-bottom: 1px solid var(--richpod-border-color, #e5e7eb);
+}
+
+.card-link-placeholder-icon {
+    width: 35%;
+    max-width: 96px;
+    aspect-ratio: 1 / 1;
+    opacity: 0.75;
+}
+
+.card-link-placeholder-meta {
+    position: absolute;
+    bottom: 8px;
+    right: 10px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.75rem;
+    font-family: var(--richpod-font-family-text), sans-serif;
+    color: var(--richpod-text-secondary-color, #6b7280);
+}
+
+.card-link-placeholder-mime {
+    font-variant-numeric: tabular-nums;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--richpod-surface-color, #ffffff);
+    border: 1px solid var(--richpod-border-color, #e5e7eb);
+}
+
+.card-link-placeholder-size {
+    font-variant-numeric: tabular-nums;
 }
 
 .card-link-text {

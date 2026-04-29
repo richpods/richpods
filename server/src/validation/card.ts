@@ -11,6 +11,8 @@ const cardOpenGraphSchema = Joi.object({
         .allow("", null),
     ogImageWidth: Joi.number().integer().min(1).optional().allow(null),
     ogImageHeight: Joi.number().integer().min(1).optional().allow(null),
+    mimeType: Joi.string().trim().max(255).optional().allow("", null),
+    resourceSize: Joi.number().integer().min(0).optional().allow(null),
 });
 
 const linkCardSchema = Joi.object({

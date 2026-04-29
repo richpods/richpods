@@ -7,6 +7,11 @@ import sharp from "sharp";
 import { fileTypeFromBuffer } from "file-type";
 import { v4 as uuidv4 } from "uuid";
 import { Storage } from "@google-cloud/storage";
+import {
+    allowedImageMimeTypes,
+    isHtmlMimeType,
+    normalizeMimeType,
+} from "@richpods/shared/media/mime";
 import { createAuthContext } from "../middleware/auth.js";
 import { GCS_IMMUTABLE_CACHE_CONTROL } from "../config/storage.js";
 
@@ -27,12 +32,6 @@ const REQUEST_TIMEOUT_MS = 5_000;
 const MAX_REDIRECTS = 5;
 const REQUEST_RETRY_LIMIT = 2;
 const REQUEST_RETRY_BASE_DELAY_MS = 250;
-
-const ALLOWED_IMAGE_MIMES: Record<string, string> = {
-    "image/png": "png",
-    "image/jpeg": "jpg",
-    "image/webp": "webp",
-};
 
 const BLOCKED_HOSTNAMES = new Set([
     "localhost",
@@ -80,6 +79,14 @@ type OgResult = {
     ogImageUrl: string | null;
     ogImageWidth: number | null;
     ogImageHeight: number | null;
+    mimeType: string | null;
+    resourceSize: number | null;
+};
+
+type ProbeResult = {
+    mimeType: string | null;
+    resourceSize: number | null;
+    headerFilename: string | null;
 };
 
 function ok<T>(value: T): Result<T, never> {
@@ -415,12 +422,12 @@ async function downloadAndStoreOgImage(imageUrl: string): Promise<StoredImage | 
     try {
         const buffer = downloadResult.value;
         const detectedType = await fileTypeFromBuffer(buffer);
-        if (!detectedType || !(detectedType.mime in ALLOWED_IMAGE_MIMES)) {
+        if (!detectedType || !(detectedType.mime in allowedImageMimeTypes)) {
             console.warn(`OG image unsupported type: ${detectedType?.mime ?? "unknown"} from ${imageUrl}`);
             return null;
         }
 
-        const extension = ALLOWED_IMAGE_MIMES[detectedType.mime];
+        const extension = allowedImageMimeTypes[detectedType.mime];
 
         const image = sharp(buffer, { failOn: "truncated" });
         const metadata = await image.metadata();
@@ -438,9 +445,9 @@ async function downloadAndStoreOgImage(imageUrl: string): Promise<StoredImage | 
         }
 
         const aspectRatio = metadata.width / metadata.height;
-        if (aspectRatio < 1.5 || aspectRatio > 2.5) {
+        if (aspectRatio < 0.25 || aspectRatio > 4) {
             console.warn(
-                `OG image aspect ratio out of range: ${metadata.width}x${metadata.height} (${aspectRatio.toFixed(2)}) from ${imageUrl} (allowed: 1.5:1 to 2.5:1)`,
+                `OG image aspect ratio out of range: ${metadata.width}x${metadata.height} (${aspectRatio.toFixed(2)}) from ${imageUrl} (allowed: 1:4 to 4:1)`,
             );
             return null;
         }
@@ -485,6 +492,112 @@ async function downloadAndStoreOgImage(imageUrl: string): Promise<StoredImage | 
     }
 }
 
+function parseContentDispositionFilename(header: string | undefined): string | null {
+    if (!header) {
+        return null;
+    }
+
+    // RFC 5987 encoded filename (filename*=UTF-8''...)
+    const starMatch = header.match(/filename\*=([^;]+)/i);
+    if (starMatch) {
+        const value = starMatch[1].trim();
+        const parts = value.split("''");
+        const encoded = parts.length === 2 ? parts[1] : parts[0];
+        try {
+            const decoded = decodeURIComponent(encoded).trim();
+            if (decoded) {
+                return decoded;
+            }
+        } catch {
+            // fall through
+        }
+    }
+
+    const quotedMatch = header.match(/filename="([^"]+)"/i);
+    if (quotedMatch) {
+        return quotedMatch[1].trim() || null;
+    }
+
+    const plainMatch = header.match(/filename=([^;]+)/i);
+    if (plainMatch) {
+        return plainMatch[1].trim() || null;
+    }
+
+    return null;
+}
+
+function extractFilenameFromUrl(parsedUrl: URL): string | null {
+    const path = parsedUrl.pathname;
+    if (!path || path === "/") {
+        return null;
+    }
+    const segments = path.split("/").filter((segment) => segment.length > 0);
+    if (segments.length === 0) {
+        return null;
+    }
+    const lastSegment = segments[segments.length - 1];
+    if (!/\.[A-Za-z0-9]{1,10}$/.test(lastSegment)) {
+        return null;
+    }
+    try {
+        return decodeURIComponent(lastSegment);
+    } catch {
+        return lastSegment;
+    }
+}
+
+function resolveFallbackTitle(parsedUrl: URL, headerFilename: string | null): string {
+    if (headerFilename) {
+        return headerFilename;
+    }
+    const urlFilename = extractFilenameFromUrl(parsedUrl);
+    if (urlFilename) {
+        return urlFilename;
+    }
+    if (!parsedUrl.pathname || parsedUrl.pathname === "/") {
+        return parsedUrl.href;
+    }
+    try {
+        return decodeURIComponent(parsedUrl.pathname);
+    } catch {
+        return parsedUrl.pathname;
+    }
+}
+
+async function probeRemoteResource(
+    parsedUrl: URL,
+): Promise<Result<ProbeResult, RemoteFetchError>> {
+    const safeTarget = await assertSafeRemoteTarget(parsedUrl);
+    if (!safeTarget.ok) {
+        return fail(safeTarget.error);
+    }
+
+    try {
+        const response = await got(parsedUrl, withSafeRedirectValidation({
+            method: "HEAD",
+            timeout: { request: REQUEST_TIMEOUT_MS },
+            headers: {
+                "User-Agent": "RichPods/1.0 (OpenGraph Probe)",
+                Accept: "*/*",
+            },
+        }));
+        const contentTypeHeader = response.headers["content-type"];
+        const rawContentType = Array.isArray(contentTypeHeader)
+            ? contentTypeHeader[0]
+            : contentTypeHeader;
+        const mimeType = normalizeMimeType(rawContentType ?? null);
+        const resourceSize = parseContentLengthHeader(response.headers["content-length"]);
+        const contentDisposition = response.headers["content-disposition"];
+        const rawContentDisposition = Array.isArray(contentDisposition)
+            ? contentDisposition[0]
+            : contentDisposition;
+        const headerFilename = parseContentDispositionFilename(rawContentDisposition);
+        return ok({ mimeType, resourceSize, headerFilename });
+    } catch (error) {
+        return fail(normalizeRemoteFetchError(error));
+    }
+}
+
 ogRouter.post("/parse", express.json(), async (req: Request, res: Response) => {
     try {
         const auth = await createAuthContext(req);
@@ -516,6 +629,38 @@ ogRouter.post("/parse", express.json(), async (req: Request, res: Response) => {
             return;
         }
 
+        const probeResult = await probeRemoteResource(parsedUrl);
+        if (!probeResult.ok) {
+            if (probeResult.error.kind === "unsafe_target") {
+                res.status(400).json({ error: "URL host is not allowed" });
+                return;
+            }
+            console.warn(`HEAD probe failed for ${url}:`, probeResult.error);
+        }
+
+        const probe: ProbeResult = probeResult.ok
+            ? probeResult.value
+            : { mimeType: null, resourceSize: null, headerFilename: null };
+
+        const result: OgResult = {
+            ogTitle: null,
+            ogDescription: null,
+            ogImageUrl: null,
+            ogImageWidth: null,
+            ogImageHeight: null,
+            mimeType: probe.mimeType,
+            resourceSize: probe.resourceSize,
+        };
+
+        const treatAsHtml = isHtmlMimeType(probe.mimeType)
+            && (probe.resourceSize === null || probe.resourceSize <= MAX_HTML_SIZE);
+
+        if (!treatAsHtml) {
+            result.ogTitle = resolveFallbackTitle(parsedUrl, probe.headerFilename);
+            res.json(result);
+            return;
+        }
+
         const htmlResult = await downloadWithLimit(parsedUrl, MAX_HTML_SIZE, {
             timeout: { request: REQUEST_TIMEOUT_MS },
             headers: {
@@ -537,16 +682,11 @@ ogRouter.post("/parse", express.json(), async (req: Request, res: Response) => {
             return;
         }
         const html = htmlResult.value.toString("utf8");
+        // HEAD Content-Length is unreliable for dynamic pages (YouTube returns 0,
+        // others omit it entirely). Once we have the body, its byte length is authoritative.
+        result.resourceSize = htmlResult.value.length;
 
         const $ = cheerioLoad(html);
-
-        const result: OgResult = {
-            ogTitle: null,
-            ogDescription: null,
-            ogImageUrl: null,
-            ogImageWidth: null,
-            ogImageHeight: null,
-        };
 
         // Parse OG tags
         result.ogTitle =
@@ -559,6 +699,10 @@ ogRouter.post("/parse", express.json(), async (req: Request, res: Response) => {
         // Fallback to <title> if no og:title
         if (!result.ogTitle) {
             result.ogTitle = $("title").text().trim() || null;
+        }
+        // Final fallback so Firestore always has a usable title.
+        if (!result.ogTitle) {
+            result.ogTitle = resolveFallbackTitle(parsedUrl, probe.headerFilename);
         }
 
         // Download and store OG image if present

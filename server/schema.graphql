@@ -75,6 +75,8 @@ type CardOpenGraph {
     ogImageUrl: String
     ogImageWidth: Int
     ogImageHeight: Int
+    mimeType: String
+    resourceSize: Int
 }
 
 type Card implements BaseEnclosure {

@@ -60,11 +60,13 @@ export type Card = BaseEnclosure & {
 
 export type CardOpenGraph = {
   __typename?: 'CardOpenGraph';
+  mimeType?: Maybe<Scalars['String']['output']>;
   ogDescription?: Maybe<Scalars['String']['output']>;
   ogImageHeight?: Maybe<Scalars['Int']['output']>;
   ogImageUrl?: Maybe<Scalars['String']['output']>;
   ogImageWidth?: Maybe<Scalars['Int']['output']>;
   ogTitle?: Maybe<Scalars['String']['output']>;
+  resourceSize?: Maybe<Scalars['Int']['output']>;
 };
 
 export enum CardType {
@@ -976,11 +978,13 @@ export type CardResolvers<ContextType = any, ParentType extends ResolversParentT
 };
 
 export type CardOpenGraphResolvers<ContextType = any, ParentType extends ResolversParentTypes['CardOpenGraph'] = ResolversParentTypes['CardOpenGraph']> = {
+  mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   ogDescription?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   ogImageHeight?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   ogImageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   ogImageWidth?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   ogTitle?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  resourceSize?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
 
 export type ChapterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Chapter'] = ResolversParentTypes['Chapter']> = {

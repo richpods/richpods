@@ -61,6 +61,8 @@ query RichPod($id: ID!) {
                         ogImageUrl
                         ogImageWidth
                         ogImageHeight
+                        mimeType
+                        resourceSize
                     }
                     description
                     coverSource

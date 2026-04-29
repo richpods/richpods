@@ -45,6 +45,8 @@ export interface CardOpenGraph {
     ogImageUrl?: string;
     ogImageWidth?: number;
     ogImageHeight?: number;
+    mimeType?: string;
+    resourceSize?: number;
 }
 
 export interface Enclosure {

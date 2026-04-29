@@ -64,11 +64,13 @@ export type Card = BaseEnclosure & {
 
 export type CardOpenGraph = {
     __typename?: "CardOpenGraph";
+    mimeType?: Maybe<Scalars["String"]["output"]>;
     ogDescription?: Maybe<Scalars["String"]["output"]>;
     ogImageHeight?: Maybe<Scalars["Int"]["output"]>;
     ogImageUrl?: Maybe<Scalars["String"]["output"]>;
     ogImageWidth?: Maybe<Scalars["Int"]["output"]>;
     ogTitle?: Maybe<Scalars["String"]["output"]>;
+    resourceSize?: Maybe<Scalars["Int"]["output"]>;
 };
 
 export const CardType = {
@@ -861,6 +863,8 @@ export type ChapterFieldsFragment = {
                   ogImageUrl?: string | null;
                   ogImageWidth?: number | null;
                   ogImageHeight?: number | null;
+                  mimeType?: string | null;
+                  resourceSize?: number | null;
               } | null;
           }
         | {
@@ -1205,6 +1209,8 @@ export type CreateRichPodMutation = {
                           ogImageUrl?: string | null;
                           ogImageWidth?: number | null;
                           ogImageHeight?: number | null;
+                          mimeType?: string | null;
+                          resourceSize?: number | null;
                       } | null;
                   }
                 | {
@@ -1320,6 +1326,8 @@ export type UpdateRichPodMutation = {
                           ogImageUrl?: string | null;
                           ogImageWidth?: number | null;
                           ogImageHeight?: number | null;
+                          mimeType?: string | null;
+                          resourceSize?: number | null;
                       } | null;
                   }
                 | {
@@ -1441,6 +1449,8 @@ export type SetRichPodChaptersMutation = {
                           ogImageUrl?: string | null;
                           ogImageWidth?: number | null;
                           ogImageHeight?: number | null;
+                          mimeType?: string | null;
+                          resourceSize?: number | null;
                       } | null;
                   }
                 | {
@@ -1555,6 +1565,8 @@ export type GetRichPodQuery = {
                           ogImageUrl?: string | null;
                           ogImageWidth?: number | null;
                           ogImageHeight?: number | null;
+                          mimeType?: string | null;
+                          resourceSize?: number | null;
                       } | null;
                   }
                 | {
@@ -1856,6 +1868,8 @@ export const ChapterFieldsFragmentDoc = gql`
                     ogImageUrl
                     ogImageWidth
                     ogImageHeight
+                    mimeType
+                    resourceSize
                 }
                 description
                 coverSource

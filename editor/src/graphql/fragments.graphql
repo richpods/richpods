@@ -91,6 +91,8 @@ fragment ChapterFields on Chapter {
                 ogImageUrl
                 ogImageWidth
                 ogImageHeight
+                mimeType
+                resourceSize
             }
             description
             coverSource

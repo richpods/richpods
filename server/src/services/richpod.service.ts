@@ -674,6 +674,8 @@ function mapEnclosureToGraphQL(
                               : null,
                           ogImageWidth: enclosure.openGraph.ogImageWidth ?? null,
                           ogImageHeight: enclosure.openGraph.ogImageHeight ?? null,
+                          mimeType: enclosure.openGraph.mimeType ?? null,
+                          resourceSize: enclosure.openGraph.resourceSize ?? null,
                       }
                     : null,
                 description: enclosure.description || null,

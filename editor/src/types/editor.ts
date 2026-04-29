@@ -91,6 +91,8 @@ export type EditorCardOpenGraph = {
     ogImageUrl?: string | null;
     ogImageWidth?: number | null;
     ogImageHeight?: number | null;
+    mimeType?: string | null;
+    resourceSize?: number | null;
 };
 
 export type EditorEnclosure = {
