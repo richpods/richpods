@@ -59,7 +59,7 @@
                         {{
                             isFetchingOg
                                 ? t("cardEditor.link.fetching")
-                                : t("cardEditor.link.fetchOg")
+                                : t("cardEditor.link.refresh")
                         }}
                     </button>
                 </div>
@@ -309,7 +309,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watchEffect } from "vue";
+import { computed, onBeforeUnmount, ref, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import { formatBytes } from "@richpods/shared/utils/bytes";
@@ -320,13 +320,15 @@ import { auth } from "@/lib/firebase";
 
 const { t } = useI18n();
 const richpodStore = useRichPodStore();
-const { currentChapter, richpod } = storeToRefs(richpodStore);
+const { currentChapter, richpod, activeChapterIndex } = storeToRefs(richpodStore);
 const { runValidation } = useValidation();
 const { uploadImage, uploading, error: uploadError } = useUpload();
 
 const imageFileInput = ref<HTMLInputElement>();
 const isFetchingOg = ref(false);
 const ogError = ref<string | null>(null);
+const lastFetchedUrl = ref<string | null>(null);
+let autoFetchTimer: ReturnType<typeof setTimeout> | null = null;
 
 const cardType = computed(() => currentChapter.value?.enclosure.cardType ?? "BLANK");
 
@@ -492,6 +494,7 @@ async function fetchOgData() {
     const url = linkUrl.value;
     if (!url || url.length > 500) return;
 
+    lastFetchedUrl.value = url;
     isFetchingOg.value = true;
     ogError.value = null;
 
@@ -535,8 +538,7 @@ async function fetchOgData() {
                     ogImageWidth: data.ogImageWidth || null,
                     ogImageHeight: data.ogImageHeight || null,
                     mimeType: data.mimeType || null,
-                    resourceSize:
-                        typeof data.resourceSize === "number" ? data.resourceSize : null,
+                    resourceSize: typeof data.resourceSize === "number" ? data.resourceSize : null,
                 },
             },
         }));
@@ -546,6 +548,69 @@ async function fetchOgData() {
         isFetchingOg.value = false;
     }
 }
+
+function isFetchableUrl(value: string): boolean {
+    if (!value || value.length > 500) return false;
+    try {
+        const parsed = new URL(value);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+        return parsed.hostname.includes(".");
+    } catch {
+        return false;
+    }
+}
+
+function shouldAutoFetch(): boolean {
+    return (
+        cardType.value === "LINK" &&
+        isFetchableUrl(linkUrl.value) &&
+        linkUrl.value !== lastFetchedUrl.value &&
+        !isFetchingOg.value
+    );
+}
+
+function scheduleAutoFetch() {
+    if (autoFetchTimer !== null) {
+        clearTimeout(autoFetchTimer);
+        autoFetchTimer = null;
+    }
+    if (!shouldAutoFetch()) return;
+
+    autoFetchTimer = setTimeout(() => {
+        autoFetchTimer = null;
+        if (!shouldAutoFetch()) return;
+        fetchOgData();
+    }, 600);
+}
+
+watch(
+    activeChapterIndex,
+    () => {
+        if (autoFetchTimer !== null) {
+            clearTimeout(autoFetchTimer);
+            autoFetchTimer = null;
+        }
+        lastFetchedUrl.value = hasOgData.value && linkUrl.value ? linkUrl.value : null;
+    },
+    { immediate: true },
+);
+
+watch(linkUrl, () => {
+    scheduleAutoFetch();
+});
+
+watch(isFetchingOg, (newVal, oldVal) => {
+    if (oldVal === true && newVal === false) {
+        scheduleAutoFetch();
+    }
+});
+
+onBeforeUnmount(() => {
+    if (autoFetchTimer !== null) {
+        clearTimeout(autoFetchTimer);
+        autoFetchTimer = null;
+    }
+});
 
 function triggerImageUpload() {
     imageFileInput.value?.click();

@@ -22,7 +22,10 @@
                             class="card-link-placeholder"
                             :class="`card-link-placeholder-${mimeCategory}`"
                         >
-                            <MimeTypeIcon :category="mimeCategory" class="card-link-placeholder-icon" />
+                            <MimeTypeIcon
+                                :category="mimeCategory"
+                                class="card-link-placeholder-icon"
+                            />
                             <div class="card-link-placeholder-meta">
                                 <span v-if="mimeType" class="card-link-placeholder-mime">
                                     {{ mimeType }}

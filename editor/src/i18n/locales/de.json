@@ -336,7 +336,7 @@
         "link": {
             "urlLabel": "URL",
             "urlPlaceholder": "https://beispiel.de",
-            "fetchOg": "Vorschau laden",
+            "refresh": "Aktualisieren",
             "fetching": "Wird geladen...",
             "fetchFailed": "Linkvorschau konnte nicht geladen werden",
             "urlTooLong": "URL darf nicht länger als 500 Zeichen sein",

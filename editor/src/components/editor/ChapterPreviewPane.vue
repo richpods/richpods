@@ -1,10 +1,7 @@
 <template>
     <div class="pb-6">
         <template v-if="chapter">
-            <div
-                v-if="hiddenNotice || showViewportSelector"
-                class="mb-3 flex items-center gap-3"
-            >
+            <div v-if="hiddenNotice || showViewportSelector" class="mb-3 flex items-center gap-3">
                 <div
                     v-if="hiddenNotice"
                     class="flex flex-1 min-w-0 items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"
