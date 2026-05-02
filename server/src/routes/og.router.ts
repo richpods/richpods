@@ -33,18 +33,84 @@ const MAX_REDIRECTS = 5;
 const REQUEST_RETRY_LIMIT = 2;
 const REQUEST_RETRY_BASE_DELAY_MS = 250;
 
-const BLOCKED_HOSTNAMES = new Set([
-    "localhost",
-    "metadata.google.internal",
-    "metadata",
-]);
+const BLOCKED_HOSTNAMES = new Set(["localhost", "metadata.google.internal", "metadata"]);
 
-const BLOCKED_HOST_SUFFIXES = [
-    ".localhost",
-    ".local",
-    ".internal",
-    ".home.arpa",
+const BLOCKED_HOST_SUFFIXES = [".localhost", ".local", ".internal", ".home.arpa"];
+
+const DEFAULT_USER_AGENT =
+    "Mozilla/5.0 (compatible; RichPods-LinkExpanding 1.0; +https://richpods.org/)";
+
+const BASE_REQUEST_HEADERS: Record<string, string> = {
+    "User-Agent": DEFAULT_USER_AGENT,
+    "Accept-Language": "en-US,en;q=0.9",
+};
+
+const DOCUMENT_FETCH_HEADERS: Record<string, string> = {
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+};
+
+type HostHeaderRule = {
+    matches: (hostname: string) => boolean;
+    headers: Record<string, string>;
+};
+
+// YouTube's EU consent interstitial returns HTML without OG tags. Pre-setting the
+// CONSENT/SOCS cookies skips the bounce so the real watch page is served.
+const HOST_HEADER_RULES: HostHeaderRule[] = [
+    {
+        matches: (host) =>
+            host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be",
+        headers: {
+            Cookie: "CONSENT=YES+1; SOCS=CAI",
+        },
+    },
 ];
+
+function buildRequestHeaders(
+    parsedUrl: URL,
+    extras: Record<string, string> = {},
+): Record<string, string> {
+    const headers: Record<string, string> = { ...BASE_REQUEST_HEADERS, ...extras };
+    const hostname = parsedUrl.hostname.toLowerCase();
+    for (const rule of HOST_HEADER_RULES) {
+        if (rule.matches(hostname)) {
+            Object.assign(headers, rule.headers);
+        }
+    }
+    return headers;
+}
+
+type FallbackOgData = {
+    ogTitle: string | null;
+    ogDescription: string | null;
+    ogImageUrl: string | null;
+};
+
+type HostOgFallback = {
+    name: string;
+    matches: (parsedUrl: URL) => boolean;
+    fetch: (parsedUrl: URL) => Promise<FallbackOgData | null>;
+};
+
+// Per-host fallbacks for sites that return HTML without usable OG tags.
+const HOST_OG_FALLBACKS: HostOgFallback[] = [
+    {
+        name: "youtube-oembed",
+        matches: (url) => {
+            const host = url.hostname.toLowerCase();
+            return host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be";
+        },
+        fetch: fetchYouTubeOembedFallback,
+    },
+];
+
+function findOgFallback(parsedUrl: URL): HostOgFallback | null {
+    return HOST_OG_FALLBACKS.find((rule) => rule.matches(parsedUrl)) ?? null;
+}
 
 const OG_ERROR_KIND = "ogErrorKind";
 
@@ -115,13 +181,10 @@ function toTaggedError(error: UnsafeTargetError | DownloadLimitError): TaggedOgE
             [OG_ERROR_KIND]: "unsafe_target" as const,
         });
     }
-    return Object.assign(
-        new Error(`Response exceeded ${error.maxBytes} bytes`),
-        {
-            [OG_ERROR_KIND]: "download_limit_exceeded" as const,
-            maxBytes: error.maxBytes,
-        },
-    );
+    return Object.assign(new Error(`Response exceeded ${error.maxBytes} bytes`), {
+        [OG_ERROR_KIND]: "download_limit_exceeded" as const,
+        maxBytes: error.maxBytes,
+    });
 }
 
 function isTaggedOgError(value: unknown): value is TaggedOgError {
@@ -129,8 +192,10 @@ function isTaggedOgError(value: unknown): value is TaggedOgError {
         return false;
     }
     const tagged = value as Partial<TaggedOgError>;
-    return tagged[OG_ERROR_KIND] === "unsafe_target"
-        || tagged[OG_ERROR_KIND] === "download_limit_exceeded";
+    return (
+        tagged[OG_ERROR_KIND] === "unsafe_target" ||
+        tagged[OG_ERROR_KIND] === "download_limit_exceeded"
+    );
 }
 
 function normalizeRemoteFetchError(error: unknown): RemoteFetchError {
@@ -401,10 +466,9 @@ async function downloadAndStoreOgImage(imageUrl: string): Promise<StoredImage | 
 
     const downloadResult = await downloadWithLimit(parsedImageUrl, MAX_IMAGE_SIZE, {
         timeout: { request: REQUEST_TIMEOUT_MS },
-        headers: {
-            "User-Agent": "RichPods/1.0 (OpenGraph Image Fetcher)",
+        headers: buildRequestHeaders(parsedImageUrl, {
             Accept: "image/webp,image/png,image/jpeg,image/*",
-        },
+        }),
     });
     if (!downloadResult.ok) {
         if (downloadResult.error.kind === "unsafe_target") {
@@ -415,7 +479,10 @@ async function downloadAndStoreOgImage(imageUrl: string): Promise<StoredImage | 
             console.warn(`OG image exceeded max size (${MAX_IMAGE_SIZE} bytes) from ${imageUrl}`);
             return null;
         }
-        console.warn(`Failed to download/store OG image from ${imageUrl}:`, downloadResult.error.cause);
+        console.warn(
+            `Failed to download/store OG image from ${imageUrl}:`,
+            downloadResult.error.cause,
+        );
         return null;
     }
 
@@ -423,7 +490,9 @@ async function downloadAndStoreOgImage(imageUrl: string): Promise<StoredImage | 
         const buffer = downloadResult.value;
         const detectedType = await fileTypeFromBuffer(buffer);
         if (!detectedType || !(detectedType.mime in allowedImageMimeTypes)) {
-            console.warn(`OG image unsupported type: ${detectedType?.mime ?? "unknown"} from ${imageUrl}`);
+            console.warn(
+                `OG image unsupported type: ${detectedType?.mime ?? "unknown"} from ${imageUrl}`,
+            );
             return null;
         }
 
@@ -489,6 +558,65 @@ async function downloadAndStoreOgImage(imageUrl: string): Promise<StoredImage | 
     } catch (error) {
         console.warn(`Failed to download/store OG image from ${imageUrl}:`, error);
         return null;
+    }
+}
+
+async function fetchYouTubeOembedFallback(parsedUrl: URL): Promise<FallbackOgData | null> {
+    const oembedUrl = new URL("https://www.youtube.com/oembed");
+    oembedUrl.searchParams.set("url", parsedUrl.href);
+    oembedUrl.searchParams.set("format", "json");
+    try {
+        const response = await got(oembedUrl, {
+            timeout: { request: REQUEST_TIMEOUT_MS },
+            headers: BASE_REQUEST_HEADERS,
+            retry: { limit: 0 },
+            responseType: "json",
+        });
+        const body = response.body as {
+            title?: string;
+            author_name?: string;
+            thumbnail_url?: string;
+        };
+        return {
+            ogTitle: body.title?.trim() || null,
+            ogDescription: body.author_name?.trim() || null,
+            ogImageUrl: body.thumbnail_url?.trim() || null,
+        };
+    } catch (error) {
+        console.warn(`YouTube oEmbed fallback failed for ${parsedUrl.href}:`, error);
+        return null;
+    }
+}
+
+async function applyHostOgFallback(
+    parsedUrl: URL,
+    result: OgResult,
+    reason: string,
+): Promise<void> {
+    const rule = findOgFallback(parsedUrl);
+    if (!rule) {
+        return;
+    }
+    console.info(
+        `OG fallback activated for ${parsedUrl.href}: rule=${rule.name}, reason=${reason}`,
+    );
+    const data = await rule.fetch(parsedUrl);
+    if (!data) {
+        return;
+    }
+    if (!result.ogTitle && data.ogTitle) {
+        result.ogTitle = data.ogTitle;
+    }
+    if (!result.ogDescription && data.ogDescription) {
+        result.ogDescription = data.ogDescription;
+    }
+    if (!result.ogImageUrl && data.ogImageUrl) {
+        const stored = await downloadAndStoreOgImage(data.ogImageUrl);
+        if (stored) {
+            result.ogImageUrl = stored.url;
+            result.ogImageWidth = stored.width;
+            result.ogImageHeight = stored.height;
+        }
     }
 }
 
@@ -564,23 +692,21 @@ function resolveFallbackTitle(parsedUrl: URL, headerFilename: string | null): st
     }
 }
 
-async function probeRemoteResource(
-    parsedUrl: URL,
-): Promise<Result<ProbeResult, RemoteFetchError>> {
+async function probeRemoteResource(parsedUrl: URL): Promise<Result<ProbeResult, RemoteFetchError>> {
     const safeTarget = await assertSafeRemoteTarget(parsedUrl);
     if (!safeTarget.ok) {
         return fail(safeTarget.error);
     }
 
     try {
-        const response = await got(parsedUrl, withSafeRedirectValidation({
-            method: "HEAD",
-            timeout: { request: REQUEST_TIMEOUT_MS },
-            headers: {
-                "User-Agent": "RichPods/1.0 (OpenGraph Probe)",
-                Accept: "*/*",
-            },
-        }));
+        const response = await got(
+            parsedUrl,
+            withSafeRedirectValidation({
+                method: "HEAD",
+                timeout: { request: REQUEST_TIMEOUT_MS },
+                headers: buildRequestHeaders(parsedUrl, { Accept: "*/*" }),
+            }),
+        );
         const contentTypeHeader = response.headers["content-type"];
         const rawContentType = Array.isArray(contentTypeHeader)
             ? contentTypeHeader[0]
@@ -652,8 +778,9 @@ ogRouter.post("/parse", express.json(), async (req: Request, res: Response) => {
             resourceSize: probe.resourceSize,
         };
 
-        const treatAsHtml = isHtmlMimeType(probe.mimeType)
-            && (probe.resourceSize === null || probe.resourceSize <= MAX_HTML_SIZE);
+        const treatAsHtml =
+            isHtmlMimeType(probe.mimeType) &&
+            (probe.resourceSize === null || probe.resourceSize <= MAX_HTML_SIZE);
 
         if (!treatAsHtml) {
             result.ogTitle = resolveFallbackTitle(parsedUrl, probe.headerFilename);
@@ -663,10 +790,10 @@ ogRouter.post("/parse", express.json(), async (req: Request, res: Response) => {
 
         const htmlResult = await downloadWithLimit(parsedUrl, MAX_HTML_SIZE, {
             timeout: { request: REQUEST_TIMEOUT_MS },
-            headers: {
-                "User-Agent": "RichPods/1.0 (OpenGraph Parser)",
+            headers: buildRequestHeaders(parsedUrl, {
+                ...DOCUMENT_FETCH_HEADERS,
                 Accept: "text/html,application/xhtml+xml",
-            },
+            }),
         });
         if (!htmlResult.ok) {
             if (htmlResult.error.kind === "unsafe_target") {
@@ -675,6 +802,18 @@ ogRouter.post("/parse", express.json(), async (req: Request, res: Response) => {
             }
             if (htmlResult.error.kind === "download_limit_exceeded") {
                 res.status(422).json({ error: "Page content too large to parse" });
+                return;
+            }
+            await applyHostOgFallback(
+                parsedUrl,
+                result,
+                `html-fetch-failed: ${htmlResult.error.message}`,
+            );
+            if (result.ogTitle || result.ogImageUrl) {
+                if (!result.ogTitle) {
+                    result.ogTitle = resolveFallbackTitle(parsedUrl, probe.headerFilename);
+                }
+                res.json(result);
                 return;
             }
             console.warn(`Failed to fetch URL ${url}:`, htmlResult.error.cause);
@@ -688,30 +827,30 @@ ogRouter.post("/parse", express.json(), async (req: Request, res: Response) => {
 
         const $ = cheerioLoad(html);
 
-        // Parse OG tags
-        result.ogTitle =
-            $('meta[property="og:title"]').attr("content")?.trim() || null;
-        result.ogDescription =
-            $('meta[property="og:description"]').attr("content")?.trim() || null;
-        const ogImage =
-            $('meta[property="og:image"]').attr("content")?.trim() || null;
+        result.ogTitle = $('meta[property="og:title"]').attr("content")?.trim() || null;
+        result.ogDescription = $('meta[property="og:description"]').attr("content")?.trim() || null;
+        let resolvedImageUrl = $('meta[property="og:image"]').attr("content")?.trim() || null;
 
-        // Fallback to <title> if no og:title
+        if (!result.ogTitle && !result.ogDescription && !resolvedImageUrl) {
+            await applyHostOgFallback(parsedUrl, result, "no-og-tags-in-html");
+            if (result.ogImageUrl) {
+                resolvedImageUrl = null;
+            }
+        }
+
         if (!result.ogTitle) {
             result.ogTitle = $("title").text().trim() || null;
         }
-        // Final fallback so Firestore always has a usable title.
         if (!result.ogTitle) {
             result.ogTitle = resolveFallbackTitle(parsedUrl, probe.headerFilename);
         }
 
-        // Download and store OG image if present
-        if (ogImage) {
+        if (resolvedImageUrl) {
             let absoluteImageUrl: string;
             try {
-                absoluteImageUrl = new URL(ogImage, parsedUrl.href).href;
+                absoluteImageUrl = new URL(resolvedImageUrl, parsedUrl.href).href;
             } catch {
-                absoluteImageUrl = ogImage;
+                absoluteImageUrl = resolvedImageUrl;
             }
 
             const stored = await downloadAndStoreOgImage(absoluteImageUrl);
