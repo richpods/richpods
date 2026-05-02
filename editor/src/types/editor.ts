@@ -157,6 +157,16 @@ export interface EnclosureType {
     icon: string;
 }
 
+export type PreviewViewportId = "desktop" | "tablet" | "smartphone";
+
+export type PreviewViewportOption = {
+    id: PreviewViewportId;
+    labelKey: string;
+    icon: string;
+    widthLabel: string;
+    width: number | null;
+};
+
 export interface StartTimeAddState {
     disabled: boolean;
     reason: string;

@@ -51,7 +51,10 @@ const slides = computed(() => {
     return props.enclosure.slides;
 });
 
-const isFinePointerUser = window.matchMedia("(pointer: fine)").matches;
+const isFinePointerUser =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: fine)").matches;
 const FlickPlugins: Array<Arrow | Pagination> = [];
 
 if (slides.value.length > 1) {

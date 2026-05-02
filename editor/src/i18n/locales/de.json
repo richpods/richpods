@@ -240,7 +240,20 @@
         "moveChapterBySecondsDescription": "Dieses Kapitel um die angegebene Anzahl Sekunden verschieben.",
         "duplicateAtCurrentTime": "An aktueller Position duplizieren",
         "duplicateAtCurrentTimeDescription": "Eine Kopie dieses Kapitels an der aktuellen Wiedergabeposition erstellen.",
-        "cannotDeleteLastPublishedChapter": "Ein veröffentlichter RichPod muss mindestens ein Kapitel haben."
+        "cannotDeleteLastPublishedChapter": "Ein veröffentlichter RichPod muss mindestens ein Kapitel haben.",
+        "preview": {
+            "notVisibleAsChapter": "Diese Karte erscheint nicht in der Kapitelliste. Hörer:innen sehen sie nur während der Wiedergabe.",
+            "blankCardNotice": "Leere Karten erscheinen nicht in der Kapitelliste und werden während der Wiedergabe als leerer Raum dargestellt.",
+            "cardLinkEmpty": "Füge eine URL hinzu, um diese Linkkarte in der Vorschau zu sehen.",
+            "cardImageEmpty": "Lade ein Bild hoch, um diese Bildkarte in der Vorschau zu sehen.",
+            "cardCoverEmpty": "Es ist noch kein Cover-Artwork verfügbar. Füge ein Podcast- oder Episoden-Artwork hinzu, um diese Karte in der Vorschau zu sehen.",
+            "slideshowEmpty": "Füge ein Foto hinzu, um diese Slideshow in der Vorschau zu sehen.",
+            "viewport": {
+                "desktop": "Desktop",
+                "tablet": "Tablet",
+                "smartphone": "Smartphone"
+            }
+        }
     },
     "brokenMedia": {
         "title": "Audio nicht verf\u00fcgbar",

@@ -240,7 +240,20 @@
         "moveChapterBySecondsDescription": "Move this chapter by the specified number of seconds.",
         "duplicateAtCurrentTime": "Duplicate at current time",
         "duplicateAtCurrentTimeDescription": "Create a copy of this chapter at the current playback position.",
-        "cannotDeleteLastPublishedChapter": "A published RichPod must have at least one chapter."
+        "cannotDeleteLastPublishedChapter": "A published RichPod must have at least one chapter.",
+        "preview": {
+            "notVisibleAsChapter": "This card is hidden from the chapter list. Listeners only see it during playback.",
+            "blankCardNotice": "Blank cards are hidden from the chapter list and render as empty space during playback.",
+            "cardLinkEmpty": "Add a URL to preview this link card.",
+            "cardImageEmpty": "Upload an image to preview this image card.",
+            "cardCoverEmpty": "No cover artwork is available yet. Add podcast or episode artwork to preview this card.",
+            "slideshowEmpty": "Add a slide to preview this slideshow.",
+            "viewport": {
+                "desktop": "Desktop",
+                "tablet": "Tablet",
+                "smartphone": "Smartphone"
+            }
+        }
     },
     "brokenMedia": {
         "title": "Audio unavailable",
