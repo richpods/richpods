@@ -48,14 +48,27 @@
                     <span class="text-sm text-gray-400">{{ t("sidebar.noChanges") }}</span>
                 </template>
             </div>
-            <button
-                class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
-                :disabled="disableAddChapter"
-                @click="emit('add-chapter')"
-                :title="addChapterDisabledReason"
-            >
-                {{ t("sidebar.addChapter") }}
-            </button>
+            <div class="flex items-center gap-2">
+                <RouterLink
+                    v-if="richpodId"
+                    :to="{ name: 'preview', params: { id: richpodId } }"
+                    target="_blank"
+                    rel="noopener"
+                    class="inline-flex items-center gap-1 px-2.5 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50"
+                    :title="t('editor.openPreviewHint')"
+                >
+                    <Icon icon="ion:eye-outline" class="w-4 h-4" />
+                    <span class="hidden sm:inline">{{ t("editor.openPreview") }}</span>
+                </RouterLink>
+                <button
+                    class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                    :disabled="disableAddChapter"
+                    @click="emit('add-chapter')"
+                    :title="addChapterDisabledReason"
+                >
+                    {{ t("sidebar.addChapter") }}
+                </button>
+            </div>
         </div>
 
         <fieldset :disabled="isSaving" class="m-0 p-0 border-0 space-y-6">
@@ -382,6 +395,7 @@ import { computed, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Icon } from "@iconify/vue";
 import { storeToRefs } from "pinia";
+import { RouterLink, useRoute } from "vue-router";
 import { toSeconds } from "@player/utils.ts";
 import { useRichPodStore } from "@/stores/useRichPodStore";
 import { useEditorUiStore } from "@/stores/useEditorUiStore";
@@ -392,6 +406,11 @@ import type { SaveStatus } from "@/composables/useAutoSave";
 import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
 
 const { t, locale } = useI18n();
+const route = useRoute();
+const richpodId = computed(() => {
+    const id = route.params.id;
+    return typeof id === "string" && id.length > 0 ? id : null;
+});
 
 const isSaving = computed(() => props.saveStatus === "saving");
 

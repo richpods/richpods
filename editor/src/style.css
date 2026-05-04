@@ -10,6 +10,23 @@
     src: url("@richpods/shared/assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
 }
 
+@font-face {
+    font-display: swap;
+    font-family: "Open Sans";
+    font-style: normal;
+    font-weight: 300 800;
+    src: url("@richpods/shared/assets/fonts/OpenSans-VariableFont_wdth,wght.ttf") format("truetype");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: "Open Sans";
+    font-style: italic;
+    font-weight: 300 800;
+    src: url("@richpods/shared/assets/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf")
+        format("truetype");
+}
+
 :root {
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;

@@ -33,8 +33,8 @@ import { computed, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import ModalDialog from "./ModalDialog.vue";
 import ShareCopyField from "./ShareCopyField.vue";
-import { useRichPod } from "@/composables/useRichPod.ts";
-import { useEmbedMode } from "@/composables/useEmbedMode.ts";
+import { useRichPod } from "../composables/useRichPod.ts";
+import { useEmbedMode } from "../composables/useEmbedMode.ts";
 
 const EMBED_HEIGHT = 600;
 

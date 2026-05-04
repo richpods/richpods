@@ -11,16 +11,16 @@
 </template>
 <script setup lang="ts">
 import { type Component, computed } from "vue";
-import InteractiveChartEnclosure from "@/components/enclosures/InteractiveChartEnclosure.vue";
-import GeoMapEnclosure from "@/components/enclosures/GeoMapEnclosure.vue";
-import MarkdownEnclosure from "@/components/enclosures/MarkdownEnclosure.vue";
-import SlideshowEnclosure from "@/components/enclosures/SlideshowEnclosure.vue";
-import PollEnclosure from "@/components/enclosures/PollEnclosure.vue";
-import FactboxEnclosure from "@/components/enclosures/FactboxEnclosure.vue";
-import CardEnclosure from "@/components/enclosures/CardEnclosure.vue";
-import UnsupportedEnclosure from "@/components/enclosures/UnsupportedEnclosure.vue";
-import { useRichPod } from "@/composables/useRichPod.ts";
-import { currentChapter as findCurrentChapter } from "@/utils.ts";
+import InteractiveChartEnclosure from "./enclosures/InteractiveChartEnclosure.vue";
+import GeoMapEnclosure from "./enclosures/GeoMapEnclosure.vue";
+import MarkdownEnclosure from "./enclosures/MarkdownEnclosure.vue";
+import SlideshowEnclosure from "./enclosures/SlideshowEnclosure.vue";
+import PollEnclosure from "./enclosures/PollEnclosure.vue";
+import FactboxEnclosure from "./enclosures/FactboxEnclosure.vue";
+import CardEnclosure from "./enclosures/CardEnclosure.vue";
+import UnsupportedEnclosure from "./enclosures/UnsupportedEnclosure.vue";
+import { useRichPod } from "../composables/useRichPod.ts";
+import { currentChapter as findCurrentChapter } from "../utils.ts";
 
 const enclosureComponentMap: Record<string, Component> = {
     InteractiveChart: InteractiveChartEnclosure,

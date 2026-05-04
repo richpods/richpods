@@ -1,6 +1,6 @@
 import { watch, onBeforeUnmount, type Ref } from "vue";
-import type { RichPod } from "@/graphql/generated.ts";
-import { useAudio } from "@/composables/useAudio.ts";
+import type { RichPod } from "../graphql/generated.ts";
+import { useAudio } from "./useAudio.ts";
 
 const SKIP_SECONDS = 15;
 const FALLBACK_ARTWORK = buildBaseUrlAssetPath("apple-touch-icon.png");

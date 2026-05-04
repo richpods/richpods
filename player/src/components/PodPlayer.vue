@@ -1,5 +1,6 @@
 <template>
-    <div v-if="richPod" class="player-wrapper">
+    <div v-if="richPod" class="player-container">
+    <div class="player-wrapper">
         <div
             class="podcast-meta"
             :class="{ paused: isMarqueePaused }"
@@ -20,11 +21,16 @@
             </div>
             <div class="info-area">
                 <ShareIconButton
+                    v-if="!preview"
                     variant="compact"
                     :label="t('player.share')"
                     @click="toggleShareDialog"
                 />
-                <button @click="toggleInfoDialog" class="control-button info-button">
+                <button
+                    v-if="!preview"
+                    @click="toggleInfoDialog"
+                    class="control-button info-button"
+                >
                     {{ t("player.info") }}
                 </button>
             </div>
@@ -64,7 +70,7 @@
                     : t("disclaimer.unverifiedNoPublisher")
             }}</span>
         </div>
-        <PlayerSidebar @share="toggleShareDialog">
+        <PlayerSidebar :preview="preview" @share="toggleShareDialog">
             <ChapterList :chapters="richPod?.chapters || []" @seek="seekTo" />
         </PlayerSidebar>
         <div class="chapter-flow" :style="{ '--banner-offset': `${mobileBannerHeight}px` }">
@@ -76,25 +82,28 @@
                 :chapters="richPod?.chapters || []"
             />
         </div>
-        <InfoDialog ref="infoDialog" />
-        <ShareDialog ref="shareDialog" />
+        <InfoDialog ref="infoDialog" :preview="preview" />
+        <ShareDialog v-if="!preview" ref="shareDialog" />
+    </div>
     </div>
 </template>
 <script setup lang="ts">
 import { ref, computed, watch, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
-import ChapterFlow from "@/components/ChapterFlow.vue";
-import ChapterList from "@/components/ChapterList.vue";
-import { useRichPod } from "@/composables/useRichPod.ts";
-import { useAudio } from "@/composables/useAudio.ts";
-import { usePlaybackProgress } from "@/composables/usePlaybackProgress.ts";
-import { useDeepLink } from "@/composables/useDeepLink.ts";
-import { useMediaSession } from "@/composables/useMediaSession.ts";
-import PlayerControls from "@/components/PlayerControls.vue";
-import PlayerSidebar from "@/components/PlayerSidebar.vue";
-import InfoDialog from "@/components/InfoDialog.vue";
-import ShareDialog from "@/components/ShareDialog.vue";
-import ShareIconButton from "@/components/ShareIconButton.vue";
+import ChapterFlow from "./ChapterFlow.vue";
+import ChapterList from "./ChapterList.vue";
+import { useRichPod } from "../composables/useRichPod.ts";
+import { useAudio } from "../composables/useAudio.ts";
+import { usePlaybackProgress } from "../composables/usePlaybackProgress.ts";
+import { useDeepLink } from "../composables/useDeepLink.ts";
+import { useMediaSession } from "../composables/useMediaSession.ts";
+import PlayerControls from "./PlayerControls.vue";
+import PlayerSidebar from "./PlayerSidebar.vue";
+import InfoDialog from "./InfoDialog.vue";
+import ShareDialog from "./ShareDialog.vue";
+import ShareIconButton from "./ShareIconButton.vue";
+
+withDefaults(defineProps<{ preview?: boolean }>(), { preview: false });
 
 const { t } = useI18n();
 const { richPod } = useRichPod();
@@ -162,7 +171,21 @@ function toggleShareDialog() {
 }
 </script>
 <style lang="scss">
-@use "@/assets/theme" as theme;
+@use "../assets/theme" as theme;
+
+.player-container {
+    font-family: "venice-blvd", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    color: var(--richpod-color);
+    background: var(--richpod-background-color);
+
+    p {
+        font-family: "Open Sans", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+    }
+}
 
 .player-wrapper {
     --richpod-meta-height: 80px;
@@ -175,7 +198,7 @@ function toggleShareDialog() {
 .chapter-flow {
     --chapter-flow-height: calc(100dvh - var(--chapter-offset-top) - var(--chapter-offset-bottom));
 
-    @media (min-width: #{theme.$richpod-desktop-breakpoint}) {
+    @container player (min-width: #{theme.$richpod-desktop-breakpoint}) {
         --chapter-offset-top: 0px;
         --chapter-offset-bottom: 0px;
         --chapter-flow-height: 100%;
@@ -183,7 +206,14 @@ function toggleShareDialog() {
 }
 </style>
 <style scoped lang="scss">
-@use "@/assets/theme" as theme;
+@use "../assets/theme" as theme;
+
+.player-container {
+    position: relative;
+    height: 100%;
+    container-type: inline-size;
+    container-name: player;
+}
 
 .player-wrapper {
     position: relative;
@@ -278,7 +308,7 @@ function toggleShareDialog() {
         font-size: 12px;
         letter-spacing: -0.24px;
 
-        background-image: url("@/assets/images/icon_infos.svg");
+        background-image: url("../assets/images/icon_infos.svg");
         background-size: 2px 9px;
         background-position: left 10px center;
 
@@ -365,7 +395,7 @@ function toggleShareDialog() {
 }
 
 // Desktop layout: content on the left, integrated sidebar on the right.
-@media (min-width: #{theme.$richpod-desktop-breakpoint}) {
+@container player (min-width: #{theme.$richpod-desktop-breakpoint}) {
     .player-wrapper {
         display: grid;
         grid-template-rows: 1fr auto;

@@ -4,6 +4,8 @@ import en from "./locales/en.json";
 import de from "./locales/de.json";
 import sharedEn from "@richpods/shared/i18n/locales/en.json";
 import sharedDe from "@richpods/shared/i18n/locales/de.json";
+import playerEn from "@player/i18n/locales/en.json";
+import playerDe from "@player/i18n/locales/de.json";
 import { resolveEditorLanguage } from "./language";
 
 export const i18n = createI18n({
@@ -11,8 +13,8 @@ export const i18n = createI18n({
     locale: resolveEditorLanguage(),
     fallbackLocale: "en",
     messages: {
-        en: merge({}, sharedEn, en),
-        de: merge({}, sharedDe, de),
+        en: merge({}, sharedEn, playerEn, en),
+        de: merge({}, sharedDe, playerDe, de),
     },
 });
 

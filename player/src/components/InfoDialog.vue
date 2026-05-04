@@ -63,7 +63,11 @@
                 </a>
             </div>
 
-            <a v-if="isUnverified" :href="reportMailtoLink" class="report-button">
+            <a
+                v-if="isUnverified && !preview"
+                :href="reportMailtoLink"
+                class="report-button"
+            >
                 {{ t("infoDialog.reportRichPod") }}
             </a>
         </div>
@@ -71,11 +75,13 @@
 </template>
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { useRichPod } from "@/composables/useRichPod.ts";
+import { useRichPod } from "../composables/useRichPod.ts";
 import ModalDialog from "./ModalDialog.vue";
 import { computed, useTemplateRef } from "vue";
 
 const REPORT_EMAIL = import.meta.env.VITE_REPORT_EMAIL || "contact@richpods.org";
+
+withDefaults(defineProps<{ preview?: boolean }>(), { preview: false });
 
 const { t } = useI18n();
 

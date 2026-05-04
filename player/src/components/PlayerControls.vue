@@ -161,7 +161,7 @@ onBeforeUnmount(() => {
     }
 
     &.player-fixed {
-        @media (min-width: 1024px) {
+        @container player (min-width: 1024px) {
             position: static;
             box-shadow: none;
         }
@@ -174,7 +174,7 @@ onBeforeUnmount(() => {
             var(--richpod-seek-bar-height) + (var(--richpod-seek-bar-thumb-size) / 3)
         );
 
-        @media (min-width: 1024px) {
+        @container player (min-width: 1024px) {
             grid-template-columns: 1fr;
         }
     }
@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
         padding-left: 12px;
         gap: 10px;
 
-        @media (min-width: 1024px) {
+        @container player (min-width: 1024px) {
             display: none;
         }
     }

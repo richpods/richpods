@@ -1,10 +1,14 @@
 import { ref, computed } from "vue";
-import { api } from "@/graphql/client.ts";
-import type { RichPod, RichPodQuery } from "@/graphql/generated.ts";
+import { api } from "../graphql/client.ts";
+import type { RichPod, RichPodQuery } from "../graphql/generated.ts";
 import { sortedChapters as buildSortedChapters } from "../utils.ts";
-import type { SortedChapter } from "@/types/player.ts";
+import type { SortedChapter } from "../types/player.ts";
 
 const richPod = ref<RichPod | null>(null);
+
+export function setRichPod(data: RichPod | null) {
+    richPod.value = data;
+}
 
 export function useRichPod() {
     const loading = ref(false);

@@ -531,13 +531,23 @@ onBeforeUnmount(() => {
     }
 }
 
-@media (max-width: #{theme.$richpod-desktop-breakpoint - 1}) {
+@container player (max-width: #{theme.$richpod-desktop-breakpoint - 1}) {
     .seek-bar-holder.is-playing .seek-bar-tooltip-title {
         display: none;
     }
 }
 
-@media (hover: none), (max-width: #{theme.$richpod-desktop-breakpoint - 1}) {
+@media (hover: none) {
+    .chapter-segment.chapter-segment-hovered {
+        transform: none;
+    }
+
+    .seek-bar-holder.is-hovering-active-chapter .seek-bar-thumb {
+        transform: translate(-50%, -50%);
+    }
+}
+
+@container player (max-width: #{theme.$richpod-desktop-breakpoint - 1}) {
     .chapter-segment.chapter-segment-hovered {
         transform: none;
     }

@@ -48,6 +48,12 @@ const routes: RouteRecordRaw[] = [
         meta: { titleKey: "routes.editor" },
     },
     {
+        path: "/preview/:id",
+        name: "preview",
+        component: () => import("@/views/RichPodPreviewView.vue"),
+        meta: { titleKey: "routes.preview", requiresAuth: false },
+    },
+    {
         path: "/new-episode",
         name: "new-episode",
         component: () => import("@/components/EpisodeSearchForm.vue"),

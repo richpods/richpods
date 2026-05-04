@@ -1,4 +1,4 @@
-import type { Chapter, Enclosure } from "@/graphql/generated.ts";
+import type { Chapter, Enclosure } from "../graphql/generated.ts";
 
 export type EnclosureProp<E extends Enclosure> = {
     enclosure: E;

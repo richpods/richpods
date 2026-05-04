@@ -45,6 +45,7 @@
                     <img :src="artworkUrl" :alt="richPod.origin.title" />
                 </div>
                 <ShareIconButton
+                    v-if="!preview"
                     variant="labeled"
                     class="sidebar-share"
                     :label="t('player.share')"
@@ -81,7 +82,11 @@
                     {{ t("sidebar.openEpisode") }}
                 </a>
             </div>
-            <a v-if="isUnverified" :href="reportMailtoLink" class="sidebar-report-button">
+            <a
+                v-if="isUnverified && !preview"
+                :href="reportMailtoLink"
+                class="sidebar-report-button"
+            >
                 {{ t("infoDialog.reportRichPod") }}
             </a>
         </div>
@@ -90,11 +95,13 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRichPod } from "@/composables/useRichPod.ts";
-import { useAudio } from "@/composables/useAudio.ts";
-import ShareIconButton from "@/components/ShareIconButton.vue";
+import { useRichPod } from "../composables/useRichPod.ts";
+import { useAudio } from "../composables/useAudio.ts";
+import ShareIconButton from "./ShareIconButton.vue";
 
 const REPORT_EMAIL = import.meta.env.VITE_REPORT_EMAIL || "contact@richpods.org";
+
+withDefaults(defineProps<{ preview?: boolean }>(), { preview: false });
 
 const emit = defineEmits<{
     share: [];
@@ -141,7 +148,7 @@ const reportMailtoLink = computed(() => {
 });
 </script>
 <style scoped lang="scss">
-@use "@/assets/theme" as theme;
+@use "../assets/theme" as theme;
 
 .desktop-sidebar {
     display: none;
@@ -178,7 +185,7 @@ const reportMailtoLink = computed(() => {
     vertical-align: middle;
 }
 
-@media (min-width: #{theme.$richpod-desktop-breakpoint}) {
+@container player (min-width: #{theme.$richpod-desktop-breakpoint}) {
     .desktop-sidebar {
         display: flex;
         flex-direction: column;
