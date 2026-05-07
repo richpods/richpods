@@ -59,12 +59,12 @@
                 />
                 <aside
                     v-else
-                    class="hidden lg:block w-full lg:w-96 bg-white border-r border-gray-200"
+                    class="hidden lg:block w-full lg:w-[28rem] 2xl:w-[30rem] bg-white border-r border-gray-200"
                     :class="{ '!block': activeEditorTab === 'details' }"
                 ></aside>
 
                 <div
-                    class="flex-1 hidden lg:flex flex-col bg-gray-100"
+                    class="flex-1 hidden lg:flex flex-col bg-gray-100 min-w-0"
                     :class="{ '!flex': activeEditorTab === 'chapters' }"
                 >
                     <BrokenMediaPanel
@@ -97,22 +97,21 @@
                         :is-saving="isSaving"
                         :is-loading="isLoading"
                     />
+                    <div class="bg-white border-t border-gray-200 z-10">
+                        <PlayerControls
+                            mode="inline"
+                            :audio-url="audioUrl"
+                            :chapters="chaptersForPlayer"
+                            @timeupdate="onTimeUpdate"
+                            @durationchange="onDurationChange"
+                            :disable-play="disablePlayback"
+                            :disable-seeking="isSaving"
+                            :hide-chapter-button="true"
+                            :show-invisible-chapters="true"
+                            @playback-change="onPlaybackChange"
+                        />
+                    </div>
                 </div>
-            </div>
-
-            <div class="sticky bottom-0 bg-white border-t border-gray-200 px-0 py-0 z-10 lg:ml-96">
-                <PlayerControls
-                    mode="inline"
-                    :audio-url="audioUrl"
-                    :chapters="chaptersForPlayer"
-                    @timeupdate="onTimeUpdate"
-                    @durationchange="onDurationChange"
-                    :disable-play="disablePlayback"
-                    :disable-seeking="isSaving"
-                    :hide-chapter-button="true"
-                    :show-invisible-chapters="true"
-                    @playback-change="onPlaybackChange"
-                />
             </div>
         </div>
     </div>
@@ -300,6 +299,20 @@ watch(
     () => {
         loadRichPod();
     },
+);
+
+watch(
+    () => richpod.value.title,
+    (title) => {
+        const appTitle = t("common.richPods");
+        const pageTitle = t("routes.editor");
+        const trimmed = (title ?? "").trim();
+        const snippet = trimmed.length > 35 ? `${trimmed.slice(0, 35)}…` : trimmed;
+        document.title = snippet
+            ? `${pageTitle} - ${snippet} - ${appTitle}`
+            : `${pageTitle} - ${appTitle}`;
+    },
+    { immediate: true },
 );
 
 onMounted(() => {

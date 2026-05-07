@@ -1,5 +1,7 @@
 <template>
-    <aside class="w-full lg:w-96 bg-white border-r border-gray-200 p-3 lg:p-6 overflow-y-auto">
+    <aside
+        class="w-full lg:w-[28rem] 2xl:w-[30rem] bg-white border-r border-gray-200 p-3 lg:p-6 overflow-y-auto"
+    >
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
                 <!-- Saving spinner -->
@@ -43,10 +45,6 @@
                         {{ t("common.save") }}
                     </button>
                 </template>
-                <!-- Idle, no changes -->
-                <template v-else-if="!isDirty">
-                    <span class="text-sm text-gray-400">{{ t("sidebar.noChanges") }}</span>
-                </template>
             </div>
             <div class="flex items-center gap-2">
                 <RouterLink
@@ -54,7 +52,11 @@
                     :to="{ name: 'preview', params: { id: richpodId } }"
                     target="_blank"
                     rel="noopener"
+                    role="button"
                     class="inline-flex items-center gap-1 px-2.5 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50"
+                    :class="{ 'opacity-40 pointer-events-none cursor-not-allowed': isSaving }"
+                    :aria-disabled="isSaving"
+                    :tabindex="isSaving ? -1 : undefined"
                     :title="t('editor.openPreviewHint')"
                 >
                     <Icon icon="ion:eye-outline" class="w-4 h-4" />
@@ -62,7 +64,7 @@
                 </RouterLink>
                 <button
                     class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
-                    :disabled="disableAddChapter"
+                    :disabled="disableAddChapter || isSaving"
                     @click="emit('add-chapter')"
                     :title="addChapterDisabledReason"
                 >
@@ -216,7 +218,6 @@
                         t("sidebar.explicitLabel")
                     }}</span>
                 </label>
-                <p class="text-xs text-gray-500 mt-1">{{ t("sidebar.explicitHint") }}</p>
             </div>
 
             <div v-if="origin" class="border border-gray-200 rounded-lg p-4">
@@ -306,7 +307,7 @@
                 </div>
 
                 <div class="mt-4 border-t border-gray-200 pt-4">
-                    <div class="flex items-center gap-2">
+                    <div v-if="!showVerificationAction" class="flex items-center gap-2">
                         <span
                             :class="[
                                 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',

@@ -158,6 +158,7 @@ onBeforeUnmount(() => {
 
     &.player-inline {
         position: static;
+        box-shadow: none;
     }
 
     &.player-fixed {

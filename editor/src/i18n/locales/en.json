@@ -305,14 +305,12 @@
         "saved": "Saved",
         "saveError": "Save failed",
         "unsavedChanges": "Unsaved changes",
-        "noChanges": "No changes",
         "hostedBadge": "Hosted",
         "validating": "Validating audio…",
         "validationValid": "Audio validated",
         "validationInvalid": "Audio validation failed",
         "publishRequiresValidation": "Audio must be validated before publishing.",
         "explicitLabel": "Explicit Content",
-        "explicitHint": "Mark this episode as containing explicit content.",
         "changeCover": "Change"
     },
     "typeChooser": {

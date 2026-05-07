@@ -1,5 +1,5 @@
 <template>
-    <div class="flex-1 flex items-start justify-center p-2 lg:p-6 overflow-y-auto pb-28 w-full">
+    <div class="flex-1 flex items-start justify-center p-2 lg:p-6 overflow-y-auto w-full min-h-0">
         <div
             :class="[
                 'w-full mx-auto p-0 bg-white border border-gray-200 rounded-lg shadow-sm',

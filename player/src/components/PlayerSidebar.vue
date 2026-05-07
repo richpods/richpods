@@ -55,7 +55,7 @@
             <div class="sidebar-chapters">
                 <slot />
             </div>
-            <div v-if="richPod.origin" class="sidebar-info">
+            <div v-if="richPod.origin && !preview" class="sidebar-info">
                 <h3>{{ t("infoDialog.originalPodcastTitle") }}</h3>
                 <p>
                     <a
@@ -101,7 +101,7 @@ import ShareIconButton from "./ShareIconButton.vue";
 
 const REPORT_EMAIL = import.meta.env.VITE_REPORT_EMAIL || "contact@richpods.org";
 
-withDefaults(defineProps<{ preview?: boolean }>(), { preview: false });
+const props = withDefaults(defineProps<{ preview?: boolean }>(), { preview: false });
 
 const emit = defineEmits<{
     share: [];
@@ -126,7 +126,7 @@ watch(scrollEl, (el, _old, onCleanup) => {
     onCleanup(() => el.removeEventListener("scroll", handler));
 });
 
-const isCompact = computed(() => !isPaused.value || scrollTop.value > 24);
+const isCompact = computed(() => props.preview || !isPaused.value || scrollTop.value > 24);
 
 const isUnverified = computed(() => !richPod.value?.origin.verified);
 const publisherName = computed(() => richPod.value?.editor?.publicName);
