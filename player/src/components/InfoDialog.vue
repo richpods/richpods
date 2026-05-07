@@ -63,11 +63,7 @@
                 </a>
             </div>
 
-            <a
-                v-if="isUnverified && !preview"
-                :href="reportMailtoLink"
-                class="report-button"
-            >
+            <a v-if="isUnverified && !preview" :href="reportMailtoLink" class="report-button">
                 {{ t("infoDialog.reportRichPod") }}
             </a>
         </div>

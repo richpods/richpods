@@ -17,11 +17,7 @@
                 {{ t("editor.previewUnavailableTitle") }}
             </h1>
             <p class="preview-unavailable-body">{{ t("editor.previewUnavailableBody") }}</p>
-            <RouterLink
-                v-if="!user"
-                :to="{ name: 'signin' }"
-                class="preview-signin-link"
-            >
+            <RouterLink v-if="!user" :to="{ name: 'signin' }" class="preview-signin-link">
                 {{ t("editor.previewUnavailableSignIn") }}
             </RouterLink>
             <RouterLink v-else :to="{ name: 'richpods' }" class="preview-signin-link">

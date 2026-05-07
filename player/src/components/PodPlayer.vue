@@ -1,90 +1,90 @@
 <template>
     <div v-if="richPod" class="player-container">
-    <div class="player-wrapper">
-        <div
-            class="podcast-meta"
-            :class="{ paused: isMarqueePaused }"
-            :style="{ '--marquee-duration': marqueeDuration }"
-        >
-            <div class="podcast-image">
-                <img :src="artworkUrl" :alt="richPod.origin.title" />
-            </div>
-            <h1 class="richpod-title">
-                <span class="marquee">
-                    <span class="marquee_clones">{{ richPod.title }}</span>
-                    <span class="marquee_clones" aria-hidden="true">{{ richPod.title }}</span>
-                </span>
-            </h1>
-            <span v-if="richPod.explicit" class="explicit-badge mobile-only">E</span>
-            <div class="podcast-description">
-                {{ richPod.origin.title }}
-            </div>
-            <div class="info-area">
-                <ShareIconButton
-                    v-if="!preview"
-                    variant="compact"
-                    :label="t('player.share')"
-                    @click="toggleShareDialog"
-                />
-                <button
-                    v-if="!preview"
-                    @click="toggleInfoDialog"
-                    class="control-button info-button"
-                >
-                    {{ t("player.info") }}
-                </button>
-            </div>
-        </div>
-        <div
-            v-if="isUnverified"
-            class="unverified-banner mobile-only"
-            role="alert"
-            ref="mobileBanner"
-        >
-            <svg
-                class="unverified-banner-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 512 512"
-                aria-hidden="true"
+        <div class="player-wrapper">
+            <div
+                class="podcast-meta"
+                :class="{ paused: isMarqueePaused }"
+                :style="{ '--marquee-duration': marqueeDuration }"
             >
-                <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="32"
-                    d="M432 320V144a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v112m0 0V80a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v160m-64 1V96a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v224m128-80V48a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v192"
+                <div class="podcast-image">
+                    <img :src="artworkUrl" :alt="richPod.origin.title" />
+                </div>
+                <h1 class="richpod-title">
+                    <span class="marquee">
+                        <span class="marquee_clones">{{ richPod.title }}</span>
+                        <span class="marquee_clones" aria-hidden="true">{{ richPod.title }}</span>
+                    </span>
+                </h1>
+                <span v-if="richPod.explicit" class="explicit-badge mobile-only">E</span>
+                <div class="podcast-description">
+                    {{ richPod.origin.title }}
+                </div>
+                <div class="info-area">
+                    <ShareIconButton
+                        v-if="!preview"
+                        variant="compact"
+                        :label="t('player.share')"
+                        @click="toggleShareDialog"
+                    />
+                    <button
+                        v-if="!preview"
+                        @click="toggleInfoDialog"
+                        class="control-button info-button"
+                    >
+                        {{ t("player.info") }}
+                    </button>
+                </div>
+            </div>
+            <div
+                v-if="isUnverified"
+                class="unverified-banner mobile-only"
+                role="alert"
+                ref="mobileBanner"
+            >
+                <svg
+                    class="unverified-banner-icon"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 512 512"
+                    aria-hidden="true"
+                >
+                    <path
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="32"
+                        d="M432 320V144a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v112m0 0V80a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v160m-64 1V96a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v224m128-80V48a32 32 0 0 0-32-32h0a32 32 0 0 0-32 32v192"
+                    />
+                    <path
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="32"
+                        d="M432 320c0 117.4-64 176-152 176s-123.71-39.6-144-88L83.33 264c-6.66-18.05-3.64-34.79 11.87-43.6h0c15.52-8.82 35.91-4.28 44.31 11.68L176 320"
+                    />
+                </svg>
+                <span>{{
+                    publisherName
+                        ? t("disclaimer.unverified", { publisherName })
+                        : t("disclaimer.unverifiedNoPublisher")
+                }}</span>
+            </div>
+            <PlayerSidebar :preview="preview" @share="toggleShareDialog">
+                <ChapterList :chapters="richPod?.chapters || []" @seek="seekTo" />
+            </PlayerSidebar>
+            <div class="chapter-flow" :style="{ '--banner-offset': `${mobileBannerHeight}px` }">
+                <ChapterFlow :currentTime="currentTime" />
+            </div>
+            <div class="controls-area">
+                <PlayerControls
+                    :audio-url="richPod?.origin.episode.media.url"
+                    :chapters="richPod?.chapters || []"
                 />
-                <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="32"
-                    d="M432 320c0 117.4-64 176-152 176s-123.71-39.6-144-88L83.33 264c-6.66-18.05-3.64-34.79 11.87-43.6h0c15.52-8.82 35.91-4.28 44.31 11.68L176 320"
-                />
-            </svg>
-            <span>{{
-                publisherName
-                    ? t("disclaimer.unverified", { publisherName })
-                    : t("disclaimer.unverifiedNoPublisher")
-            }}</span>
+            </div>
+            <InfoDialog ref="infoDialog" :preview="preview" />
+            <ShareDialog v-if="!preview" ref="shareDialog" />
         </div>
-        <PlayerSidebar :preview="preview" @share="toggleShareDialog">
-            <ChapterList :chapters="richPod?.chapters || []" @seek="seekTo" />
-        </PlayerSidebar>
-        <div class="chapter-flow" :style="{ '--banner-offset': `${mobileBannerHeight}px` }">
-            <ChapterFlow :currentTime="currentTime" />
-        </div>
-        <div class="controls-area">
-            <PlayerControls
-                :audio-url="richPod?.origin.episode.media.url"
-                :chapters="richPod?.chapters || []"
-            />
-        </div>
-        <InfoDialog ref="infoDialog" :preview="preview" />
-        <ShareDialog v-if="!preview" ref="shareDialog" />
-    </div>
     </div>
 </template>
 <script setup lang="ts">

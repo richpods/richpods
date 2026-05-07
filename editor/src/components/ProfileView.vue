@@ -70,6 +70,41 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Editor Sessions / Lock Recovery -->
+                    <div v-if="user" class="mt-8">
+                        <h2 class="text-sm font-medium text-gray-500 mb-3">
+                            {{ t("profile.editorSessionsSection") }}
+                        </h2>
+                        <div class="bg-white rounded-lg shadow p-4 sm:p-6">
+                            <p class="text-sm text-gray-600 mb-3">
+                                {{ t("profile.clearLocksDescription") }}
+                            </p>
+                            <button
+                                type="button"
+                                class="inline-flex items-center px-3 py-2 text-sm font-medium border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                :disabled="clearLocksBusy"
+                                @click="onClearAllLocks"
+                            >
+                                {{
+                                    clearLocksBusy
+                                        ? t("profile.clearLocksBusy")
+                                        : t("profile.clearLocksButton")
+                                }}
+                            </button>
+                            <p
+                                v-if="clearLocksMessage"
+                                class="mt-3 text-sm"
+                                :class="
+                                    clearLocksMessageKind === 'error'
+                                        ? 'text-red-600'
+                                        : 'text-green-700'
+                                "
+                            >
+                                {{ clearLocksMessage }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -84,12 +119,37 @@ import { onAuthStateChanged, type Unsubscribe, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useCurrentUserRole } from "@/composables/useCurrentUserRole";
 import ProfileForm from "@/components/ProfileForm.vue";
+import { clearAllOwnRichPodLocks } from "@/services/richpodLockService";
 
 const { t, locale } = useI18n();
 const user = ref<User | null>(null);
 let unsubscribe: Unsubscribe | null = null;
 const router = useRouter();
 const { currentUserRole } = useCurrentUserRole();
+
+const clearLocksBusy = ref(false);
+const clearLocksMessage = ref("");
+const clearLocksMessageKind = ref<"success" | "error">("success");
+
+async function onClearAllLocks() {
+    clearLocksBusy.value = true;
+    clearLocksMessage.value = "";
+    try {
+        const cleared = await clearAllOwnRichPodLocks();
+        clearLocksMessageKind.value = "success";
+        clearLocksMessage.value =
+            cleared === 0
+                ? t("profile.clearLocksNone")
+                : t("profile.clearLocksSuccess", { count: cleared });
+    } catch (err) {
+        console.error("Failed to clear locks:", err);
+        clearLocksMessageKind.value = "error";
+        clearLocksMessage.value =
+            err instanceof Error ? err.message : t("profile.clearLocksFailed");
+    } finally {
+        clearLocksBusy.value = false;
+    }
+}
 
 // Determine account type based on provider
 const accountType = computed(() => {

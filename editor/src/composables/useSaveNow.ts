@@ -1,6 +1,7 @@
 import { inject, provide, type InjectionKey } from "vue";
+import type { RichPodForEdit } from "@/types/editor";
 
-type SaveNowFn = () => Promise<void>;
+type SaveNowFn = () => Promise<RichPodForEdit | null>;
 
 const SAVE_NOW_KEY: InjectionKey<SaveNowFn> = Symbol("saveNow");
 

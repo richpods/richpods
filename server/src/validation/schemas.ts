@@ -322,3 +322,12 @@ export const completeVerificationSchema = Joi.object({
 export const paginationFirstSchema = Joi.number().integer().min(1).max(100);
 export const paginationAfterSchema = Joi.string().optional().allow(null);
 export const richPodStateFilterSchema = Joi.string().valid("draft", "published").optional().allow(null);
+
+// Lock schemas
+export const lockSessionIdSchema = Joi.string()
+    .guid({ version: ["uuidv4"] })
+    .required()
+    .messages({
+        "string.guid": "sessionId must be a v4 UUID",
+        "any.required": "sessionId is required",
+    });

@@ -58,7 +58,15 @@ import {
     paginationFirstSchema,
     paginationAfterSchema,
     richPodStateFilterSchema,
+    lockSessionIdSchema,
 } from "./validation/schemas.js";
+import {
+    acquireRichPodLock,
+    getRichPodLock,
+    heartbeatRichPodLock,
+    releaseRichPodLock,
+    clearAllLocksForUser,
+} from "./services/lock.service.js";
 import { updateHostedPodcastInputSchema } from "./validation/hosted-schemas.js";
 import { type AuthContext, requireAuth, requirePrivilegedAuth } from "./middleware/auth.js";
 import { resolvePageSize } from "./utils/pagination.js";
@@ -83,6 +91,8 @@ import {
     PaginatedPublicHostedEpisodes,
     PublicHostedPodcast,
     PodcastMedia,
+    RichPodLock,
+    RichPodLockAcquireResult,
 } from "./graphql.js";
 import { Request } from "express";
 import { parseAcceptLanguageHeader, type SupportedLanguage } from "@richpods/shared/i18n/language";
@@ -308,13 +318,20 @@ export function createResolvers(req: Request, auth: AuthContext) {
 
         updateRichPod: async ({
             id,
+            sessionId,
             input,
         }: {
             id: string;
+            sessionId: string;
             input: UpdateRichPodInput;
         }): Promise<RichPod | null> => {
             const userId = requireAuth(auth);
             const validatedId = validateField<string>(idSchema, id, "id");
+            const validatedSessionId = validateField<string>(
+                lockSessionIdSchema,
+                sessionId,
+                "sessionId",
+            );
             const validatedInput = validate<UpdateRichPodInput>(updateRichPodInputSchema, input);
 
             const updates: Record<string, unknown> = {};
@@ -324,7 +341,7 @@ export function createResolvers(req: Request, auth: AuthContext) {
             if (validatedInput.state !== undefined) updates.state = validatedInput.state;
             if (validatedInput.explicit !== undefined) updates.explicit = validatedInput.explicit;
 
-            return updateRichPod(validatedId, updates, userId);
+            return updateRichPod(validatedId, updates, userId, validatedSessionId);
         },
 
         deleteRichPod: async ({ id }: { id: string }): Promise<boolean> => {
@@ -335,13 +352,20 @@ export function createResolvers(req: Request, auth: AuthContext) {
 
         setRichPodChapters: async ({
             id,
+            sessionId,
             chapters,
         }: {
             id: string;
+            sessionId: string;
             chapters: Array<{ begin: string; enclosureType: string; enclosure: any }>;
         }): Promise<RichPod | null> => {
             const userId = requireAuth(auth);
             const validatedId = validateField<string>(idSchema, id, "id");
+            const validatedSessionId = validateField<string>(
+                lockSessionIdSchema,
+                sessionId,
+                "sessionId",
+            );
             const validatedInput = validate<{
                 chapters: Array<{ begin: string; enclosureType: string; enclosure: unknown }>;
             }>(setChaptersInputSchema, { chapters });
@@ -354,7 +378,13 @@ export function createResolvers(req: Request, auth: AuthContext) {
                 fsChapters.push({ begin: ch.begin, enclosureType: type, gcsName });
             }
 
-            await setChaptersForRichPod(validatedId, fsChapters, userId, auth.role);
+            await setChaptersForRichPod(
+                validatedId,
+                fsChapters,
+                userId,
+                validatedSessionId,
+                auth.role,
+            );
             return getRichPodById(
                 validatedId,
                 [RichPodState.PUBLISHED, RichPodState.DRAFT],
@@ -473,6 +503,12 @@ export function createResolvers(req: Request, auth: AuthContext) {
             return getPublicPublishedEpisodes(validatedId, pageSize, validatedAfter);
         },
 
+        richPodLock: async ({ id }: { id: string }): Promise<RichPodLock | null> => {
+            requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, id, "id");
+            return getRichPodLock(validatedId);
+        },
+
         // Hosted Podcasts mutations
         updateHostedPodcast: async ({
             id,
@@ -511,6 +547,69 @@ export function createResolvers(req: Request, auth: AuthContext) {
             const userId = requireAuth(auth);
             const validatedId = validateField<string>(idSchema, richPodId, "richPodId");
             return refreshRichPodMediaForEditor(validatedId, userId);
+        },
+
+        acquireRichPodLock: async ({
+            id,
+            sessionId,
+            takeover,
+        }: {
+            id: string;
+            sessionId: string;
+            takeover?: boolean | null;
+        }): Promise<RichPodLockAcquireResult> => {
+            const userId = requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, id, "id");
+            const validatedSessionId = validateField<string>(
+                lockSessionIdSchema,
+                sessionId,
+                "sessionId",
+            );
+            return acquireRichPodLock(
+                validatedId,
+                userId,
+                validatedSessionId,
+                takeover === true,
+            );
+        },
+
+        heartbeatRichPodLock: async ({
+            id,
+            sessionId,
+        }: {
+            id: string;
+            sessionId: string;
+        }): Promise<RichPodLock> => {
+            const userId = requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, id, "id");
+            const validatedSessionId = validateField<string>(
+                lockSessionIdSchema,
+                sessionId,
+                "sessionId",
+            );
+            return heartbeatRichPodLock(validatedId, userId, validatedSessionId);
+        },
+
+        releaseRichPodLock: async ({
+            id,
+            sessionId,
+        }: {
+            id: string;
+            sessionId: string;
+        }): Promise<boolean> => {
+            const userId = requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, id, "id");
+            const validatedSessionId = validateField<string>(
+                lockSessionIdSchema,
+                sessionId,
+                "sessionId",
+            );
+            return releaseRichPodLock(validatedId, userId, validatedSessionId);
+        },
+
+        clearAllOwnRichPodLocks: async (): Promise<number> => {
+            const userId = requireAuth(auth);
+            return clearAllLocksForUser(userId);
         },
     };
 }

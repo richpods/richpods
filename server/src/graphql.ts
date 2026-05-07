@@ -251,12 +251,16 @@ export type Markdown = BaseEnclosure & {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  acquireRichPodLock: RichPodLockAcquireResult;
+  clearAllOwnRichPodLocks: Scalars['Int']['output'];
   completeRichPodVerification: Verification;
   createRichPod: RichPod;
   deleteHostedEpisode: Scalars['Boolean']['output'];
   deleteHostedPodcast: Scalars['Boolean']['output'];
   deleteRichPod: Scalars['Boolean']['output'];
+  heartbeatRichPodLock: RichPodLock;
   refreshEpisodeMedia: PodcastMedia;
+  releaseRichPodLock: Scalars['Boolean']['output'];
   setRichPodChapters: RichPod;
   signIn: AuthPayload;
   signInWithGoogle: AuthPayload;
@@ -265,6 +269,13 @@ export type Mutation = {
   updateHostedPodcast: HostedPodcast;
   updateProfile: User;
   updateRichPod: RichPod;
+};
+
+
+export type MutationAcquireRichPodLockArgs = {
+  id: Scalars['ID']['input'];
+  sessionId: Scalars['String']['input'];
+  takeover?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -294,14 +305,27 @@ export type MutationDeleteRichPodArgs = {
 };
 
 
+export type MutationHeartbeatRichPodLockArgs = {
+  id: Scalars['ID']['input'];
+  sessionId: Scalars['String']['input'];
+};
+
+
 export type MutationRefreshEpisodeMediaArgs = {
   richPodId: Scalars['ID']['input'];
+};
+
+
+export type MutationReleaseRichPodLockArgs = {
+  id: Scalars['ID']['input'];
+  sessionId: Scalars['String']['input'];
 };
 
 
 export type MutationSetRichPodChaptersArgs = {
   chapters: Array<ChapterInput>;
   id: Scalars['ID']['input'];
+  sessionId: Scalars['String']['input'];
 };
 
 
@@ -339,6 +363,7 @@ export type MutationUpdateProfileArgs = {
 export type MutationUpdateRichPodArgs = {
   id: Scalars['ID']['input'];
   input: UpdateRichPodInput;
+  sessionId: Scalars['String']['input'];
 };
 
 export type PaginatedHostedEpisodes = {
@@ -527,6 +552,7 @@ export type Query = {
   publicHostedPodcastEpisodes: PaginatedPublicHostedEpisodes;
   recentPublishedRichPods: PaginatedRichPods;
   richPod?: Maybe<RichPod>;
+  richPodLock?: Maybe<RichPodLock>;
   user?: Maybe<User>;
   userRichPods: PaginatedRichPods;
   userVerifications: PaginatedVerifications;
@@ -597,6 +623,11 @@ export type QueryRichPodArgs = {
 };
 
 
+export type QueryRichPodLockArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
@@ -629,6 +660,21 @@ export type RichPod = {
   state: RichPodState;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
+};
+
+export type RichPodLock = {
+  __typename?: 'RichPodLock';
+  acquiredAt: Scalars['String']['output'];
+  expiresAt: Scalars['String']['output'];
+  lastHeartbeatAt: Scalars['String']['output'];
+  sessionId: Scalars['String']['output'];
+  user: User;
+};
+
+export type RichPodLockAcquireResult = {
+  __typename?: 'RichPodLockAcquireResult';
+  acquired: Scalars['Boolean']['output'];
+  lock: RichPodLock;
 };
 
 export enum RichPodState {
@@ -875,6 +921,8 @@ export type ResolversTypes = {
   PublicHostedPodcast: ResolverTypeWrapper<PublicHostedPodcast>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   RichPod: ResolverTypeWrapper<Omit<RichPod, 'chapters'> & { chapters: Array<ResolversTypes['Chapter']> }>;
+  RichPodLock: ResolverTypeWrapper<RichPodLock>;
+  RichPodLockAcquireResult: ResolverTypeWrapper<RichPodLockAcquireResult>;
   RichPodState: RichPodState;
   RichPodVerificationStatus: RichPodVerificationStatus;
   SignInInput: SignInInput;
@@ -938,6 +986,8 @@ export type ResolversParentTypes = {
   PublicHostedPodcast: PublicHostedPodcast;
   Query: Record<PropertyKey, never>;
   RichPod: Omit<RichPod, 'chapters'> & { chapters: Array<ResolversParentTypes['Chapter']> };
+  RichPodLock: RichPodLock;
+  RichPodLockAcquireResult: RichPodLockAcquireResult;
   SignInInput: SignInInput;
   SignUpInput: SignUpInput;
   Slide: Slide;
@@ -1111,20 +1161,24 @@ export type MarkdownResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  acquireRichPodLock?: Resolver<ResolversTypes['RichPodLockAcquireResult'], ParentType, ContextType, RequireFields<MutationAcquireRichPodLockArgs, 'id' | 'sessionId'>>;
+  clearAllOwnRichPodLocks?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   completeRichPodVerification?: Resolver<ResolversTypes['Verification'], ParentType, ContextType, RequireFields<MutationCompleteRichPodVerificationArgs, 'code' | 'feedUrl'>>;
   createRichPod?: Resolver<ResolversTypes['RichPod'], ParentType, ContextType, RequireFields<MutationCreateRichPodArgs, 'input'>>;
   deleteHostedEpisode?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteHostedEpisodeArgs, 'id'>>;
   deleteHostedPodcast?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteHostedPodcastArgs, 'id'>>;
   deleteRichPod?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteRichPodArgs, 'id'>>;
+  heartbeatRichPodLock?: Resolver<ResolversTypes['RichPodLock'], ParentType, ContextType, RequireFields<MutationHeartbeatRichPodLockArgs, 'id' | 'sessionId'>>;
   refreshEpisodeMedia?: Resolver<ResolversTypes['PodcastMedia'], ParentType, ContextType, RequireFields<MutationRefreshEpisodeMediaArgs, 'richPodId'>>;
-  setRichPodChapters?: Resolver<ResolversTypes['RichPod'], ParentType, ContextType, RequireFields<MutationSetRichPodChaptersArgs, 'chapters' | 'id'>>;
+  releaseRichPodLock?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationReleaseRichPodLockArgs, 'id' | 'sessionId'>>;
+  setRichPodChapters?: Resolver<ResolversTypes['RichPod'], ParentType, ContextType, RequireFields<MutationSetRichPodChaptersArgs, 'chapters' | 'id' | 'sessionId'>>;
   signIn?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationSignInArgs, 'input'>>;
   signInWithGoogle?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationSignInWithGoogleArgs, 'idToken'>>;
   signUp?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationSignUpArgs, 'input'>>;
   startRichPodVerification?: Resolver<ResolversTypes['Verification'], ParentType, ContextType, RequireFields<MutationStartRichPodVerificationArgs, 'feedUrl'>>;
   updateHostedPodcast?: Resolver<ResolversTypes['HostedPodcast'], ParentType, ContextType, RequireFields<MutationUpdateHostedPodcastArgs, 'id' | 'input'>>;
   updateProfile?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
-  updateRichPod?: Resolver<ResolversTypes['RichPod'], ParentType, ContextType, RequireFields<MutationUpdateRichPodArgs, 'id' | 'input'>>;
+  updateRichPod?: Resolver<ResolversTypes['RichPod'], ParentType, ContextType, RequireFields<MutationUpdateRichPodArgs, 'id' | 'input' | 'sessionId'>>;
 };
 
 export type PaginatedHostedEpisodesResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaginatedHostedEpisodes'] = ResolversParentTypes['PaginatedHostedEpisodes']> = {
@@ -1265,6 +1319,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   publicHostedPodcastEpisodes?: Resolver<ResolversTypes['PaginatedPublicHostedEpisodes'], ParentType, ContextType, RequireFields<QueryPublicHostedPodcastEpisodesArgs, 'podcastId'>>;
   recentPublishedRichPods?: Resolver<ResolversTypes['PaginatedRichPods'], ParentType, ContextType, Partial<QueryRecentPublishedRichPodsArgs>>;
   richPod?: Resolver<Maybe<ResolversTypes['RichPod']>, ParentType, ContextType, RequireFields<QueryRichPodArgs, 'id'>>;
+  richPodLock?: Resolver<Maybe<ResolversTypes['RichPodLock']>, ParentType, ContextType, RequireFields<QueryRichPodLockArgs, 'id'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   userRichPods?: Resolver<ResolversTypes['PaginatedRichPods'], ParentType, ContextType, Partial<QueryUserRichPodsArgs>>;
   userVerifications?: Resolver<ResolversTypes['PaginatedVerifications'], ParentType, ContextType, Partial<QueryUserVerificationsArgs>>;
@@ -1284,6 +1339,19 @@ export type RichPodResolvers<ContextType = any, ParentType extends ResolversPare
   state?: Resolver<ResolversTypes['RichPodState'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type RichPodLockResolvers<ContextType = any, ParentType extends ResolversParentTypes['RichPodLock'] = ResolversParentTypes['RichPodLock']> = {
+  acquiredAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  expiresAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  lastHeartbeatAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  sessionId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+};
+
+export type RichPodLockAcquireResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['RichPodLockAcquireResult'] = ResolversParentTypes['RichPodLockAcquireResult']> = {
+  acquired?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  lock?: Resolver<ResolversTypes['RichPodLock'], ParentType, ContextType>;
 };
 
 export type SlideResolvers<ContextType = any, ParentType extends ResolversParentTypes['Slide'] = ResolversParentTypes['Slide']> = {
@@ -1361,6 +1429,8 @@ export type Resolvers<ContextType = any> = {
   PublicHostedPodcast?: PublicHostedPodcastResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   RichPod?: RichPodResolvers<ContextType>;
+  RichPodLock?: RichPodLockResolvers<ContextType>;
+  RichPodLockAcquireResult?: RichPodLockAcquireResultResolvers<ContextType>;
   Slide?: SlideResolvers<ContextType>;
   Slideshow?: SlideshowResolvers<ContextType>;
   User?: UserResolvers<ContextType>;

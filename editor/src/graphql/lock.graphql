@@ -1,0 +1,38 @@
+fragment RichPodLockFields on RichPodLock {
+    sessionId
+    acquiredAt
+    lastHeartbeatAt
+    expiresAt
+    user {
+        ...UserFields
+    }
+}
+
+query GetRichPodLock($id: ID!) {
+    richPodLock(id: $id) {
+        ...RichPodLockFields
+    }
+}
+
+mutation AcquireRichPodLock($id: ID!, $sessionId: String!, $takeover: Boolean) {
+    acquireRichPodLock(id: $id, sessionId: $sessionId, takeover: $takeover) {
+        acquired
+        lock {
+            ...RichPodLockFields
+        }
+    }
+}
+
+mutation HeartbeatRichPodLock($id: ID!, $sessionId: String!) {
+    heartbeatRichPodLock(id: $id, sessionId: $sessionId) {
+        ...RichPodLockFields
+    }
+}
+
+mutation ReleaseRichPodLock($id: ID!, $sessionId: String!) {
+    releaseRichPodLock(id: $id, sessionId: $sessionId)
+}
+
+mutation ClearAllOwnRichPodLocks {
+    clearAllOwnRichPodLocks
+}

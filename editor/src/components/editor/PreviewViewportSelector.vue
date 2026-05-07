@@ -33,11 +33,7 @@
                     <Icon :icon="vp.icon" class="w-4 h-4" />
                     <span class="flex-1">{{ t(vp.labelKey) }}</span>
                     <span class="text-xs text-gray-500">{{ vp.widthLabel }}</span>
-                    <Icon
-                        v-if="selected"
-                        icon="ion:checkmark"
-                        class="w-4 h-4 text-blue-600"
-                    />
+                    <Icon v-if="selected" icon="ion:checkmark" class="w-4 h-4 text-blue-600" />
                 </li>
             </ListboxOption>
         </ListboxOptions>
@@ -51,6 +47,5 @@ import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headless
 import { usePreviewViewport } from "@/composables/usePreviewViewport";
 
 const { t } = useI18n();
-const { viewports, viewportId, setViewport, currentViewport, showSelector } =
-    usePreviewViewport();
+const { viewports, viewportId, setViewport, currentViewport, showSelector } = usePreviewViewport();
 </script>

@@ -136,6 +136,15 @@
         @delete-chapter-only="handleDeleteChapterOnly"
         @delete-both="handleDeleteBoth"
     />
+
+    <LockTakeoverModal
+        :open="showLockModal"
+        :lock="conflictingLock"
+        :busy="isTakingOver"
+        :kicked="lock.wasHeld.value"
+        @go-back="onLockGoBack"
+        @takeover="onLockTakeover"
+    />
 </template>
 
 <script setup lang="ts">
@@ -160,15 +169,18 @@ import BrokenMediaPanel from "@/components/editor/BrokenMediaPanel.vue";
 import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
 import TypeChooserModal from "@/components/editor/TypeChooserModal.vue";
 import PollDeleteConfirmModal from "@/components/editor/PollDeleteConfirmModal.vue";
+import LockTakeoverModal from "@/components/editor/LockTakeoverModal.vue";
 import { useRichPodStore } from "@/stores/useRichPodStore";
 import { useEditorUiStore } from "@/stores/useEditorUiStore";
 import { useValidation } from "@/composables/useValidation";
 import { useAutoSave } from "@/composables/useAutoSave";
-import { fetchRichPodById, saveRichPod } from "@/services/richpodService";
+import { useRichPodLock } from "@/composables/useRichPodLock";
+import { fetchRichPodById } from "@/services/richpodService";
 import { useCurrentUserRole } from "@/composables/useCurrentUserRole";
 import { useHostedValidation } from "@/composables/useHostedValidation";
 import type { EditorChapter, EnclosureType, StartTimeAddState } from "@/types/editor";
 import type { Chapter } from "@/graphql/generated";
+import type { RichPodLock } from "@/services/richpodLockService";
 import type { Component } from "vue";
 import { provideSaveNow } from "@/composables/useSaveNow";
 
@@ -186,8 +198,33 @@ const { validationStatus: hostedValidationStatus, validationError: hostedValidat
 const { runValidation } = useValidation();
 
 const richpodId = computed(() => route.params.id as string | undefined);
-const { saveStatus, saveNow, dispose: disposeAutoSave } = useAutoSave(richpodId);
+const lock = useRichPodLock(richpodId);
+const lockHeld = computed(() => lock.state.value.status === "held");
+const {
+    saveStatus,
+    saveNow,
+    dispose: disposeAutoSave,
+} = useAutoSave(richpodId, lock.sessionId, lockHeld, () => lock.notifyLost());
 provideSaveNow(saveNow);
+
+const isTakingOver = ref(false);
+const showLockModal = computed(() => lock.state.value.status === "conflict");
+const conflictingLock = computed<RichPodLock | null>(() =>
+    lock.state.value.status === "conflict" ? lock.state.value.lock : null,
+);
+
+async function onLockTakeover() {
+    isTakingOver.value = true;
+    try {
+        await lock.takeover();
+    } finally {
+        isTakingOver.value = false;
+    }
+}
+
+function onLockGoBack() {
+    router.push("/richpods");
+}
 
 const { audioError, setAudio } = useAudio();
 const showBrokenMediaPanel = computed(() => !isHosted.value && !!audioError.value);
@@ -238,16 +275,20 @@ async function saveChanges() {
         console.warn("No RichPod ID - this should have been created already");
         return;
     }
+    if (!lockHeld.value) {
+        return;
+    }
 
     error.value = "";
-
     const currentIndex = richpodStore.activeChapterIndex;
 
     try {
-        const updated = await saveRichPod(richpodId.value, richpod.value);
-        richpodStore.setRichPod(updated);
-        richpodStore.setActiveChapterIndex(Math.min(currentIndex, updated.chapters.length - 1));
-        editorUiStore.clearValidationErrors();
+        const updated = await saveNow();
+        if (updated) {
+            const targetIndex = Math.min(currentIndex, updated.chapters.length - 1);
+            richpodStore.setRichPod(updated, targetIndex);
+            editorUiStore.clearValidationErrors();
+        }
     } catch (err: unknown) {
         console.error("Error saving RichPod:", err);
         error.value = err instanceof Error ? err.message : t("editor.saveFailed");
@@ -717,6 +758,7 @@ function handlePollDeleteModalClose() {
 
 async function removeChapterAndSave(idx: number) {
     if (idx < 0 || !richpodId.value) return;
+    if (!lockHeld.value) return;
 
     isDeleting.value = true;
     error.value = "";
@@ -725,9 +767,11 @@ async function removeChapterAndSave(idx: number) {
         const targetIndex = Math.max(idx - 1, 0);
         richpodStore.removeChapterAt(idx);
 
-        const updated = await saveRichPod(richpodId.value, richpod.value);
-        richpodStore.setRichPod(updated, targetIndex);
-        editorUiStore.clearValidationErrors();
+        const updated = await saveNow();
+        if (updated) {
+            richpodStore.setRichPod(updated, targetIndex);
+            editorUiStore.clearValidationErrors();
+        }
     } catch (err: unknown) {
         console.error("Error deleting chapter:", err);
         error.value = err instanceof Error ? err.message : t("editor.deleteFailed");

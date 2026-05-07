@@ -125,7 +125,14 @@
         "emailVerifiedNo": "⚠ Not verified",
         "accountCreated": "Account Created",
         "lastSignIn": "Last Sign In",
-        "manageVerifications": "Manage verifications"
+        "manageVerifications": "Manage verifications",
+        "editorSessionsSection": "Editor sessions",
+        "clearLocksDescription": "If a stale browser tab is holding an editor lock, clear all your locks to recover. Any other open tabs of yours will be kicked out and need to take editing back over.",
+        "clearLocksButton": "Clear all my locks",
+        "clearLocksBusy": "Clearing…",
+        "clearLocksNone": "No active locks were held — nothing to clear.",
+        "clearLocksSuccess": "Cleared {count} lock(s).",
+        "clearLocksFailed": "Failed to clear locks. Please try again."
     },
     "profileForm": {
         "title": "Profile Management",
@@ -374,6 +381,23 @@
         "blank": {
             "description": "This is a blank card. It renders as empty space in the player and is only visible in the editor."
         }
+    },
+    "lock": {
+        "takeoverTitle": "RichPod is being edited",
+        "lockedByMessage": "{name} is currently editing this RichPod.",
+        "anotherUser": "Another user",
+        "takeoverWarning": "Taking over the edit session may overwrite their unsaved changes.",
+        "actionsAriaLabel": "Lock options",
+        "goBack": "Go back to overview",
+        "goBackHint": "Leave this RichPod and return to your list of RichPods.",
+        "takeover": "Take over edit session",
+        "takeoverHint": "Continue editing here. The other session will be kicked out and may lose unsaved data.",
+        "takingOver": "Taking over…",
+        "kickedTitle": "Your edit session was taken over",
+        "kickedMessage": "{name} took over editing this RichPod. Your changes are no longer being saved.",
+        "kickedWarning": "Any edits you have made since being taken over will be lost when you leave this page.",
+        "takeBackOver": "Take editing back",
+        "takeBackOverHint": "Reclaim the lock here. The other session will then be kicked out instead."
     },
     "pollDeleteModal": {
         "title": "Delete Poll Chapter",

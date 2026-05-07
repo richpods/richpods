@@ -260,12 +260,16 @@ export type Markdown = BaseEnclosure & {
 
 export type Mutation = {
     __typename?: "Mutation";
+    acquireRichPodLock: RichPodLockAcquireResult;
+    clearAllOwnRichPodLocks: Scalars["Int"]["output"];
     completeRichPodVerification: Verification;
     createRichPod: RichPod;
     deleteHostedEpisode: Scalars["Boolean"]["output"];
     deleteHostedPodcast: Scalars["Boolean"]["output"];
     deleteRichPod: Scalars["Boolean"]["output"];
+    heartbeatRichPodLock: RichPodLock;
     refreshEpisodeMedia: PodcastMedia;
+    releaseRichPodLock: Scalars["Boolean"]["output"];
     setRichPodChapters: RichPod;
     signIn: AuthPayload;
     signInWithGoogle: AuthPayload;
@@ -274,6 +278,12 @@ export type Mutation = {
     updateHostedPodcast: HostedPodcast;
     updateProfile: User;
     updateRichPod: RichPod;
+};
+
+export type MutationAcquireRichPodLockArgs = {
+    id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+    takeover?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type MutationCompleteRichPodVerificationArgs = {
@@ -297,13 +307,24 @@ export type MutationDeleteRichPodArgs = {
     id: Scalars["ID"]["input"];
 };
 
+export type MutationHeartbeatRichPodLockArgs = {
+    id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+};
+
 export type MutationRefreshEpisodeMediaArgs = {
     richPodId: Scalars["ID"]["input"];
+};
+
+export type MutationReleaseRichPodLockArgs = {
+    id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
 };
 
 export type MutationSetRichPodChaptersArgs = {
     chapters: Array<ChapterInput>;
     id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
 };
 
 export type MutationSignInArgs = {
@@ -334,6 +355,7 @@ export type MutationUpdateProfileArgs = {
 export type MutationUpdateRichPodArgs = {
     id: Scalars["ID"]["input"];
     input: UpdateRichPodInput;
+    sessionId: Scalars["String"]["input"];
 };
 
 export type PaginatedHostedEpisodes = {
@@ -522,6 +544,7 @@ export type Query = {
     publicHostedPodcastEpisodes: PaginatedPublicHostedEpisodes;
     recentPublishedRichPods: PaginatedRichPods;
     richPod?: Maybe<RichPod>;
+    richPodLock?: Maybe<RichPodLock>;
     user?: Maybe<User>;
     userRichPods: PaginatedRichPods;
     userVerifications: PaginatedVerifications;
@@ -580,6 +603,10 @@ export type QueryRichPodArgs = {
     id: Scalars["ID"]["input"];
 };
 
+export type QueryRichPodLockArgs = {
+    id: Scalars["ID"]["input"];
+};
+
 export type QueryUserArgs = {
     id: Scalars["ID"]["input"];
 };
@@ -610,6 +637,21 @@ export type RichPod = {
     state: RichPodState;
     title: Scalars["String"]["output"];
     updatedAt: Scalars["String"]["output"];
+};
+
+export type RichPodLock = {
+    __typename?: "RichPodLock";
+    acquiredAt: Scalars["String"]["output"];
+    expiresAt: Scalars["String"]["output"];
+    lastHeartbeatAt: Scalars["String"]["output"];
+    sessionId: Scalars["String"]["output"];
+    user: User;
+};
+
+export type RichPodLockAcquireResult = {
+    __typename?: "RichPodLockAcquireResult";
+    acquired: Scalars["Boolean"]["output"];
+    lock: RichPodLock;
 };
 
 export const RichPodState = {
@@ -1085,6 +1127,124 @@ export type InstanceInfoQuery = {
     };
 };
 
+export type RichPodLockFieldsFragment = {
+    __typename?: "RichPodLock";
+    sessionId: string;
+    acquiredAt: string;
+    lastHeartbeatAt: string;
+    expiresAt: string;
+    user: {
+        __typename?: "User";
+        id: string;
+        publicName?: string | null;
+        biography?: string | null;
+        website?: string | null;
+        publicEmail?: string | null;
+        socialAccounts: Array<string>;
+        usedQuotaBytes?: number | null;
+        totalQuotaBytes?: number | null;
+    };
+};
+
+export type GetRichPodLockQueryVariables = Exact<{
+    id: Scalars["ID"]["input"];
+}>;
+
+export type GetRichPodLockQuery = {
+    __typename?: "Query";
+    richPodLock?: {
+        __typename?: "RichPodLock";
+        sessionId: string;
+        acquiredAt: string;
+        lastHeartbeatAt: string;
+        expiresAt: string;
+        user: {
+            __typename?: "User";
+            id: string;
+            publicName?: string | null;
+            biography?: string | null;
+            website?: string | null;
+            publicEmail?: string | null;
+            socialAccounts: Array<string>;
+            usedQuotaBytes?: number | null;
+            totalQuotaBytes?: number | null;
+        };
+    } | null;
+};
+
+export type AcquireRichPodLockMutationVariables = Exact<{
+    id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+    takeover?: InputMaybe<Scalars["Boolean"]["input"]>;
+}>;
+
+export type AcquireRichPodLockMutation = {
+    __typename?: "Mutation";
+    acquireRichPodLock: {
+        __typename?: "RichPodLockAcquireResult";
+        acquired: boolean;
+        lock: {
+            __typename?: "RichPodLock";
+            sessionId: string;
+            acquiredAt: string;
+            lastHeartbeatAt: string;
+            expiresAt: string;
+            user: {
+                __typename?: "User";
+                id: string;
+                publicName?: string | null;
+                biography?: string | null;
+                website?: string | null;
+                publicEmail?: string | null;
+                socialAccounts: Array<string>;
+                usedQuotaBytes?: number | null;
+                totalQuotaBytes?: number | null;
+            };
+        };
+    };
+};
+
+export type HeartbeatRichPodLockMutationVariables = Exact<{
+    id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+}>;
+
+export type HeartbeatRichPodLockMutation = {
+    __typename?: "Mutation";
+    heartbeatRichPodLock: {
+        __typename?: "RichPodLock";
+        sessionId: string;
+        acquiredAt: string;
+        lastHeartbeatAt: string;
+        expiresAt: string;
+        user: {
+            __typename?: "User";
+            id: string;
+            publicName?: string | null;
+            biography?: string | null;
+            website?: string | null;
+            publicEmail?: string | null;
+            socialAccounts: Array<string>;
+            usedQuotaBytes?: number | null;
+            totalQuotaBytes?: number | null;
+        };
+    };
+};
+
+export type ReleaseRichPodLockMutationVariables = Exact<{
+    id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+}>;
+
+export type ReleaseRichPodLockMutation = { __typename?: "Mutation"; releaseRichPodLock: boolean };
+
+export type ClearAllOwnRichPodLocksMutationVariables = Exact<{ [key: string]: never }>;
+
+export type ClearAllOwnRichPodLocksMutation = {
+    __typename?: "Mutation";
+    clearAllOwnRichPodLocks: number;
+};
+
 export type PodcastEpisodeSearchQueryVariables = Exact<{
     query: Scalars["String"]["input"];
     country?: InputMaybe<Scalars["String"]["input"]>;
@@ -1261,6 +1421,7 @@ export type CreateRichPodMutation = {
 
 export type UpdateRichPodMutationVariables = Exact<{
     id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
     input: UpdateRichPodInput;
 }>;
 
@@ -1384,6 +1545,7 @@ export type DeleteRichPodMutation = { __typename?: "Mutation"; deleteRichPod: bo
 
 export type SetRichPodChaptersMutationVariables = Exact<{
     id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
     chapters: Array<ChapterInput> | ChapterInput;
 }>;
 
@@ -1884,6 +2046,18 @@ export const ChapterFieldsFragmentDoc = gql`
         }
     }
 `;
+export const RichPodLockFieldsFragmentDoc = gql`
+    fragment RichPodLockFields on RichPodLock {
+        sessionId
+        acquiredAt
+        lastHeartbeatAt
+        expiresAt
+        user {
+            ...UserFields
+        }
+    }
+    ${UserFieldsFragmentDoc}
+`;
 export const SignUpDocument = gql`
     mutation SignUp($input: SignUpInput!) {
         signUp(input: $input) {
@@ -2065,6 +2239,43 @@ export const InstanceInfoDocument = gql`
         }
     }
 `;
+export const GetRichPodLockDocument = gql`
+    query GetRichPodLock($id: ID!) {
+        richPodLock(id: $id) {
+            ...RichPodLockFields
+        }
+    }
+    ${RichPodLockFieldsFragmentDoc}
+`;
+export const AcquireRichPodLockDocument = gql`
+    mutation AcquireRichPodLock($id: ID!, $sessionId: String!, $takeover: Boolean) {
+        acquireRichPodLock(id: $id, sessionId: $sessionId, takeover: $takeover) {
+            acquired
+            lock {
+                ...RichPodLockFields
+            }
+        }
+    }
+    ${RichPodLockFieldsFragmentDoc}
+`;
+export const HeartbeatRichPodLockDocument = gql`
+    mutation HeartbeatRichPodLock($id: ID!, $sessionId: String!) {
+        heartbeatRichPodLock(id: $id, sessionId: $sessionId) {
+            ...RichPodLockFields
+        }
+    }
+    ${RichPodLockFieldsFragmentDoc}
+`;
+export const ReleaseRichPodLockDocument = gql`
+    mutation ReleaseRichPodLock($id: ID!, $sessionId: String!) {
+        releaseRichPodLock(id: $id, sessionId: $sessionId)
+    }
+`;
+export const ClearAllOwnRichPodLocksDocument = gql`
+    mutation ClearAllOwnRichPodLocks {
+        clearAllOwnRichPodLocks
+    }
+`;
 export const PodcastEpisodeSearchDocument = gql`
     query PodcastEpisodeSearch($query: String!, $country: String, $language: String) {
         podcastEpisodeSearch(query: $query, country: $country, language: $language) {
@@ -2140,8 +2351,8 @@ export const CreateRichPodDocument = gql`
     ${ChapterFieldsFragmentDoc}
 `;
 export const UpdateRichPodDocument = gql`
-    mutation UpdateRichPod($id: ID!, $input: UpdateRichPodInput!) {
-        updateRichPod(id: $id, input: $input) {
+    mutation UpdateRichPod($id: ID!, $sessionId: String!, $input: UpdateRichPodInput!) {
+        updateRichPod(id: $id, sessionId: $sessionId, input: $input) {
             ...RichPodFields
             origin {
                 id
@@ -2177,8 +2388,8 @@ export const DeleteRichPodDocument = gql`
     }
 `;
 export const SetRichPodChaptersDocument = gql`
-    mutation SetRichPodChapters($id: ID!, $chapters: [ChapterInput!]!) {
-        setRichPodChapters(id: $id, chapters: $chapters) {
+    mutation SetRichPodChapters($id: ID!, $sessionId: String!, $chapters: [ChapterInput!]!) {
+        setRichPodChapters(id: $id, sessionId: $sessionId, chapters: $chapters) {
             ...RichPodFields
             origin {
                 id
@@ -2548,6 +2759,96 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
                     }),
                 "InstanceInfo",
                 "query",
+                variables,
+            );
+        },
+        GetRichPodLock(
+            variables: GetRichPodLockQueryVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<GetRichPodLockQuery> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<GetRichPodLockQuery>({
+                        document: GetRichPodLockDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "GetRichPodLock",
+                "query",
+                variables,
+            );
+        },
+        AcquireRichPodLock(
+            variables: AcquireRichPodLockMutationVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<AcquireRichPodLockMutation> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<AcquireRichPodLockMutation>({
+                        document: AcquireRichPodLockDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "AcquireRichPodLock",
+                "mutation",
+                variables,
+            );
+        },
+        HeartbeatRichPodLock(
+            variables: HeartbeatRichPodLockMutationVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<HeartbeatRichPodLockMutation> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<HeartbeatRichPodLockMutation>({
+                        document: HeartbeatRichPodLockDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "HeartbeatRichPodLock",
+                "mutation",
+                variables,
+            );
+        },
+        ReleaseRichPodLock(
+            variables: ReleaseRichPodLockMutationVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<ReleaseRichPodLockMutation> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<ReleaseRichPodLockMutation>({
+                        document: ReleaseRichPodLockDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "ReleaseRichPodLock",
+                "mutation",
+                variables,
+            );
+        },
+        ClearAllOwnRichPodLocks(
+            variables?: ClearAllOwnRichPodLocksMutationVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<ClearAllOwnRichPodLocksMutation> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<ClearAllOwnRichPodLocksMutation>({
+                        document: ClearAllOwnRichPodLocksDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "ClearAllOwnRichPodLocks",
+                "mutation",
                 variables,
             );
         },

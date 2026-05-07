@@ -290,6 +290,19 @@ type AuthPayload {
     user: User!
 }
 
+type RichPodLock {
+    user: User!
+    sessionId: String!
+    acquiredAt: String!
+    lastHeartbeatAt: String!
+    expiresAt: String!
+}
+
+type RichPodLockAcquireResult {
+    acquired: Boolean!
+    lock: RichPodLock!
+}
+
 type HostedPodcast {
     id: ID!
     title: String!
@@ -530,6 +543,7 @@ type Query {
         first: Int
         after: String
     ): PaginatedPublicHostedEpisodes!
+    richPodLock(id: ID!): RichPodLock
 }
 
 type Mutation {
@@ -538,8 +552,8 @@ type Mutation {
     signInWithGoogle(idToken: String!): AuthPayload!
     updateProfile(input: UpdateProfileInput!): User!
     createRichPod(input: CreateRichPodInput!): RichPod!
-    updateRichPod(id: ID!, input: UpdateRichPodInput!): RichPod!
-    setRichPodChapters(id: ID!, chapters: [ChapterInput!]!): RichPod!
+    updateRichPod(id: ID!, sessionId: String!, input: UpdateRichPodInput!): RichPod!
+    setRichPodChapters(id: ID!, sessionId: String!, chapters: [ChapterInput!]!): RichPod!
     deleteRichPod(id: ID!): Boolean!
     startRichPodVerification(feedUrl: String!): Verification!
     completeRichPodVerification(feedUrl: String!, code: String!): Verification!
@@ -547,4 +561,12 @@ type Mutation {
     deleteHostedPodcast(id: ID!): Boolean!
     deleteHostedEpisode(id: ID!): Boolean!
     refreshEpisodeMedia(richPodId: ID!): PodcastMedia!
+    acquireRichPodLock(
+        id: ID!
+        sessionId: String!
+        takeover: Boolean
+    ): RichPodLockAcquireResult!
+    heartbeatRichPodLock(id: ID!, sessionId: String!): RichPodLock!
+    releaseRichPodLock(id: ID!, sessionId: String!): Boolean!
+    clearAllOwnRichPodLocks: Int!
 }

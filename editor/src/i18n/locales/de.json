@@ -125,7 +125,14 @@
         "emailVerifiedNo": "⚠ Nicht verifiziert",
         "accountCreated": "Konto erstellt",
         "lastSignIn": "Letzte Anmeldung",
-        "manageVerifications": "Verifizierungen verwalten"
+        "manageVerifications": "Verifizierungen verwalten",
+        "editorSessionsSection": "Editor-Sitzungen",
+        "clearLocksDescription": "Falls ein hängengebliebener Browser-Tab eine Editor-Sperre hält, kannst du hier alle deine Sperren aufheben. Andere geöffnete Tabs verlieren dadurch die Bearbeitungs-Sperre und müssen sie zurückholen.",
+        "clearLocksButton": "Alle Sperren aufheben",
+        "clearLocksBusy": "Wird aufgehoben…",
+        "clearLocksNone": "Keine aktiven Sperren vorhanden – nichts zu tun.",
+        "clearLocksSuccess": "{count} Sperre(n) aufgehoben.",
+        "clearLocksFailed": "Sperren konnten nicht aufgehoben werden. Bitte erneut versuchen."
     },
     "profileForm": {
         "title": "Profilverwaltung",
@@ -374,6 +381,23 @@
         "blank": {
             "description": "Dies ist eine leere Karte. Sie wird als leerer Raum im Player dargestellt und ist nur im Editor sichtbar."
         }
+    },
+    "lock": {
+        "takeoverTitle": "RichPod wird gerade bearbeitet",
+        "lockedByMessage": "{name} bearbeitet diesen RichPod gerade.",
+        "anotherUser": "Eine andere Person",
+        "takeoverWarning": "Wenn du die Bearbeitung übernimmst, gehen ungespeicherte Änderungen der anderen Sitzung möglicherweise verloren.",
+        "actionsAriaLabel": "Sperr-Optionen",
+        "goBack": "Zurück zur Übersicht",
+        "goBackHint": "Diesen RichPod verlassen und zur Liste der RichPods zurückkehren.",
+        "takeover": "Bearbeitung übernehmen",
+        "takeoverHint": "Hier weiter bearbeiten. Die andere Sitzung wird beendet und kann ungespeicherte Daten verlieren.",
+        "takingOver": "Wird übernommen…",
+        "kickedTitle": "Deine Bearbeitungs-Sitzung wurde übernommen",
+        "kickedMessage": "{name} hat die Bearbeitung dieses RichPods übernommen. Deine Änderungen werden nicht mehr gespeichert.",
+        "kickedWarning": "Alle seit der Übernahme gemachten Änderungen gehen verloren, wenn du diese Seite verlässt.",
+        "takeBackOver": "Bearbeitung zurückholen",
+        "takeBackOverHint": "Die Sperre hier wieder übernehmen. Die andere Sitzung wird dann beendet."
     },
     "pollDeleteModal": {
         "title": "Umfrage-Kapitel löschen",

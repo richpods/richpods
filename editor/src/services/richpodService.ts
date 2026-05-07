@@ -187,9 +187,14 @@ export async function refreshEpisodeMedia(richPodId: string): Promise<{
     };
 }
 
-export async function saveRichPod(id: string, richpod: RichPodForEdit): Promise<RichPodForEdit> {
+export async function saveRichPod(
+    id: string,
+    sessionId: string,
+    richpod: RichPodForEdit,
+): Promise<RichPodForEdit> {
     await graphqlSdk.UpdateRichPod({
         id,
+        sessionId,
         input: {
             title: richpod.title,
             description: richpod.description,
@@ -209,8 +214,23 @@ export async function saveRichPod(id: string, richpod: RichPodForEdit): Promise<
 
     await graphqlSdk.SetRichPodChapters({
         id,
+        sessionId,
         chapters,
     });
 
     return fetchRichPodById(id);
+}
+
+/**
+ * The server throws this exact message when a save mutation cannot proceed
+ * because the caller's lock has been taken over or expired. Surfaced via
+ * graphql-request errors as a substring.
+ */
+export const LOCK_LOST_ERROR_MESSAGE = "LOCK_LOST";
+
+export function isLockLostError(err: unknown): boolean {
+    if (err instanceof Error) {
+        return err.message.includes(LOCK_LOST_ERROR_MESSAGE);
+    }
+    return String(err).includes(LOCK_LOST_ERROR_MESSAGE);
 }

@@ -4,6 +4,7 @@ import { getEnclosure } from "./storage.service.js";
 import { getUserById, getUserReference } from "./user.service.js";
 import { fetchAndValidateFeed, storeFeedInGCS } from "./feed.service.js";
 import { resolveRichPodVerificationStatus } from "./verification.service.js";
+import { verifyLockHeldOrThrow } from "./lock.service.js";
 import type {
     ChapterDocument,
     Chapter,
@@ -280,118 +281,127 @@ export async function createRichPod(
 }
 
 /**
- * Update a RichPod.
+ * Update a RichPod. Atomically verifies the caller holds the editor lock
+ * for the supplied sessionId — concurrent editors with stale locks cannot
+ * overwrite each other.
  */
 export async function updateRichPod(
     id: string,
     updates: Partial<Omit<RichPodDocument, "createdAt" | "updatedAt" | "editor">>,
     editorUserId: string,
+    sessionId: string,
 ): Promise<RichPod | null> {
     const docRef = db.collection(RICHPODS_COLLECTION).doc(id);
-    const doc = await docRef.get();
 
-    if (!doc.exists) {
-        return null;
-    }
-
-    const data = doc.data() as RichPodDocument;
-
-    if (data.editor.id !== editorUserId) {
-        throw new Error("Unauthorized: You can only edit your own RichPods");
-    }
-
-    // Prevent publishing without chapters
+    // Pre-fetch the latest chapter outside the transaction since it lives
+    // in a sub-collection and is append-only — racing on it is fine.
+    let latestChapterCount: number | null = null;
     if (updates.state === FirestoreRichPodState.PUBLISHED) {
         const latestChapter = await getLatestChapter(id);
-        if (!latestChapter || latestChapter.chapters.length === 0) {
+        latestChapterCount = latestChapter?.chapters.length ?? 0;
+    }
+
+    const updatedData = await db.runTransaction(async (tx) => {
+        const snap = await tx.get(docRef);
+        if (!snap.exists) {
+            return null;
+        }
+        const data = snap.data() as RichPodDocument;
+        if (data.editor.id !== editorUserId) {
+            throw new Error("Unauthorized: You can only edit your own RichPods");
+        }
+        verifyLockHeldOrThrow(data, sessionId);
+
+        if (
+            updates.state === FirestoreRichPodState.PUBLISHED &&
+            (latestChapterCount === null || latestChapterCount === 0)
+        ) {
             throw new Error("Cannot publish a RichPod without chapters");
         }
-    }
 
-    // Build the Firestore update payload
-    const updatePayload: Record<string, unknown> = {
-        ...updates,
-        updatedAt: FieldValue.serverTimestamp(),
-    };
+        const updatePayload: Record<string, unknown> = {
+            ...updates,
+            updatedAt: FieldValue.serverTimestamp(),
+        };
 
-    // When publishing, set publishedAt if not already set
-    if (updates.state === FirestoreRichPodState.PUBLISHED && !data.publishedAt) {
-        updatePayload.publishedAt = FieldValue.serverTimestamp();
-    }
-    // When unpublishing, clear publishedAt
-    if (updates.state === FirestoreRichPodState.DRAFT && data.publishedAt) {
-        updatePayload.publishedAt = null;
-    }
+        if (updates.state === FirestoreRichPodState.PUBLISHED && !data.publishedAt) {
+            updatePayload.publishedAt = FieldValue.serverTimestamp();
+        }
+        if (updates.state === FirestoreRichPodState.DRAFT && data.publishedAt) {
+            updatePayload.publishedAt = null;
+        }
 
-    // For hosted RichPods, keep origin.episode.title in sync with the RichPod title
-    if (data.isHosted && updates.title !== undefined) {
-        updatePayload["origin.episode.title"] = updates.title;
-    }
+        if (data.isHosted && updates.title !== undefined) {
+            updatePayload["origin.episode.title"] = updates.title;
+        }
 
-    await docRef.update(updatePayload);
+        tx.update(docRef, updatePayload);
+        return data;
+    });
+
+    if (!updatedData) return null;
 
     const updated = await docRef.get();
-    const updatedData = updated.data() as RichPodDocument;
-    const editor = await getUserById(updatedData.editor.id);
+    const finalData = updated.data() as RichPodDocument;
+    const editor = await getUserById(finalData.editor.id);
     if (!editor) {
         throw new Error(`Editor not found for RichPod ${id}`);
     }
 
     return mapToGraphQL(
         id,
-        updatedData,
-        await getChaptersForRichPod(id, updatedData.origin),
+        finalData,
+        await getChaptersForRichPod(id, finalData.origin),
         editor,
     );
 }
 
 /**
- * Add a new chapter version to a RichPod.
+ * Add a new chapter version to a RichPod. Atomically verifies the caller
+ * holds the editor lock for the supplied sessionId — concurrent editors
+ * with stale locks cannot overwrite each other's chapter sets.
  */
 export async function setChaptersForRichPod(
     richPodId: string,
     chapters: Chapter[],
     editorUserId: string,
+    sessionId: string,
     userRole?: UserRoleValue | null,
 ): Promise<string> {
-    // Verify ownership before allowing chapter updates
     const richPodRef = db.collection(RICHPODS_COLLECTION).doc(richPodId);
-    const richPodDoc = await richPodRef.get();
-
-    if (!richPodDoc.exists) {
-        throw new Error("RichPod not found");
-    }
-
-    const richPodData = richPodDoc.data() as RichPodDocument;
-    if (richPodData.editor.id !== editorUserId) {
-        throw new Error("Unauthorized: You can only edit chapters of your own RichPods");
-    }
-
-    // Prevent removing all chapters from a published RichPod
-    if (richPodData.state === FirestoreRichPodState.PUBLISHED && chapters.length === 0) {
-        throw new Error("Cannot remove all chapters from a published RichPod");
-    }
-
-    // Security check: Slideshow and Poll require verification (bypassed for privileged roles)
-    const requiresVerification =
-        !isPrivilegedRole(userRole) &&
-        chapters.some(
-            (ch) =>
-                ch.enclosureType === EnclosureType.SLIDESHOW ||
-                ch.enclosureType === EnclosureType.POLL,
-        );
-
-    if (requiresVerification) {
-        if (!richPodData.origin.verified) {
-            throw new Error("Slideshow and Poll chapters require podcast verification");
-        }
-    }
-
     const chaptersCollection = richPodRef.collection(CHAPTERS_SUBCOLLECTION);
 
     return await db.runTransaction(async (tx) => {
         const latestQuery = chaptersCollection.orderBy("version", "desc").limit(1);
-        const latestSnap = await tx.get(latestQuery);
+        const [richPodSnap, latestSnap] = await Promise.all([
+            tx.get(richPodRef),
+            tx.get(latestQuery),
+        ]);
+
+        if (!richPodSnap.exists) {
+            throw new Error("RichPod not found");
+        }
+        const richPodData = richPodSnap.data() as RichPodDocument;
+        if (richPodData.editor.id !== editorUserId) {
+            throw new Error("Unauthorized: You can only edit chapters of your own RichPods");
+        }
+        verifyLockHeldOrThrow(richPodData, sessionId);
+
+        if (richPodData.state === FirestoreRichPodState.PUBLISHED && chapters.length === 0) {
+            throw new Error("Cannot remove all chapters from a published RichPod");
+        }
+
+        const requiresVerification =
+            !isPrivilegedRole(userRole) &&
+            chapters.some(
+                (ch) =>
+                    ch.enclosureType === EnclosureType.SLIDESHOW ||
+                    ch.enclosureType === EnclosureType.POLL,
+            );
+        if (requiresVerification && !richPodData.origin.verified) {
+            throw new Error("Slideshow and Poll chapters require podcast verification");
+        }
+
         const nextVersion = latestSnap.empty
             ? 1
             : (latestSnap.docs[0].data().version as number) + 1;
@@ -403,7 +413,6 @@ export async function setChaptersForRichPod(
             createdAt: FieldValue.serverTimestamp(),
         } as Omit<ChapterDocument, "createdAt"> & { createdAt: FirebaseFirestore.FieldValue });
 
-        const richPodRef = db.collection(RICHPODS_COLLECTION).doc(richPodId);
         tx.update(richPodRef, { updatedAt: FieldValue.serverTimestamp() });
 
         return docRef.id;
@@ -475,10 +484,12 @@ export async function deleteRichPod(id: string, editorUserId: string): Promise<b
         throw new Error("Unauthorized: You can only delete your own RichPods");
     }
 
-    // Soft-delete the RichPod
+    // Soft-delete the RichPod and drop any editor lock so a stale concurrent
+    // editor session is invalidated on its next heartbeat or save attempt.
     await docRef.update({
         state: FirestoreRichPodState.DELETED,
         updatedAt: FieldValue.serverTimestamp(),
+        lock: null,
     });
 
     // If this RichPod belongs to a hosted episode, cascade-delete the episode

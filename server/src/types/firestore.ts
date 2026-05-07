@@ -163,6 +163,13 @@ export interface UserDocument {
     updatedAt: Timestamp;
 }
 
+export interface RichPodLockData {
+    user: DocumentReference;
+    sessionId: string;
+    acquiredAt: Timestamp;
+    lastHeartbeatAt: Timestamp;
+}
+
 export interface RichPodDocument {
     title: string;
     description: string;
@@ -173,6 +180,7 @@ export interface RichPodDocument {
     hostedEpisodeId?: string;
     publishedAt?: Timestamp | null;
     explicit?: boolean;
+    lock?: RichPodLockData | null;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
