@@ -1,12 +1,12 @@
 /**
- * Wikidata API service for searching entities and generating Factbox templates.
+ * Wikidata API service for searching entities and generating Markdown templates.
  *
  * Uses the Wikidata API:
  * - wbsearchentities: Search for entities by label
  * - wbgetentities: Fetch detailed entity data
  */
 
-import type { EditorFactboxLink } from "@/types/editor";
+import type { EditorMarkdownLink } from "@/types/editor";
 import enMessages from "@/i18n/locales/en.json";
 import deMessages from "@/i18n/locales/de.json";
 
@@ -62,10 +62,10 @@ export type WikidataEntityDetail = {
     imageUrl?: string;
 };
 
-export type FactboxTemplate = {
+export type WikidataTemplate = {
     title: string;
     text: string;
-    links: EditorFactboxLink[];
+    links: EditorMarkdownLink[];
 };
 
 // Simple in-memory cache with TTL
@@ -495,12 +495,12 @@ function getCommonsImageUrl(filename: string, width: number = 300): string {
 }
 
 /**
- * Generate a Factbox template from a Wikidata entity
+ * Generate a Markdown template from a Wikidata entity
  */
-export async function generateFactboxFromWikidata(
+export async function generateWikidataTemplate(
     entityId: string,
     language: string = "en",
-): Promise<FactboxTemplate> {
+): Promise<WikidataTemplate> {
     const messages = resolveWikidataMessages(language);
     const entity = await getWikidataEntity(entityId, language);
 
@@ -519,7 +519,7 @@ export async function generateFactboxFromWikidata(
     }
 
     // Build CTA links (max 3)
-    const links: EditorFactboxLink[] = [];
+    const links: EditorMarkdownLink[] = [];
 
     if (entity.wikipediaUrl) {
         links.push({ label: messages.links.wikipedia, url: entity.wikipediaUrl });

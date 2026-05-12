@@ -209,8 +209,6 @@ function getTypeLabel(type: string): string {
             return t("typeChooser.types.geoMap");
         case "Poll":
             return t("typeChooser.types.poll");
-        case "Factbox":
-            return t("typeChooser.types.factbox");
         case "Card":
             return t("typeChooser.types.card");
         default:

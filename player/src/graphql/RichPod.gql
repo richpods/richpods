@@ -8,6 +8,10 @@ query RichPod($id: ID!) {
                     __typename
                     title
                     text
+                    links {
+                        label
+                        url
+                    }
                 }
                 ... on InteractiveChart {
                     __typename
@@ -38,15 +42,6 @@ query RichPod($id: ID!) {
                     coloeus {
                         endpoint
                         pollId
-                    }
-                }
-                ... on Factbox {
-                    __typename
-                    title
-                    text
-                    links {
-                        label
-                        url
                     }
                 }
                 ... on Card {

@@ -6,6 +6,14 @@ export const EnclosureType = {
     GEO_MAP: "GeoMap",
     SLIDESHOW: "Slideshow",
     POLL: "Poll",
+    /**
+     * LEGACY_FACTBOX — Factbox enclosures were merged into Markdown. Existing
+     * Firestore documents with this discriminator are mapped to Markdown when
+     * read (see richpod.service.ts); new chapters are always saved with
+     * `MARKDOWN`. Once no Firestore document carries this value, this entry,
+     * the matching read-path case in richpod.service.ts, and any other
+     * occurrences of `LEGACY_FACTBOX` in the codebase can be removed.
+     */
     FACTBOX: "Factbox",
     CARD: "Card",
 } as const;
@@ -24,7 +32,7 @@ export interface ColoeusConfig {
     pollId: string;
 }
 
-export interface FactboxLink {
+export interface MarkdownLink {
     label: string;
     url: string;
 }
@@ -51,14 +59,14 @@ export interface CardOpenGraph {
 
 export interface Enclosure {
     title: string;
-    text?: string; // Markdown, Factbox
+    text?: string; // Markdown
     description?: string; // InteractiveChart, GeoMap, Slideshow, Card (Link)
     chartFormat?: "PLAIN_DATA" | "ECHARTS"; // InteractiveChart format discriminator
     chart?: Record<string, unknown>; // InteractiveChart (contains data+metadata or echartsConfig+metadata)
     geoJSON?: Record<string, unknown>; // GeoMap
     slides?: Slide[]; // Slideshow
     coloeus?: ColoeusConfig; // Poll
-    links?: FactboxLink[]; // Factbox
+    links?: MarkdownLink[]; // Markdown (optional CTA links)
     // Card fields
     cardType?: CardType;
     visibleAsChapter?: boolean;

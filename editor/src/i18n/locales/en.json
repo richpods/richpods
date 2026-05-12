@@ -329,7 +329,6 @@
             "interactiveChart": "Interactive chart",
             "geoMap": "Map",
             "poll": "Poll",
-            "factbox": "Factbox",
             "card": "Card"
         },
         "cardTypes": {
@@ -439,7 +438,38 @@
         "toggleRawMode": "Toggle raw markdown",
         "rawMarkdownAriaLabel": "Raw markdown editor",
         "switchedToRawMode": "Switched to raw markdown mode",
-        "switchedToWysiwygMode": "Switched to visual editor"
+        "switchedToWysiwygMode": "Switched to visual editor",
+        "searchWikidata": "Search Wikidata",
+        "linkEditor": {
+            "title": "Call-to-Action Links ({count}/{maxLinks})",
+            "addLink": "Add Link",
+            "emptyState": "No links added yet. Links appear as buttons below the markdown content.",
+            "linkLabel": "Link label",
+            "linkLabelPlaceholder": "Label (e.g., Wikipedia)",
+            "linkUrl": "Link URL",
+            "linkUrlPlaceholder": "URL (e.g., https://wikipedia.org/...)",
+            "invalidUrl": "Please enter a valid URL starting with http:// or https://",
+            "removeLink": "Remove link",
+            "moveUp": "Move up",
+            "moveDown": "Move down",
+            "dragHandle": "Drag to reorder",
+            "maxLinksReached": "Maximum of {maxLinks} links reached."
+        },
+        "wikidataSearch": {
+            "title": "Search Wikidata",
+            "closeModalAriaLabel": "Close modal",
+            "searchPlaceholder": "Search for people, places, organizations...",
+            "searchIn": "Search in:",
+            "searching": "Searching...",
+            "noResultsFoundFor": "No results found for \"{query}\"",
+            "enterSearchTerm": "Enter a search term to find Wikidata entities",
+            "selected": "Selected",
+            "generateIn": "Generate in",
+            "generating": "Generating...",
+            "useSelectedEntity": "Use Selected Entity",
+            "searchFailed": "Search failed",
+            "generateFailed": "Failed to generate content"
+        }
     },
     "chartEditor": {
         "descriptionLabel": "Description",
@@ -578,46 +608,6 @@
         "unknownError": "Unknown error",
         "fetchFailedWithStatus": "Failed to fetch polls: {status}",
         "deleteFailedWithStatus": "Failed to delete poll: {status}"
-    },
-    "factboxEditor": {
-        "description": "Create a factbox manually or generate one from Wikidata.",
-        "searchWikidata": "Search Wikidata",
-        "titleLabel": "Title",
-        "titlePlaceholder": "Enter factbox title",
-        "contentLabel": "Content",
-        "contentHint": "Use Markdown formatting for facts and key information.",
-        "contentAriaLabel": "Factbox content editor",
-        "linksLabel": "CTA Links",
-        "linkEditor": {
-            "title": "Call-to-Action Links ({count}/{maxLinks})",
-            "addLink": "Add Link",
-            "emptyState": "No links added yet. Links appear as buttons below the factbox content.",
-            "linkLabel": "Link label",
-            "linkLabelPlaceholder": "Label (e.g., Wikipedia)",
-            "linkUrl": "Link URL",
-            "linkUrlPlaceholder": "URL (e.g., https://wikipedia.org/...)",
-            "invalidUrl": "Please enter a valid URL starting with http:// or https://",
-            "removeLink": "Remove link",
-            "moveUp": "Move up",
-            "moveDown": "Move down",
-            "dragHandle": "Drag to reorder",
-            "maxLinksReached": "Maximum of {maxLinks} links reached."
-        },
-        "wikidataSearch": {
-            "title": "Search Wikidata",
-            "closeModalAriaLabel": "Close modal",
-            "searchPlaceholder": "Search for people, places, organizations...",
-            "searchIn": "Search in:",
-            "searching": "Searching...",
-            "noResultsFoundFor": "No results found for \"{query}\"",
-            "enterSearchTerm": "Enter a search term to find Wikidata entities",
-            "selected": "Selected",
-            "generateFactboxIn": "Generate factbox in",
-            "generating": "Generating...",
-            "useSelectedEntity": "Use Selected Entity",
-            "searchFailed": "Search failed",
-            "generateFailed": "Failed to generate factbox"
-        }
     },
     "verification": {
         "title": "Verify Podcasts",
@@ -841,8 +831,6 @@
             "slideAltText": "Slide {n} alt text",
             "slideImageUrl": "Slide {n} image URL",
             "description": "Description",
-            "factboxTitle": "Factbox title",
-            "factboxText": "Factbox text",
             "linkLabel": "Link {n} label",
             "linkUrl": "Link {n} URL",
             "richPodTitle": "RichPod title",
@@ -872,7 +860,7 @@
             "geoJsonRequired": "GeoJSON data is required.",
             "geoJsonRfc7946": "GeoJSON must follow RFC 7946.",
             "pollIdRequired": "Poll ID is required. Create a new poll or link an existing one.",
-            "maxFactboxLinksAllowed": "Maximum of {max} call-to-action links allowed.",
+            "maxMarkdownLinksAllowed": "Maximum of {max} call-to-action links allowed.",
             "publishRequiresChapters": "A published RichPod must have at least one chapter.",
             "citationSourceRequiredWithUrl": "A citation source is required when a link URL is provided."
         }

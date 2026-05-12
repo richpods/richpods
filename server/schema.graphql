@@ -5,9 +5,15 @@ interface BaseEnclosure {
     title: String!
 }
 
+type MarkdownLink {
+    label: String!
+    url: String!
+}
+
 type Markdown implements BaseEnclosure {
     title: String!
     text: String!
+    links: [MarkdownLink!]!
 }
 
 enum ChartFormat {
@@ -48,17 +54,6 @@ type Coloeus {
 
 type Poll {
     coloeus: Coloeus!
-}
-
-type FactboxLink {
-    label: String!
-    url: String!
-}
-
-type Factbox implements BaseEnclosure {
-    title: String!
-    text: String!
-    links: [FactboxLink!]!
 }
 
 enum CardType {
@@ -129,7 +124,7 @@ type Card implements BaseEnclosure {
     imageLink: String
 }
 
-union Enclosure = Markdown | InteractiveChart | Slideshow | GeoMap | Poll | Factbox | Card
+union Enclosure = Markdown | InteractiveChart | Slideshow | GeoMap | Poll | Card
 
 type Chapter {
     begin: String!
@@ -142,7 +137,6 @@ enum EnclosureType {
     GeoMap
     Slideshow
     Poll
-    Factbox
     Card
 }
 
@@ -561,11 +555,7 @@ type Mutation {
     deleteHostedPodcast(id: ID!): Boolean!
     deleteHostedEpisode(id: ID!): Boolean!
     refreshEpisodeMedia(richPodId: ID!): PodcastMedia!
-    acquireRichPodLock(
-        id: ID!
-        sessionId: String!
-        takeover: Boolean
-    ): RichPodLockAcquireResult!
+    acquireRichPodLock(id: ID!, sessionId: String!, takeover: Boolean): RichPodLockAcquireResult!
     heartbeatRichPodLock(id: ID!, sessionId: String!): RichPodLock!
     releaseRichPodLock(id: ID!, sessionId: String!): Boolean!
     clearAllOwnRichPodLocks: Int!

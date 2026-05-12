@@ -2,7 +2,7 @@
     <div class="space-y-3">
         <div class="flex items-center justify-between">
             <label class="block text-sm font-medium text-gray-700">
-                {{ t("factboxEditor.linkEditor.title", { count: links.length, maxLinks }) }}
+                {{ t("markdownEditor.linkEditor.title", { count: links.length, maxLinks }) }}
             </label>
             <button
                 v-if="links.length < maxLinks"
@@ -11,12 +11,12 @@
                 @click="addLink"
             >
                 <span class="text-lg leading-none">+</span>
-                {{ t("factboxEditor.linkEditor.addLink") }}
+                {{ t("markdownEditor.linkEditor.addLink") }}
             </button>
         </div>
 
         <div v-if="links.length === 0" class="text-sm text-gray-500 py-2">
-            {{ t("factboxEditor.linkEditor.emptyState") }}
+            {{ t("markdownEditor.linkEditor.emptyState") }}
         </div>
 
         <TransitionGroup name="link-list" tag="div" class="space-y-2">
@@ -36,13 +36,11 @@
                 @drop.prevent="onDrop(index)"
                 @dragend="onDragEnd"
             >
-                <!-- Drag handle + touch reorder buttons -->
                 <div v-if="canReorder" class="flex flex-col items-center gap-0.5 pt-1 shrink-0">
-                    <!-- Drag handle (hidden on touch) -->
                     <div
                         class="drag-handle cursor-grab text-gray-400 hover:text-gray-600 touch-hidden"
-                        :title="t('factboxEditor.linkEditor.dragHandle')"
-                        :aria-label="t('factboxEditor.linkEditor.dragHandle')"
+                        :title="t('markdownEditor.linkEditor.dragHandle')"
+                        :aria-label="t('markdownEditor.linkEditor.dragHandle')"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -58,14 +56,13 @@
                             <circle cx="11" cy="16" r="1.5" />
                         </svg>
                     </div>
-                    <!-- Touch move buttons (hidden on pointer devices) -->
                     <div class="touch-only flex flex-col gap-0.5">
                         <button
                             type="button"
                             class="p-0.5 text-gray-400 hover:text-gray-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
                             :disabled="index === 0"
-                            :title="t('factboxEditor.linkEditor.moveUp')"
-                            :aria-label="t('factboxEditor.linkEditor.moveUp')"
+                            :title="t('markdownEditor.linkEditor.moveUp')"
+                            :aria-label="t('markdownEditor.linkEditor.moveUp')"
                             @click="moveLink(index, -1)"
                         >
                             <svg
@@ -85,8 +82,8 @@
                             type="button"
                             class="p-0.5 text-gray-400 hover:text-gray-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
                             :disabled="index === links.length - 1"
-                            :title="t('factboxEditor.linkEditor.moveDown')"
-                            :aria-label="t('factboxEditor.linkEditor.moveDown')"
+                            :title="t('markdownEditor.linkEditor.moveDown')"
+                            :aria-label="t('markdownEditor.linkEditor.moveDown')"
                             @click="moveLink(index, 1)"
                         >
                             <svg
@@ -108,13 +105,13 @@
                 <div class="flex-1 space-y-2">
                     <div>
                         <label :for="`link-label-${linkKeys[index]}`" class="sr-only">
-                            {{ t("factboxEditor.linkEditor.linkLabel") }}
+                            {{ t("markdownEditor.linkEditor.linkLabel") }}
                         </label>
                         <input
                             :id="`link-label-${linkKeys[index]}`"
                             :value="link.label"
                             type="text"
-                            :placeholder="t('factboxEditor.linkEditor.linkLabelPlaceholder')"
+                            :placeholder="t('markdownEditor.linkEditor.linkLabelPlaceholder')"
                             class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                             @input="
                                 updateLink(
@@ -128,13 +125,13 @@
                     </div>
                     <div>
                         <label :for="`link-url-${linkKeys[index]}`" class="sr-only">
-                            {{ t("factboxEditor.linkEditor.linkUrl") }}
+                            {{ t("markdownEditor.linkEditor.linkUrl") }}
                         </label>
                         <input
                             :id="`link-url-${linkKeys[index]}`"
                             :value="link.url"
                             type="url"
-                            :placeholder="t('factboxEditor.linkEditor.linkUrlPlaceholder')"
+                            :placeholder="t('markdownEditor.linkEditor.linkUrlPlaceholder')"
                             class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                             :class="{ 'border-red-300': !isValidUrl(link.url) && link.url }"
                             @input="
@@ -146,14 +143,14 @@
                             v-if="!isValidUrl(link.url) && link.url"
                             class="mt-1 text-xs text-red-600"
                         >
-                            {{ t("factboxEditor.linkEditor.invalidUrl") }}
+                            {{ t("markdownEditor.linkEditor.invalidUrl") }}
                         </p>
                     </div>
                 </div>
                 <button
                     type="button"
                     class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                    :title="t('factboxEditor.linkEditor.removeLink')"
+                    :title="t('markdownEditor.linkEditor.removeLink')"
                     @click="removeLink(index)"
                 >
                     <svg
@@ -170,8 +167,8 @@
             </div>
         </TransitionGroup>
 
-        <p v-if="links.length >= 3" class="text-xs text-gray-500">
-            {{ t("factboxEditor.linkEditor.maxLinksReached", { maxLinks }) }}
+        <p v-if="links.length >= maxLinks" class="text-xs text-gray-500">
+            {{ t("markdownEditor.linkEditor.maxLinksReached", { maxLinks }) }}
         </p>
     </div>
 </template>
@@ -179,21 +176,20 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import type { EditorFactboxLink } from "@/types/editor";
+import type { EditorMarkdownLink } from "@/types/editor";
 
 const props = defineProps<{
-    links: EditorFactboxLink[];
+    links: EditorMarkdownLink[];
 }>();
 
 const { t } = useI18n();
 const maxLinks = 3;
 
 const emit = defineEmits<{
-    (e: "update:links", links: EditorFactboxLink[]): void;
+    (e: "update:links", links: EditorMarkdownLink[]): void;
     (e: "blur"): void;
 }>();
 
-// Stable keys for TransitionGroup so items keep identity across reorders
 let nextKey = 0;
 const linkKeys = ref<number[]>([]);
 
@@ -201,13 +197,11 @@ watch(
     () => props.links.length,
     (newLen, oldLen) => {
         if (newLen > (oldLen ?? 0)) {
-            // Item added — append new keys for the new items
             const toAdd = newLen - linkKeys.value.length;
             for (let i = 0; i < toAdd; i++) {
                 linkKeys.value.push(nextKey++);
             }
         } else if (newLen < (oldLen ?? 0)) {
-            // Item removed — trim keys to match length
             linkKeys.value = linkKeys.value.slice(0, newLen);
         }
     },
@@ -216,7 +210,6 @@ watch(
 
 const canReorder = computed(() => props.links.length >= 2);
 
-// --- Drag & drop state ---
 const dragIndex = ref<number | null>(null);
 const dragOverIndex = ref<number | null>(null);
 
@@ -224,7 +217,6 @@ function onDragStart(index: number, event: DragEvent) {
     dragIndex.value = index;
     if (event.dataTransfer) {
         event.dataTransfer.effectAllowed = "move";
-        // Firefox requires drag data to be set for custom draggable elements.
         event.dataTransfer.setData("text/plain", String(index));
     }
 }
@@ -266,8 +258,6 @@ function moveLink(index: number, direction: -1 | 1) {
     if (targetIndex < 0 || targetIndex >= props.links.length) return;
     reorderLinks(index, targetIndex);
 }
-
-// --- Existing CRUD ---
 
 function addLink() {
     if (props.links.length >= maxLinks) return;
@@ -321,7 +311,6 @@ function isValidUrl(url: string): boolean {
     transition: transform 0.2s ease;
 }
 
-/* Show drag handle on pointer devices, hide on touch */
 .touch-hidden {
     display: block;
 }

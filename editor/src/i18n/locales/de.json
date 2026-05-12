@@ -329,7 +329,6 @@
             "interactiveChart": "Interaktives Diagramm",
             "geoMap": "Karte",
             "poll": "Umfrage",
-            "factbox": "Faktenbox",
             "card": "Karte"
         },
         "cardTypes": {
@@ -439,7 +438,38 @@
         "toggleRawMode": "Roh-Markdown umschalten",
         "rawMarkdownAriaLabel": "Roh-Markdown-Editor",
         "switchedToRawMode": "Zu Roh-Markdown gewechselt",
-        "switchedToWysiwygMode": "Zum visuellen Editor gewechselt"
+        "switchedToWysiwygMode": "Zum visuellen Editor gewechselt",
+        "searchWikidata": "Wikidata durchsuchen",
+        "linkEditor": {
+            "title": "Call-to-Action-Links ({count}/{maxLinks})",
+            "addLink": "Link hinzufügen",
+            "emptyState": "Noch keine Links hinzugefügt. Links erscheinen als Buttons unter dem Markdown-Inhalt.",
+            "linkLabel": "Link-Beschriftung",
+            "linkLabelPlaceholder": "Beschriftung (z. B. Wikipedia)",
+            "linkUrl": "Link-URL",
+            "linkUrlPlaceholder": "URL (z. B. https://wikipedia.org/...)",
+            "invalidUrl": "Bitte gib eine gültige URL ein, die mit http:// oder https:// beginnt",
+            "removeLink": "Link entfernen",
+            "moveUp": "Nach oben",
+            "moveDown": "Nach unten",
+            "dragHandle": "Ziehen zum Umsortieren",
+            "maxLinksReached": "Maximum von {maxLinks} Links erreicht."
+        },
+        "wikidataSearch": {
+            "title": "Wikidata durchsuchen",
+            "closeModalAriaLabel": "Modal schließen",
+            "searchPlaceholder": "Nach Personen, Orten, Organisationen suchen...",
+            "searchIn": "Suchen in:",
+            "searching": "Suche läuft...",
+            "noResultsFoundFor": "Keine Ergebnisse für \"{query}\" gefunden",
+            "enterSearchTerm": "Gib einen Suchbegriff ein, um Wikidata-Entitäten zu finden",
+            "selected": "Ausgewählt",
+            "generateIn": "Generieren in",
+            "generating": "Wird generiert...",
+            "useSelectedEntity": "Ausgewählte Entität verwenden",
+            "searchFailed": "Suche fehlgeschlagen",
+            "generateFailed": "Inhalt konnte nicht generiert werden"
+        }
     },
     "chartEditor": {
         "descriptionLabel": "Beschreibung",
@@ -578,46 +608,6 @@
         "unknownError": "Unbekannter Fehler",
         "fetchFailedWithStatus": "Umfragen konnten nicht geladen werden: {status}",
         "deleteFailedWithStatus": "Umfrage konnte nicht gelöscht werden: {status}"
-    },
-    "factboxEditor": {
-        "description": "Erstelle eine Infobox manuell oder generiere eine aus Wikidata.",
-        "searchWikidata": "Wikidata durchsuchen",
-        "titleLabel": "Titel",
-        "titlePlaceholder": "Infobox-Titel eingeben",
-        "contentLabel": "Inhalt",
-        "contentHint": "Verwende Markdown-Formatierung für Fakten und wichtige Informationen.",
-        "contentAriaLabel": "Faktenbox-Inhaltseditor",
-        "linksLabel": "CTA-Links",
-        "linkEditor": {
-            "title": "Call-to-Action-Links ({count}/{maxLinks})",
-            "addLink": "Link hinzufügen",
-            "emptyState": "Noch keine Links hinzugefügt. Links erscheinen als Buttons unter dem Faktenbox-Inhalt.",
-            "linkLabel": "Link-Beschriftung",
-            "linkLabelPlaceholder": "Beschriftung (z. B. Wikipedia)",
-            "linkUrl": "Link-URL",
-            "linkUrlPlaceholder": "URL (z. B. https://wikipedia.org/...)",
-            "invalidUrl": "Bitte gib eine gültige URL ein, die mit http:// oder https:// beginnt",
-            "removeLink": "Link entfernen",
-            "moveUp": "Nach oben",
-            "moveDown": "Nach unten",
-            "dragHandle": "Ziehen zum Umsortieren",
-            "maxLinksReached": "Maximum von {maxLinks} Links erreicht."
-        },
-        "wikidataSearch": {
-            "title": "Wikidata durchsuchen",
-            "closeModalAriaLabel": "Modal schließen",
-            "searchPlaceholder": "Nach Personen, Orten, Organisationen suchen...",
-            "searchIn": "Suchen in:",
-            "searching": "Suche läuft...",
-            "noResultsFoundFor": "Keine Ergebnisse für \"{query}\" gefunden",
-            "enterSearchTerm": "Gib einen Suchbegriff ein, um Wikidata-Entitäten zu finden",
-            "selected": "Ausgewählt",
-            "generateFactboxIn": "Faktenbox generieren in",
-            "generating": "Wird generiert...",
-            "useSelectedEntity": "Ausgewählte Entität verwenden",
-            "searchFailed": "Suche fehlgeschlagen",
-            "generateFailed": "Faktenbox konnte nicht generiert werden"
-        }
     },
     "verification": {
         "title": "Podcasts verifizieren",
@@ -841,8 +831,6 @@
             "slideAltText": "Alt-Text von Slide {n}",
             "slideImageUrl": "Bild-URL von Slide {n}",
             "description": "Beschreibung",
-            "factboxTitle": "Faktenbox-Titel",
-            "factboxText": "Faktenbox-Text",
             "linkLabel": "Beschriftung von Link {n}",
             "linkUrl": "URL von Link {n}",
             "richPodTitle": "RichPod-Titel",
@@ -872,7 +860,7 @@
             "geoJsonRequired": "GeoJSON-Daten sind erforderlich.",
             "geoJsonRfc7946": "GeoJSON muss RFC 7946 entsprechen.",
             "pollIdRequired": "Umfrage-ID ist erforderlich. Erstelle eine neue Umfrage oder verknüpfe eine vorhandene.",
-            "maxFactboxLinksAllowed": "Maximal {max} Call-to-Action-Links sind erlaubt.",
+            "maxMarkdownLinksAllowed": "Maximal {max} Call-to-Action-Links sind erlaubt.",
             "publishRequiresChapters": "Ein veröffentlichter RichPod muss mindestens ein Kapitel haben.",
             "citationSourceRequiredWithUrl": "Eine Zitatquelle ist erforderlich, wenn eine Link-URL angegeben wird."
         }

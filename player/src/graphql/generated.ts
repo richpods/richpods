@@ -130,11 +130,10 @@ export type CreateRichPodInput = {
     title: Scalars["String"]["input"];
 };
 
-export type Enclosure = Card | Factbox | GeoMap | InteractiveChart | Markdown | Poll | Slideshow;
+export type Enclosure = Card | GeoMap | InteractiveChart | Markdown | Poll | Slideshow;
 
 export const EnclosureType = {
     Card: "Card",
-    Factbox: "Factbox",
     GeoMap: "GeoMap",
     InteractiveChart: "InteractiveChart",
     Markdown: "Markdown",
@@ -153,19 +152,6 @@ export type EpisodeInfo = {
     publicationDate: Scalars["String"]["output"];
     title: Scalars["String"]["output"];
     type: Scalars["String"]["output"];
-    url: Scalars["String"]["output"];
-};
-
-export type Factbox = BaseEnclosure & {
-    __typename?: "Factbox";
-    links: Array<FactboxLink>;
-    text: Scalars["String"]["output"];
-    title: Scalars["String"]["output"];
-};
-
-export type FactboxLink = {
-    __typename?: "FactboxLink";
-    label: Scalars["String"]["output"];
     url: Scalars["String"]["output"];
 };
 
@@ -254,18 +240,29 @@ export type InteractiveChart = BaseEnclosure & {
 
 export type Markdown = BaseEnclosure & {
     __typename?: "Markdown";
+    links: Array<MarkdownLink>;
     text: Scalars["String"]["output"];
     title: Scalars["String"]["output"];
 };
 
+export type MarkdownLink = {
+    __typename?: "MarkdownLink";
+    label: Scalars["String"]["output"];
+    url: Scalars["String"]["output"];
+};
+
 export type Mutation = {
     __typename?: "Mutation";
+    acquireRichPodLock: RichPodLockAcquireResult;
+    clearAllOwnRichPodLocks: Scalars["Int"]["output"];
     completeRichPodVerification: Verification;
     createRichPod: RichPod;
     deleteHostedEpisode: Scalars["Boolean"]["output"];
     deleteHostedPodcast: Scalars["Boolean"]["output"];
     deleteRichPod: Scalars["Boolean"]["output"];
+    heartbeatRichPodLock: RichPodLock;
     refreshEpisodeMedia: PodcastMedia;
+    releaseRichPodLock: Scalars["Boolean"]["output"];
     setRichPodChapters: RichPod;
     signIn: AuthPayload;
     signInWithGoogle: AuthPayload;
@@ -274,6 +271,12 @@ export type Mutation = {
     updateHostedPodcast: HostedPodcast;
     updateProfile: User;
     updateRichPod: RichPod;
+};
+
+export type MutationAcquireRichPodLockArgs = {
+    id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+    takeover?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type MutationCompleteRichPodVerificationArgs = {
@@ -297,13 +300,24 @@ export type MutationDeleteRichPodArgs = {
     id: Scalars["ID"]["input"];
 };
 
+export type MutationHeartbeatRichPodLockArgs = {
+    id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+};
+
 export type MutationRefreshEpisodeMediaArgs = {
     richPodId: Scalars["ID"]["input"];
+};
+
+export type MutationReleaseRichPodLockArgs = {
+    id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
 };
 
 export type MutationSetRichPodChaptersArgs = {
     chapters: Array<ChapterInput>;
     id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
 };
 
 export type MutationSignInArgs = {
@@ -334,6 +348,7 @@ export type MutationUpdateProfileArgs = {
 export type MutationUpdateRichPodArgs = {
     id: Scalars["ID"]["input"];
     input: UpdateRichPodInput;
+    sessionId: Scalars["String"]["input"];
 };
 
 export type PaginatedHostedEpisodes = {
@@ -522,6 +537,7 @@ export type Query = {
     publicHostedPodcastEpisodes: PaginatedPublicHostedEpisodes;
     recentPublishedRichPods: PaginatedRichPods;
     richPod?: Maybe<RichPod>;
+    richPodLock?: Maybe<RichPodLock>;
     user?: Maybe<User>;
     userRichPods: PaginatedRichPods;
     userVerifications: PaginatedVerifications;
@@ -580,6 +596,10 @@ export type QueryRichPodArgs = {
     id: Scalars["ID"]["input"];
 };
 
+export type QueryRichPodLockArgs = {
+    id: Scalars["ID"]["input"];
+};
+
 export type QueryUserArgs = {
     id: Scalars["ID"]["input"];
 };
@@ -610,6 +630,21 @@ export type RichPod = {
     state: RichPodState;
     title: Scalars["String"]["output"];
     updatedAt: Scalars["String"]["output"];
+};
+
+export type RichPodLock = {
+    __typename?: "RichPodLock";
+    acquiredAt: Scalars["String"]["output"];
+    expiresAt: Scalars["String"]["output"];
+    lastHeartbeatAt: Scalars["String"]["output"];
+    sessionId: Scalars["String"]["output"];
+    user: User;
+};
+
+export type RichPodLockAcquireResult = {
+    __typename?: "RichPodLockAcquireResult";
+    acquired: Scalars["Boolean"]["output"];
+    lock: RichPodLock;
 };
 
 export const RichPodState = {
@@ -754,12 +789,6 @@ export type RichPodQuery = {
                           resourceSize?: number | null;
                       } | null;
                   }
-                | {
-                      __typename: "Factbox";
-                      title: string;
-                      text: string;
-                      links: Array<{ __typename?: "FactboxLink"; label: string; url: string }>;
-                  }
                 | { __typename: "GeoMap"; description?: string | null; geoJSON: any; title: string }
                 | {
                       __typename: "InteractiveChart";
@@ -768,7 +797,12 @@ export type RichPodQuery = {
                       chartFormat: ChartFormat;
                       chart: any;
                   }
-                | { __typename: "Markdown"; title: string; text: string }
+                | {
+                      __typename: "Markdown";
+                      title: string;
+                      text: string;
+                      links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+                  }
                 | {
                       __typename: "Poll";
                       coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
@@ -824,6 +858,10 @@ export const RichPodDocument = gql`
                         __typename
                         title
                         text
+                        links {
+                            label
+                            url
+                        }
                     }
                     ... on InteractiveChart {
                         __typename
@@ -854,15 +892,6 @@ export const RichPodDocument = gql`
                         coloeus {
                             endpoint
                             pollId
-                        }
-                    }
-                    ... on Factbox {
-                        __typename
-                        title
-                        text
-                        links {
-                            label
-                            url
                         }
                     }
                     ... on Card {

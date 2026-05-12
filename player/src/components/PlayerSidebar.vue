@@ -55,6 +55,13 @@
             <div class="sidebar-chapters">
                 <slot />
             </div>
+            <ShareIconButton
+                v-if="!preview"
+                variant="labeled"
+                class="sidebar-share-compact"
+                :label="t('player.share')"
+                @click="emit('share')"
+            />
             <div v-if="richPod.origin && !preview" class="sidebar-info">
                 <h3>{{ t("infoDialog.originalPodcastTitle") }}</h3>
                 <p>
@@ -252,6 +259,13 @@ const reportMailtoLink = computed(() => {
             justify-self: start;
         }
 
+        .sidebar-share-compact {
+            display: none;
+            flex: none;
+            align-self: flex-start;
+            margin: 4px 20px 16px;
+        }
+
         .sidebar-title {
             font-size: 20px;
             line-height: 26px;
@@ -302,6 +316,10 @@ const reportMailtoLink = computed(() => {
             .sidebar-share,
             .explicit-badge {
                 display: none;
+            }
+
+            .sidebar-share-compact {
+                display: inline-flex;
             }
         }
 

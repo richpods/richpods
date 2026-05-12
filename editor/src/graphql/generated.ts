@@ -130,11 +130,10 @@ export type CreateRichPodInput = {
     title: Scalars["String"]["input"];
 };
 
-export type Enclosure = Card | Factbox | GeoMap | InteractiveChart | Markdown | Poll | Slideshow;
+export type Enclosure = Card | GeoMap | InteractiveChart | Markdown | Poll | Slideshow;
 
 export const EnclosureType = {
     Card: "Card",
-    Factbox: "Factbox",
     GeoMap: "GeoMap",
     InteractiveChart: "InteractiveChart",
     Markdown: "Markdown",
@@ -153,19 +152,6 @@ export type EpisodeInfo = {
     publicationDate: Scalars["String"]["output"];
     title: Scalars["String"]["output"];
     type: Scalars["String"]["output"];
-    url: Scalars["String"]["output"];
-};
-
-export type Factbox = BaseEnclosure & {
-    __typename?: "Factbox";
-    links: Array<FactboxLink>;
-    text: Scalars["String"]["output"];
-    title: Scalars["String"]["output"];
-};
-
-export type FactboxLink = {
-    __typename?: "FactboxLink";
-    label: Scalars["String"]["output"];
     url: Scalars["String"]["output"];
 };
 
@@ -254,8 +240,15 @@ export type InteractiveChart = BaseEnclosure & {
 
 export type Markdown = BaseEnclosure & {
     __typename?: "Markdown";
+    links: Array<MarkdownLink>;
     text: Scalars["String"]["output"];
     title: Scalars["String"]["output"];
+};
+
+export type MarkdownLink = {
+    __typename?: "MarkdownLink";
+    label: Scalars["String"]["output"];
+    url: Scalars["String"]["output"];
 };
 
 export type Mutation = {
@@ -909,12 +902,6 @@ export type ChapterFieldsFragment = {
                   resourceSize?: number | null;
               } | null;
           }
-        | {
-              __typename: "Factbox";
-              title: string;
-              text: string;
-              links: Array<{ __typename?: "FactboxLink"; label: string; url: string }>;
-          }
         | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
         | {
               __typename: "InteractiveChart";
@@ -923,7 +910,12 @@ export type ChapterFieldsFragment = {
               chartFormat: ChartFormat;
               chart: any;
           }
-        | { __typename: "Markdown"; title: string; text: string }
+        | {
+              __typename: "Markdown";
+              title: string;
+              text: string;
+              links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+          }
         | {
               __typename: "Poll";
               coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
@@ -1373,12 +1365,6 @@ export type CreateRichPodMutation = {
                           resourceSize?: number | null;
                       } | null;
                   }
-                | {
-                      __typename: "Factbox";
-                      title: string;
-                      text: string;
-                      links: Array<{ __typename?: "FactboxLink"; label: string; url: string }>;
-                  }
                 | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
                 | {
                       __typename: "InteractiveChart";
@@ -1387,7 +1373,12 @@ export type CreateRichPodMutation = {
                       chartFormat: ChartFormat;
                       chart: any;
                   }
-                | { __typename: "Markdown"; title: string; text: string }
+                | {
+                      __typename: "Markdown";
+                      title: string;
+                      text: string;
+                      links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+                  }
                 | {
                       __typename: "Poll";
                       coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
@@ -1491,12 +1482,6 @@ export type UpdateRichPodMutation = {
                           resourceSize?: number | null;
                       } | null;
                   }
-                | {
-                      __typename: "Factbox";
-                      title: string;
-                      text: string;
-                      links: Array<{ __typename?: "FactboxLink"; label: string; url: string }>;
-                  }
                 | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
                 | {
                       __typename: "InteractiveChart";
@@ -1505,7 +1490,12 @@ export type UpdateRichPodMutation = {
                       chartFormat: ChartFormat;
                       chart: any;
                   }
-                | { __typename: "Markdown"; title: string; text: string }
+                | {
+                      __typename: "Markdown";
+                      title: string;
+                      text: string;
+                      links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+                  }
                 | {
                       __typename: "Poll";
                       coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
@@ -1615,12 +1605,6 @@ export type SetRichPodChaptersMutation = {
                           resourceSize?: number | null;
                       } | null;
                   }
-                | {
-                      __typename: "Factbox";
-                      title: string;
-                      text: string;
-                      links: Array<{ __typename?: "FactboxLink"; label: string; url: string }>;
-                  }
                 | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
                 | {
                       __typename: "InteractiveChart";
@@ -1629,7 +1613,12 @@ export type SetRichPodChaptersMutation = {
                       chartFormat: ChartFormat;
                       chart: any;
                   }
-                | { __typename: "Markdown"; title: string; text: string }
+                | {
+                      __typename: "Markdown";
+                      title: string;
+                      text: string;
+                      links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+                  }
                 | {
                       __typename: "Poll";
                       coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
@@ -1731,12 +1720,6 @@ export type GetRichPodQuery = {
                           resourceSize?: number | null;
                       } | null;
                   }
-                | {
-                      __typename: "Factbox";
-                      title: string;
-                      text: string;
-                      links: Array<{ __typename?: "FactboxLink"; label: string; url: string }>;
-                  }
                 | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
                 | {
                       __typename: "InteractiveChart";
@@ -1745,7 +1728,12 @@ export type GetRichPodQuery = {
                       chartFormat: ChartFormat;
                       chart: any;
                   }
-                | { __typename: "Markdown"; title: string; text: string }
+                | {
+                      __typename: "Markdown";
+                      title: string;
+                      text: string;
+                      links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+                  }
                 | {
                       __typename: "Poll";
                       coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
@@ -1983,6 +1971,10 @@ export const ChapterFieldsFragmentDoc = gql`
             ... on Markdown {
                 title
                 text
+                links {
+                    label
+                    url
+                }
             }
             ... on InteractiveChart {
                 title
@@ -2009,14 +2001,6 @@ export const ChapterFieldsFragmentDoc = gql`
                 coloeus {
                     endpoint
                     pollId
-                }
-            }
-            ... on Factbox {
-                title
-                text
-                links {
-                    label
-                    url
                 }
             }
             ... on Card {

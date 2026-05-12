@@ -1,8 +1,26 @@
 <template>
-    <div class="space-y-2">
-        <label class="block text-sm font-medium text-gray-700">{{
-            t("markdownEditor.contentLabel")
-        }}</label>
+    <div class="space-y-4">
+        <div class="flex flex-col gap-2 lg:flex-row lg:items-end lg:gap-3">
+            <div class="flex-1 min-w-0">
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{
+                    t("chapterEdit.titleLabel")
+                }}</label>
+                <input
+                    v-model="chapterTitle"
+                    type="text"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    @blur="handleTitleBlur"
+                />
+            </div>
+            <button
+                type="button"
+                class="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors shrink-0 self-stretch lg:self-auto"
+                @click="openWikidataSearch"
+            >
+                <span>🔍</span>
+                {{ t("markdownEditor.searchWikidata") }}
+            </button>
+        </div>
         <div class="tiptap-editor-container">
             <div v-if="editor" class="editor-toolbar" :class="{ 'raw-mode': rawMode }">
                 <div class="toolbar-group">
@@ -334,24 +352,130 @@
         <div class="sr-only" aria-live="polite" aria-atomic="true">
             {{ screenReaderAnnouncement }}
         </div>
+
+        <MarkdownLinkEditor :links="markdownLinks" @update:links="updateLinks" @blur="handleBlur" />
+
+        <WikidataSearch
+            :open="showWikidataSearch"
+            @close="showWikidataSearch = false"
+            @select="handleWikidataSelect"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { storeToRefs } from "pinia";
 import { EditorContent } from "@tiptap/vue-3";
 import { useTipTapEditor } from "@/composables/useTipTapEditor";
 import { useValidation } from "@/composables/useValidation";
+import { useRichPodStore } from "@/stores/useRichPodStore";
+import MarkdownLinkEditor from "./markdown/MarkdownLinkEditor.vue";
+import WikidataSearch from "./markdown/WikidataSearch.vue";
+import type { EditorMarkdownLink } from "@/types/editor";
+import type { WikidataTemplate } from "@/services/wikidataService";
 
 const { t } = useI18n();
 const { runValidation } = useValidation();
+const richpodStore = useRichPodStore();
+const { currentChapter } = storeToRefs(richpodStore);
 const screenReaderAnnouncement = ref("");
 
 const rawMode = ref(false);
 const rawMarkdown = ref("");
+const showWikidataSearch = ref(false);
 
 const { editor, getMarkdown, setMarkdownContent, onDestroy } = useTipTapEditor();
+
+const chapterTitle = computed({
+    get: () => currentChapter.value?.enclosure.title ?? "",
+    set: (value: string) => {
+        richpodStore.updateCurrentChapter((chapter) => ({
+            ...chapter,
+            enclosure: {
+                ...chapter.enclosure,
+                title: value,
+            },
+        }));
+    },
+});
+
+function handleTitleBlur() {
+    richpodStore.updateCurrentChapter((chapter) => ({
+        ...chapter,
+        enclosure: {
+            ...chapter.enclosure,
+            title: (chapter.enclosure.title ?? "").trim(),
+        },
+    }));
+    runValidation();
+}
+
+const markdownLinks = computed<EditorMarkdownLink[]>(() => {
+    const links = currentChapter.value?.enclosure.links;
+    if (!Array.isArray(links)) return [];
+    return links;
+});
+
+function updateLinks(links: EditorMarkdownLink[]) {
+    richpodStore.updateCurrentChapter((chapter) => ({
+        ...chapter,
+        enclosure: {
+            ...chapter.enclosure,
+            links,
+        },
+    }));
+}
+
+function handleBlur() {
+    richpodStore.updateCurrentChapter((chapter) => {
+        const currentLinks = chapter.enclosure.links;
+        return {
+            ...chapter,
+            enclosure: {
+                ...chapter.enclosure,
+                links: Array.isArray(currentLinks)
+                    ? currentLinks.map((link) => ({
+                          label: link.label.trim(),
+                          url: link.url.trim(),
+                      }))
+                    : [],
+            },
+        };
+    });
+    runValidation();
+}
+
+function openWikidataSearch() {
+    showWikidataSearch.value = true;
+}
+
+function handleWikidataSelect(template: WikidataTemplate) {
+    const existingText = rawMode.value
+        ? rawMarkdown.value
+        : (currentChapter.value?.enclosure.text ?? "");
+    const existingLinks = markdownLinks.value;
+
+    const mergedText = existingText.trim() ? `${template.text}\n\n${existingText}` : template.text;
+
+    const mergedLinks = existingLinks.length > 0 ? existingLinks : template.links;
+
+    richpodStore.updateCurrentChapter((chapter) => ({
+        ...chapter,
+        enclosure: {
+            ...chapter.enclosure,
+            title: chapter.enclosure.title || template.title,
+            text: mergedText,
+            links: mergedLinks,
+        },
+    }));
+
+    rawMarkdown.value = mergedText;
+    setMarkdownContent(mergedText);
+
+    runValidation();
+}
 
 let validationTimer: ReturnType<typeof setTimeout> | undefined;
 

@@ -80,7 +80,7 @@ export type EditorColoeus = {
     pollId: string;
 };
 
-export type EditorFactboxLink = {
+export type EditorMarkdownLink = {
     label: string;
     url: string;
 };
@@ -112,8 +112,8 @@ export type EditorEnclosure = {
     slides?: EditorSlide[];
     // For Poll
     coloeus?: EditorColoeus;
-    // For Factbox
-    links?: EditorFactboxLink[];
+    // For Markdown (optional CTA links)
+    links?: EditorMarkdownLink[];
     // For Card
     cardType?: "LINK" | "COVER" | "CITATION" | "IMAGE" | "BLANK";
     visibleAsChapter?: boolean;

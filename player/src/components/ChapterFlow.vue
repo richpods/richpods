@@ -16,7 +16,6 @@ import GeoMapEnclosure from "./enclosures/GeoMapEnclosure.vue";
 import MarkdownEnclosure from "./enclosures/MarkdownEnclosure.vue";
 import SlideshowEnclosure from "./enclosures/SlideshowEnclosure.vue";
 import PollEnclosure from "./enclosures/PollEnclosure.vue";
-import FactboxEnclosure from "./enclosures/FactboxEnclosure.vue";
 import CardEnclosure from "./enclosures/CardEnclosure.vue";
 import UnsupportedEnclosure from "./enclosures/UnsupportedEnclosure.vue";
 import { useRichPod } from "../composables/useRichPod.ts";
@@ -28,7 +27,6 @@ const enclosureComponentMap: Record<string, Component> = {
     Markdown: MarkdownEnclosure,
     Slideshow: SlideshowEnclosure,
     Poll: PollEnclosure,
-    Factbox: FactboxEnclosure,
     Card: CardEnclosure,
 };
 

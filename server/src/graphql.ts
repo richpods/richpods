@@ -124,11 +124,10 @@ export type CreateRichPodInput = {
   title: Scalars['String']['input'];
 };
 
-export type Enclosure = Card | Factbox | GeoMap | InteractiveChart | Markdown | Poll | Slideshow;
+export type Enclosure = Card | GeoMap | InteractiveChart | Markdown | Poll | Slideshow;
 
 export enum EnclosureType {
   Card = 'Card',
-  Factbox = 'Factbox',
   GeoMap = 'GeoMap',
   InteractiveChart = 'InteractiveChart',
   Markdown = 'Markdown',
@@ -146,19 +145,6 @@ export type EpisodeInfo = {
   publicationDate: Scalars['String']['output'];
   title: Scalars['String']['output'];
   type: Scalars['String']['output'];
-  url: Scalars['String']['output'];
-};
-
-export type Factbox = BaseEnclosure & {
-  __typename?: 'Factbox';
-  links: Array<FactboxLink>;
-  text: Scalars['String']['output'];
-  title: Scalars['String']['output'];
-};
-
-export type FactboxLink = {
-  __typename?: 'FactboxLink';
-  label: Scalars['String']['output'];
   url: Scalars['String']['output'];
 };
 
@@ -245,8 +231,15 @@ export type InteractiveChart = BaseEnclosure & {
 
 export type Markdown = BaseEnclosure & {
   __typename?: 'Markdown';
+  links: Array<MarkdownLink>;
   text: Scalars['String']['output'];
   title: Scalars['String']['output'];
+};
+
+export type MarkdownLink = {
+  __typename?: 'MarkdownLink';
+  label: Scalars['String']['output'];
+  url: Scalars['String']['output'];
 };
 
 export type Mutation = {
@@ -847,7 +840,6 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
   Enclosure:
     | ( Card )
-    | ( Factbox )
     | ( GeoMap )
     | ( InteractiveChart )
     | ( Markdown )
@@ -860,7 +852,6 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
 export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = {
   BaseEnclosure:
     | ( Card )
-    | ( Factbox )
     | ( GeoMap )
     | ( InteractiveChart )
     | ( Markdown )
@@ -885,8 +876,6 @@ export type ResolversTypes = {
   Enclosure: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['Enclosure']>;
   EnclosureType: EnclosureType;
   EpisodeInfo: ResolverTypeWrapper<EpisodeInfo>;
-  Factbox: ResolverTypeWrapper<Factbox>;
-  FactboxLink: ResolverTypeWrapper<FactboxLink>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GeoJSON: ResolverTypeWrapper<Scalars['GeoJSON']['output']>;
   GeoMap: ResolverTypeWrapper<GeoMap>;
@@ -900,6 +889,7 @@ export type ResolversTypes = {
   InteractiveChart: ResolverTypeWrapper<InteractiveChart>;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   Markdown: ResolverTypeWrapper<Markdown>;
+  MarkdownLink: ResolverTypeWrapper<MarkdownLink>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PaginatedHostedEpisodes: ResolverTypeWrapper<PaginatedHostedEpisodes>;
   PaginatedHostedPodcasts: ResolverTypeWrapper<PaginatedHostedPodcasts>;
@@ -951,8 +941,6 @@ export type ResolversParentTypes = {
   CreateRichPodInput: CreateRichPodInput;
   Enclosure: ResolversUnionTypes<ResolversParentTypes>['Enclosure'];
   EpisodeInfo: EpisodeInfo;
-  Factbox: Factbox;
-  FactboxLink: FactboxLink;
   Float: Scalars['Float']['output'];
   GeoJSON: Scalars['GeoJSON']['output'];
   GeoMap: GeoMap;
@@ -965,6 +953,7 @@ export type ResolversParentTypes = {
   InteractiveChart: InteractiveChart;
   JSON: Scalars['JSON']['output'];
   Markdown: Markdown;
+  MarkdownLink: MarkdownLink;
   Mutation: Record<PropertyKey, never>;
   PaginatedHostedEpisodes: PaginatedHostedEpisodes;
   PaginatedHostedPodcasts: PaginatedHostedPodcasts;
@@ -1006,7 +995,7 @@ export type AuthPayloadResolvers<ContextType = any, ParentType extends Resolvers
 };
 
 export type BaseEnclosureResolvers<ContextType = any, ParentType extends ResolversParentTypes['BaseEnclosure'] = ResolversParentTypes['BaseEnclosure']> = {
-  __resolveType: TypeResolveFn<'Card' | 'Factbox' | 'GeoMap' | 'InteractiveChart' | 'Markdown' | 'Slideshow', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'Card' | 'GeoMap' | 'InteractiveChart' | 'Markdown' | 'Slideshow', ParentType, ContextType>;
 };
 
 export type CardResolvers<ContextType = any, ParentType extends ResolversParentTypes['Card'] = ResolversParentTypes['Card']> = {
@@ -1048,7 +1037,7 @@ export type ColoeusResolvers<ContextType = any, ParentType extends ResolversPare
 };
 
 export type EnclosureResolvers<ContextType = any, ParentType extends ResolversParentTypes['Enclosure'] = ResolversParentTypes['Enclosure']> = {
-  __resolveType: TypeResolveFn<'Card' | 'Factbox' | 'GeoMap' | 'InteractiveChart' | 'Markdown' | 'Poll' | 'Slideshow', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'Card' | 'GeoMap' | 'InteractiveChart' | 'Markdown' | 'Poll' | 'Slideshow', ParentType, ContextType>;
 };
 
 export type EpisodeInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['EpisodeInfo'] = ResolversParentTypes['EpisodeInfo']> = {
@@ -1060,18 +1049,6 @@ export type EpisodeInfoResolvers<ContextType = any, ParentType extends Resolvers
   publicationDate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-};
-
-export type FactboxResolvers<ContextType = any, ParentType extends ResolversParentTypes['Factbox'] = ResolversParentTypes['Factbox']> = {
-  links?: Resolver<Array<ResolversTypes['FactboxLink']>, ParentType, ContextType>;
-  text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type FactboxLinkResolvers<ContextType = any, ParentType extends ResolversParentTypes['FactboxLink'] = ResolversParentTypes['FactboxLink']> = {
-  label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -1155,9 +1132,15 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 }
 
 export type MarkdownResolvers<ContextType = any, ParentType extends ResolversParentTypes['Markdown'] = ResolversParentTypes['Markdown']> = {
+  links?: Resolver<Array<ResolversTypes['MarkdownLink']>, ParentType, ContextType>;
   text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MarkdownLinkResolvers<ContextType = any, ParentType extends ResolversParentTypes['MarkdownLink'] = ResolversParentTypes['MarkdownLink']> = {
+  label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
@@ -1400,8 +1383,6 @@ export type Resolvers<ContextType = any> = {
   Coloeus?: ColoeusResolvers<ContextType>;
   Enclosure?: EnclosureResolvers<ContextType>;
   EpisodeInfo?: EpisodeInfoResolvers<ContextType>;
-  Factbox?: FactboxResolvers<ContextType>;
-  FactboxLink?: FactboxLinkResolvers<ContextType>;
   GeoJSON?: GraphQLScalarType;
   GeoMap?: GeoMapResolvers<ContextType>;
   HostedEpisode?: HostedEpisodeResolvers<ContextType>;
@@ -1411,6 +1392,7 @@ export type Resolvers<ContextType = any> = {
   InteractiveChart?: InteractiveChartResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   Markdown?: MarkdownResolvers<ContextType>;
+  MarkdownLink?: MarkdownLinkResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PaginatedHostedEpisodes?: PaginatedHostedEpisodesResolvers<ContextType>;
   PaginatedHostedPodcasts?: PaginatedHostedPodcastsResolvers<ContextType>;

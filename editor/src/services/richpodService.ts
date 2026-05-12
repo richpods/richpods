@@ -162,7 +162,7 @@ function serializeEnclosure(enclosure: EditorEnclosure): {
     const enclosureType = (__typename ?? "Markdown") as EnclosureType;
 
     const payloadWithDefaults =
-        __typename === "Factbox"
+        __typename === "Markdown"
             ? { ...rest, links: Array.isArray(rest.links) ? rest.links : [] }
             : rest;
 

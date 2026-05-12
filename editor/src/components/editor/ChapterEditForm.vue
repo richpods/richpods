@@ -1,6 +1,6 @@
 <template>
     <fieldset v-if="hasChapter" :disabled="isSaving" class="m-0 p-0 border-0 space-y-4">
-        <div v-if="!isSlideshow && !isGeoMap && !isPoll && !isFactbox && !isCard">
+        <div v-if="!isMarkdown && !isSlideshow && !isGeoMap && !isPoll && !isCard">
             <label class="block text-sm font-medium text-gray-700 mb-1">{{
                 t("chapterEdit.titleLabel")
             }}</label>
@@ -16,7 +16,6 @@
         <InteractiveChartEditor v-else-if="isInteractiveChart" :key="editorKey" />
         <GeoMapEditor v-else-if="isGeoMap" :key="editorKey" />
         <PollEditor v-else-if="isPoll" :key="editorKey" />
-        <FactboxEditor v-else-if="isFactbox" :key="editorKey" />
         <CardEditor v-else-if="isCard" :key="editorKey" />
         <div v-else class="text-xs text-gray-500">{{ t("chapterEdit.wysiwygComingSoon") }}</div>
     </fieldset>
@@ -33,7 +32,6 @@ import SlideshowEditor from "./enclosures/SlideshowEditor.vue";
 import InteractiveChartEditor from "./enclosures/InteractiveChartEditor.vue";
 import GeoMapEditor from "./enclosures/GeoMapEditor.vue";
 import PollEditor from "./enclosures/PollEditor.vue";
-import FactboxEditor from "./enclosures/FactboxEditor.vue";
 import CardEditor from "./enclosures/CardEditor.vue";
 
 defineProps<{
@@ -55,7 +53,6 @@ const isSlideshow = computed(() => chapterTypeLabel.value === "Slideshow");
 const isInteractiveChart = computed(() => chapterTypeLabel.value === "InteractiveChart");
 const isGeoMap = computed(() => chapterTypeLabel.value === "GeoMap");
 const isPoll = computed(() => chapterTypeLabel.value === "Poll");
-const isFactbox = computed(() => chapterTypeLabel.value === "Factbox");
 const isCard = computed(() => chapterTypeLabel.value === "Card");
 
 const editorKey = computed(() => `${chapterBegin.value}:${chapterTypeLabel.value}`);

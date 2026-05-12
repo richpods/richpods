@@ -4,7 +4,6 @@ import { EnclosureType } from "../types/firestore.js";
 import { interactiveChartEnclosureSchema } from "./interactiveChart.js";
 import { geoMapEnclosureSchema } from "./geoMap.js";
 import { pollEnclosureSchema } from "./poll.js";
-import { factboxEnclosureSchema } from "./factbox.js";
 import { markdownEnclosureSchema } from "./markdown.js";
 import { slideshowEnclosureSchema } from "./slideshow.js";
 import { cardEnclosureSchema } from "./card.js";
@@ -200,12 +199,17 @@ export const idSchema = Joi.string().required().messages({
 });
 
 // Public query schemas
-export const recentPublishedLimitSchema = Joi.number().integer().min(1).max(100).default(24).messages({
-    "number.base": "Limit must be a number",
-    "number.integer": "Limit must be an integer",
-    "number.min": "Limit must be at least 1",
-    "number.max": "Limit cannot exceed 100",
-});
+export const recentPublishedLimitSchema = Joi.number()
+    .integer()
+    .min(1)
+    .max(100)
+    .default(24)
+    .messages({
+        "number.base": "Limit must be a number",
+        "number.integer": "Limit must be an integer",
+        "number.min": "Limit must be at least 1",
+        "number.max": "Limit cannot exceed 100",
+    });
 
 // Podcast schemas
 export const urlSchema = httpUrlUnicode().required().messages({
@@ -253,7 +257,6 @@ export const chapterInputSchema = Joi.object({
             EnclosureType.GEO_MAP,
             EnclosureType.SLIDESHOW,
             EnclosureType.POLL,
-            EnclosureType.FACTBOX,
             EnclosureType.CARD,
         )
         .required(),
@@ -278,10 +281,6 @@ export const chapterInputSchema = Joi.object({
             {
                 is: EnclosureType.POLL,
                 then: pollEnclosureSchema.required(),
-            },
-            {
-                is: EnclosureType.FACTBOX,
-                then: factboxEnclosureSchema.required(),
             },
             {
                 is: EnclosureType.CARD,
@@ -321,7 +320,10 @@ export const completeVerificationSchema = Joi.object({
 // Pagination schemas
 export const paginationFirstSchema = Joi.number().integer().min(1).max(100);
 export const paginationAfterSchema = Joi.string().optional().allow(null);
-export const richPodStateFilterSchema = Joi.string().valid("draft", "published").optional().allow(null);
+export const richPodStateFilterSchema = Joi.string()
+    .valid("draft", "published")
+    .optional()
+    .allow(null);
 
 // Lock schemas
 export const lockSessionIdSchema = Joi.string()

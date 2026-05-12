@@ -160,7 +160,6 @@ import GeoMapEnclosure from "@player/components/enclosures/GeoMapEnclosure.vue";
 import MarkdownEnclosure from "@player/components/enclosures/MarkdownEnclosure.vue";
 import SlideshowEnclosure from "@player/components/enclosures/SlideshowEnclosure.vue";
 import PollEnclosure from "@player/components/enclosures/PollEnclosure.vue";
-import FactboxEnclosure from "@player/components/enclosures/FactboxEnclosure.vue";
 import CardEnclosure from "@player/components/enclosures/CardEnclosure.vue";
 import ChapterSidebar from "@/components/editor/ChapterSidebar.vue";
 import ChapterWorkspace from "@/components/editor/ChapterWorkspace.vue";
@@ -386,7 +385,6 @@ const enclosureComponentMap: Record<string, Component> = {
     Markdown: MarkdownEnclosure,
     Slideshow: SlideshowEnclosure,
     Poll: PollEnclosure,
-    Factbox: FactboxEnclosure,
     Card: CardEnclosure,
 };
 
@@ -445,7 +443,6 @@ const chaptersForPlayer = computed(() => chapters.value as unknown as Chapter[])
 
 const enclosureTypes: EnclosureType[] = [
     { type: "Markdown", icon: "\uD83D\uDCDD" },
-    { type: "Factbox", icon: "\u2139\uFE0F" },
     { type: "Slideshow", icon: "\uD83D\uDDBC\uFE0F" },
     { type: "Poll", icon: "\uD83D\uDCCB" },
     { type: "GeoMap", icon: "\uD83D\uDDFA\uFE0F" },
@@ -496,6 +493,7 @@ function chooseType(type: string) {
     };
     if (type === "Markdown") {
         enclosure.text = "";
+        enclosure.links = [];
     }
     if (type === "InteractiveChart") {
         enclosure.description = "";
@@ -528,11 +526,6 @@ function chooseType(type: string) {
             pollId: "",
         };
     }
-    if (type === "Factbox") {
-        enclosure.text = "";
-        enclosure.links = [];
-    }
-
     // Card type should never reach here; handled by chooseCardType
     if (type === "Card") {
         closeTypeChooser();

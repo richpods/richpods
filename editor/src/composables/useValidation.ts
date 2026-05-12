@@ -90,7 +90,6 @@ export function useValidation() {
 
         if (enclosure.__typename !== "Markdown") return errors;
 
-        // Title is required
         const titleError = validateRequired(enclosure.title, t("validation.fields.title"));
         if (titleError) {
             errors.push({
@@ -99,9 +98,22 @@ export function useValidation() {
                 chapterIndex,
                 message: titleError,
             });
+        } else {
+            const titleMaxError = validateMaxLength(
+                enclosure.title,
+                200,
+                t("validation.fields.title"),
+            );
+            if (titleMaxError) {
+                errors.push({
+                    type: ValidationErrorTypes.REQUIRED,
+                    field: "title",
+                    chapterIndex,
+                    message: titleMaxError,
+                });
+            }
         }
 
-        // Text is required
         const textError = validateRequired(enclosure.text, t("validation.fields.textContent"));
         if (textError) {
             errors.push({
@@ -110,7 +122,75 @@ export function useValidation() {
                 chapterIndex,
                 message: textError,
             });
+        } else {
+            const textMaxError = validateMaxLength(
+                enclosure.text,
+                5000,
+                t("validation.fields.textContent"),
+            );
+            if (textMaxError) {
+                errors.push({
+                    type: ValidationErrorTypes.REQUIRED,
+                    field: "text",
+                    chapterIndex,
+                    message: textMaxError,
+                });
+            }
         }
+
+        const links = enclosure.links || [];
+        if (links.length > 3) {
+            errors.push({
+                type: ValidationErrorTypes.REQUIRED,
+                field: "markdown-links",
+                chapterIndex,
+                message: t("validation.messages.maxMarkdownLinksAllowed", { max: 3 }),
+            });
+        }
+
+        links.forEach((link, linkIndex) => {
+            const labelField = t("validation.fields.linkLabel", { n: linkIndex + 1 });
+            const urlField = t("validation.fields.linkUrl", { n: linkIndex + 1 });
+            const labelError = validateRequired(link.label, labelField);
+            if (labelError) {
+                errors.push({
+                    type: ValidationErrorTypes.REQUIRED,
+                    field: `markdown-link-${linkIndex}-label`,
+                    chapterIndex,
+                    message: labelError,
+                });
+            } else {
+                const labelMaxError = validateMaxLength(link.label, 50, labelField);
+                if (labelMaxError) {
+                    errors.push({
+                        type: ValidationErrorTypes.REQUIRED,
+                        field: `markdown-link-${linkIndex}-label`,
+                        chapterIndex,
+                        message: labelMaxError,
+                    });
+                }
+            }
+
+            const urlRequiredError = validateRequired(link.url, urlField);
+            if (urlRequiredError) {
+                errors.push({
+                    type: ValidationErrorTypes.REQUIRED,
+                    field: `markdown-link-${linkIndex}-url`,
+                    chapterIndex,
+                    message: urlRequiredError,
+                });
+            } else {
+                const urlError = validateUrl(link.url, urlField);
+                if (urlError) {
+                    errors.push({
+                        type: ValidationErrorTypes.INVALID_URL,
+                        field: `markdown-link-${linkIndex}-url`,
+                        chapterIndex,
+                        message: urlError,
+                    });
+                }
+            }
+        });
 
         return errors;
     }
@@ -508,126 +588,6 @@ export function useValidation() {
         return errors;
     }
 
-    function validateFactboxChapter(
-        chapter: EditorChapter,
-        chapterIndex: number,
-    ): ValidationError[] {
-        const errors: ValidationError[] = [];
-        const enclosure = chapter.enclosure;
-
-        if (enclosure.__typename !== "Factbox") return errors;
-
-        // Title is required (max 200 chars)
-        const titleError = validateRequired(enclosure.title, t("validation.fields.factboxTitle"));
-        if (titleError) {
-            errors.push({
-                type: ValidationErrorTypes.REQUIRED,
-                field: "factbox-title",
-                chapterIndex,
-                message: titleError,
-            });
-        } else {
-            const titleMaxError = validateMaxLength(
-                enclosure.title,
-                200,
-                t("validation.fields.factboxTitle"),
-            );
-            if (titleMaxError) {
-                errors.push({
-                    type: ValidationErrorTypes.REQUIRED,
-                    field: "factbox-title",
-                    chapterIndex,
-                    message: titleMaxError,
-                });
-            }
-        }
-
-        // Text is required (max 5000 chars)
-        const textError = validateRequired(enclosure.text, t("validation.fields.factboxText"));
-        if (textError) {
-            errors.push({
-                type: ValidationErrorTypes.REQUIRED,
-                field: "factbox-text",
-                chapterIndex,
-                message: textError,
-            });
-        } else {
-            const textMaxError = validateMaxLength(
-                enclosure.text,
-                5000,
-                t("validation.fields.factboxText"),
-            );
-            if (textMaxError) {
-                errors.push({
-                    type: ValidationErrorTypes.REQUIRED,
-                    field: "factbox-text",
-                    chapterIndex,
-                    message: textMaxError,
-                });
-            }
-        }
-
-        // Links validation (max 3 links)
-        const links = enclosure.links || [];
-        if (links.length > 3) {
-            errors.push({
-                type: ValidationErrorTypes.REQUIRED,
-                field: "factbox-links",
-                chapterIndex,
-                message: t("validation.messages.maxFactboxLinksAllowed", { max: 3 }),
-            });
-        }
-
-        // Validate each link
-        links.forEach((link, linkIndex) => {
-            // Label is required (max 50 chars)
-            const labelField = t("validation.fields.linkLabel", { n: linkIndex + 1 });
-            const urlField = t("validation.fields.linkUrl", { n: linkIndex + 1 });
-            const labelError = validateRequired(link.label, labelField);
-            if (labelError) {
-                errors.push({
-                    type: ValidationErrorTypes.REQUIRED,
-                    field: `factbox-link-${linkIndex}-label`,
-                    chapterIndex,
-                    message: labelError,
-                });
-            } else {
-                const labelMaxError = validateMaxLength(link.label, 50, labelField);
-                if (labelMaxError) {
-                    errors.push({
-                        type: ValidationErrorTypes.REQUIRED,
-                        field: `factbox-link-${linkIndex}-label`,
-                        chapterIndex,
-                        message: labelMaxError,
-                    });
-                }
-            }
-
-            // URL is required and must be valid
-            const urlRequiredError = validateRequired(link.url, urlField);
-            if (urlRequiredError) {
-                errors.push({
-                    type: ValidationErrorTypes.REQUIRED,
-                    field: `factbox-link-${linkIndex}-url`,
-                    chapterIndex,
-                    message: urlRequiredError,
-                });
-            } else {
-                const urlError = validateUrl(link.url, urlField);
-                if (urlError) {
-                    errors.push({
-                        type: ValidationErrorTypes.INVALID_URL,
-                        field: `factbox-link-${linkIndex}-url`,
-                        chapterIndex,
-                        message: urlError,
-                    });
-                }
-            }
-        });
-
-        return errors;
-    }
-
     function validateCardChapter(chapter: EditorChapter, chapterIndex: number): ValidationError[] {
         const errors: ValidationError[] = [];
         const enclosure = chapter.enclosure;
@@ -819,9 +779,6 @@ export function useValidation() {
                     break;
                 case "Poll":
                     errors.push(...validatePollChapter(chapter, index));
-                    break;
-                case "Factbox":
-                    errors.push(...validateFactboxChapter(chapter, index));
                     break;
                 case "Card":
                     errors.push(...validateCardChapter(chapter, index));

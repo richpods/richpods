@@ -14,7 +14,11 @@ import type {
     PodcastOrigin,
     UserRoleValue,
 } from "../types/firestore.js";
-import { EnclosureType, RichPodState as FirestoreRichPodState, RichPodStateType } from "../types/firestore.js";
+import {
+    EnclosureType,
+    RichPodState as FirestoreRichPodState,
+    RichPodStateType,
+} from "../types/firestore.js";
 import { RichPodState, ChartFormat, CardType as GraphQLCardType } from "../graphql.js";
 import { deleteEpisodeFiles } from "./hosted-storage.service.js";
 import { deleteAllEnclosures } from "./storage.service.js";
@@ -46,16 +50,17 @@ export async function getUserRichPods(
 ): Promise<PaginatedResult<RichPod>> {
     const userRef = getUserReference(userId);
 
-    let baseQuery = db
-        .collection(RICHPODS_COLLECTION)
-        .where("editor", "==", userRef);
+    let baseQuery = db.collection(RICHPODS_COLLECTION).where("editor", "==", userRef);
 
     if (stateFilter === "draft") {
         baseQuery = baseQuery.where("state", "==", FirestoreRichPodState.DRAFT);
     } else if (stateFilter === "published") {
         baseQuery = baseQuery.where("state", "==", FirestoreRichPodState.PUBLISHED);
     } else {
-        baseQuery = baseQuery.where("state", "in", [FirestoreRichPodState.PUBLISHED, FirestoreRichPodState.DRAFT]);
+        baseQuery = baseQuery.where("state", "in", [
+            FirestoreRichPodState.PUBLISHED,
+            FirestoreRichPodState.DRAFT,
+        ]);
     }
 
     let orderedQuery = baseQuery.orderBy("updatedAt", "desc").limit(pageSize + 1);
@@ -63,7 +68,9 @@ export async function getUserRichPods(
     if (afterCursor) {
         const cursorDoc = await db.collection(RICHPODS_COLLECTION).doc(afterCursor).get();
         if (!cursorDoc.exists) {
-            throw new ValidationError("Validation failed for after", ["after: invalid or stale cursor"]);
+            throw new ValidationError("Validation failed for after", [
+                "after: invalid or stale cursor",
+            ]);
         }
         orderedQuery = orderedQuery.startAfter(cursorDoc);
     }
@@ -109,7 +116,9 @@ export async function getRecentPublishedRichPods(
     if (afterCursor) {
         const cursorDoc = await db.collection(RICHPODS_COLLECTION).doc(afterCursor).get();
         if (!cursorDoc.exists) {
-            throw new ValidationError("Validation failed for after", ["after: invalid or stale cursor"]);
+            throw new ValidationError("Validation failed for after", [
+                "after: invalid or stale cursor",
+            ]);
         }
         query = query.startAfter(cursorDoc);
     }
@@ -229,8 +238,7 @@ export async function createRichPod(
               : [];
         const guid = richPod.origin.episode.guid;
         const item = items.find((i) => {
-            const itemGuid =
-                typeof i.guid === "object" && i.guid["_"] ? i.guid["_"] : i.guid;
+            const itemGuid = typeof i.guid === "object" && i.guid["_"] ? i.guid["_"] : i.guid;
             return itemGuid === guid;
         });
         if (item?.pubDate) {
@@ -348,12 +356,7 @@ export async function updateRichPod(
         throw new Error(`Editor not found for RichPod ${id}`);
     }
 
-    return mapToGraphQL(
-        id,
-        finalData,
-        await getChaptersForRichPod(id, finalData.origin),
-        editor,
-    );
+    return mapToGraphQL(id, finalData, await getChaptersForRichPod(id, finalData.origin), editor);
 }
 
 /**
@@ -440,7 +443,10 @@ async function getLatestChapter(richPodId: string): Promise<ChapterDocument | nu
 /**
  * Get all chapters for a RichPod (latest version).
  */
-async function getChaptersForRichPod(richPodId: string, origin?: PodcastOrigin): Promise<GraphQLChapter[]> {
+async function getChaptersForRichPod(
+    richPodId: string,
+    origin?: PodcastOrigin,
+): Promise<GraphQLChapter[]> {
     const latestChapter = await getLatestChapter(richPodId);
 
     if (!latestChapter) {
@@ -457,7 +463,11 @@ async function getChaptersForRichPod(richPodId: string, origin?: PodcastOrigin):
                 throw new Error(`Enclosure data not found: ${enclosure.gcsName}`);
             }
 
-            const mappedEnclosure = mapEnclosureToGraphQL(enclosure.enclosureType, enclosureData, origin);
+            const mappedEnclosure = mapEnclosureToGraphQL(
+                enclosure.enclosureType,
+                enclosureData,
+                origin,
+            );
 
             return {
                 begin: enclosure.begin,
@@ -495,9 +505,8 @@ export async function deleteRichPod(id: string, editorUserId: string): Promise<b
     // If this RichPod belongs to a hosted episode, cascade-delete the episode
     // and its GCS files. The hosted episode cannot exist without its RichPod.
     if (data.isHosted && data.hostedEpisodeId) {
-        const { HOSTED_EPISODES_COLLECTION, AUDIO_VALIDATIONS_COLLECTION } = await import(
-            "../config/firestore.js"
-        );
+        const { HOSTED_EPISODES_COLLECTION, AUDIO_VALIDATIONS_COLLECTION } =
+            await import("../config/firestore.js");
         const episodeRef = db.collection(HOSTED_EPISODES_COLLECTION).doc(data.hostedEpisodeId);
         const episodeDoc = await episodeRef.get();
         if (episodeDoc.exists) {
@@ -507,7 +516,9 @@ export async function deleteRichPod(id: string, editorUserId: string): Promise<b
                 await deleteEpisodeFiles(podcastId, data.hostedEpisodeId);
             }
             await episodeRef.delete();
-            console.info(`Cascade-deleted hosted episode ${data.hostedEpisodeId} for RichPod ${id}`);
+            console.info(
+                `Cascade-deleted hosted episode ${data.hostedEpisodeId} for RichPod ${id}`,
+            );
         }
         await db.collection(AUDIO_VALIDATIONS_COLLECTION).doc(data.hostedEpisodeId).delete();
         await deleteAllEnclosures(id);
@@ -601,10 +612,19 @@ function mapEnclosureToGraphQL(
 ): GraphQLEnclosure {
     switch (enclosureType) {
         case EnclosureType.MARKDOWN:
+        // LEGACY_FACTBOX — Factbox was merged into Markdown. Read-only fallthrough
+        // for old Firestore documents; chapters get rewritten as MARKDOWN on the
+        // next save. Drop this case (and EnclosureType.FACTBOX) once no document
+        // carries `enclosureType: "Factbox"` anymore.
+        case EnclosureType.FACTBOX:
             return {
                 __typename: "Markdown",
                 title: enclosure.title,
                 text: enclosure.text || "",
+                links: (enclosure.links || []).map((link) => ({
+                    label: link.label,
+                    url: link.url,
+                })),
             };
 
         case EnclosureType.INTERACTIVE_CHART:
@@ -613,7 +633,10 @@ function mapEnclosureToGraphQL(
                 __typename: "InteractiveChart",
                 title: enclosure.title,
                 description: enclosure.description || null,
-                chartFormat: enclosure.chartFormat === "ECHARTS" ? ChartFormat.Echarts : ChartFormat.PlainData,
+                chartFormat:
+                    enclosure.chartFormat === "ECHARTS"
+                        ? ChartFormat.Echarts
+                        : ChartFormat.PlainData,
                 chart: enclosure.chart || {},
             };
 
@@ -649,17 +672,6 @@ function mapEnclosureToGraphQL(
                 },
             };
 
-        case EnclosureType.FACTBOX:
-            return {
-                __typename: "Factbox",
-                title: enclosure.title,
-                text: enclosure.text || "",
-                links: (enclosure.links || []).map((link) => ({
-                    label: link.label,
-                    url: link.url,
-                })),
-            };
-
         case EnclosureType.CARD: {
             const cardTypeMap: Record<string, GraphQLCardType> = {
                 LINK: GraphQLCardType.Link,
@@ -679,9 +691,9 @@ function mapEnclosureToGraphQL(
                           ogTitle: enclosure.openGraph.ogTitle || null,
                           ogDescription: enclosure.openGraph.ogDescription || null,
                           ogImageUrl: enclosure.openGraph.ogImageUrl
-                              ? (enclosure.openGraph.ogImageUrl.startsWith("http")
-                                    ? enclosure.openGraph.ogImageUrl
-                                    : `${process.env.API_BASE_URL}${enclosure.openGraph.ogImageUrl}`)
+                              ? enclosure.openGraph.ogImageUrl.startsWith("http")
+                                  ? enclosure.openGraph.ogImageUrl
+                                  : `${process.env.API_BASE_URL}${enclosure.openGraph.ogImageUrl}`
                               : null,
                           ogImageWidth: enclosure.openGraph.ogImageWidth ?? null,
                           ogImageHeight: enclosure.openGraph.ogImageHeight ?? null,
@@ -691,16 +703,17 @@ function mapEnclosureToGraphQL(
                     : null,
                 description: enclosure.description || null,
                 coverSource: enclosure.coverSource || null,
-                coverImageUrl: enclosure.coverSource === "episode"
-                    ? (origin?.episode?.artworkUrl || origin?.artworkUrl || null)
-                    : (origin?.artworkUrl || null),
+                coverImageUrl:
+                    enclosure.coverSource === "episode"
+                        ? origin?.episode?.artworkUrl || origin?.artworkUrl || null
+                        : origin?.artworkUrl || null,
                 quoteText: enclosure.quoteText || null,
                 citationSource: enclosure.citationSource || null,
                 citationUrl: enclosure.citationUrl || null,
                 imageUrl: enclosure.imageUrl
-                    ? (enclosure.imageUrl.startsWith("http")
-                          ? enclosure.imageUrl
-                          : `${process.env.API_BASE_URL}${enclosure.imageUrl}`)
+                    ? enclosure.imageUrl.startsWith("http")
+                        ? enclosure.imageUrl
+                        : `${process.env.API_BASE_URL}${enclosure.imageUrl}`
                     : null,
                 imageAlt: enclosure.imageAlt || null,
                 imageLink: enclosure.imageLink || null,
