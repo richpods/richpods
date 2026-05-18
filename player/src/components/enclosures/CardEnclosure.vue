@@ -1,5 +1,6 @@
 <template>
     <div class="card-enclosure" :class="`card-type-${cardType.toLowerCase()}`">
+        <enclosure-header :enclosure="enclosure" />
         <div class="card-center">
             <!-- Link Card -->
             <div v-if="cardType === 'LINK' && enclosure.url" class="card-link-wrapper">
@@ -160,6 +161,7 @@ import { computed } from "vue";
 import { classifyMimeType, MimeCategory } from "@richpods/shared/media/mime";
 import { formatBytes } from "@richpods/shared/utils/bytes";
 import MimeTypeIcon from "./MimeTypeIcon.vue";
+import EnclosureHeader from "./EnclosureHeader.vue";
 import type { Card } from "../../graphql/generated.ts";
 
 const props = defineProps<{
@@ -168,11 +170,9 @@ const props = defineProps<{
 
 const cardType = computed(() => props.enclosure.cardType);
 
-// Link card OG data
-const ogTitle = computed(() => props.enclosure.openGraph?.ogTitle || props.enclosure.title || null);
-const ogDescription = computed(
-    () => props.enclosure.openGraph?.ogDescription || props.enclosure.description || null,
-);
+// Link card OG data — user-set title/description render above via EnclosureHeader.
+const ogTitle = computed(() => props.enclosure.openGraph?.ogTitle || null);
+const ogDescription = computed(() => props.enclosure.openGraph?.ogDescription || null);
 const ogImageUrl = computed(() => props.enclosure.openGraph?.ogImageUrl || null);
 
 // Use native dimensions if available, otherwise fall back to standard OG ratio
@@ -228,15 +228,20 @@ const quoteLines = computed(() => {
 
 <style lang="scss">
 .card-enclosure {
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
     min-height: 100%;
-    padding: 16px;
 }
 
 .card-center {
+    flex: 1;
+    align-self: center;
     width: 100%;
     max-width: 600px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 /* Link Card */

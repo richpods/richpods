@@ -82,6 +82,10 @@ if (slides.value.length > 1) {
     :deep(.flicking-camera) {
         height: 100%;
     }
+
+    :deep(.flicking-pagination) {
+        bottom: 22px;
+    }
 }
 
 .slide-panel {
@@ -90,8 +94,8 @@ if (slides.value.length > 1) {
     width: 100%;
     height: 100%;
 
-    // creates the space for the pagination bullets
-    padding-bottom: 25px;
+    // creates the space for the pagination bullets (kept clear of the seek bar)
+    padding-bottom: 44px;
 
     .slide-image {
         width: 100%;

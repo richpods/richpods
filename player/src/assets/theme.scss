@@ -98,7 +98,35 @@ $richpod-desktop-xwide-breakpoint: 1600px;
         gray
     );
 
+    // Text style categories — mobile defaults (in rem). Container-based
+    // overrides for desktop / wide live below so embedded players that are
+    // narrower than the viewport still pick the right step.
+    --richpod-font-size-chapter-title: 1.125rem; // 18px
+    --richpod-font-size-chapter-description: 0.9375rem; // 15px
+    --richpod-font-size-body: 1rem; // 16px
+    --richpod-line-height-body: 1.55;
+    --richpod-font-size-cta: 0.9375rem; // 15px
+
     @media (min-width: #{$richpod-desktop-breakpoint}) {
         --richpod-chapter-segment-gap: 5px;
+    }
+}
+
+@container player (min-width: #{$richpod-desktop-breakpoint}) {
+    .player-wrapper {
+        --richpod-font-size-chapter-title: 1.5rem; // 24px
+        --richpod-font-size-chapter-description: 1.0625rem; // 17px
+        --richpod-font-size-body: 1.0625rem; // 17px
+        --richpod-line-height-body: 1.6;
+        --richpod-font-size-cta: 1rem; // 16px
+    }
+}
+
+@container player (min-width: #{$richpod-desktop-wide-breakpoint}) {
+    .player-wrapper {
+        --richpod-font-size-chapter-title: 1.75rem; // 28px
+        --richpod-font-size-chapter-description: 1.125rem; // 18px
+        --richpod-font-size-body: 1.125rem; // 18px
+        --richpod-line-height-body: 1.65;
     }
 }

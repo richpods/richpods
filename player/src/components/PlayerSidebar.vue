@@ -214,6 +214,7 @@ const reportMailtoLink = computed(() => {
             scrollbar-gutter: stable;
             display: flex;
             flex-direction: column;
+            padding-bottom: min(250px, 45dvh);
         }
 
         .sidebar-top {
@@ -382,7 +383,7 @@ const reportMailtoLink = computed(() => {
 
         .sidebar-report-button {
             display: inline-block;
-            margin: 16px 20px 20px;
+            margin: 60px 20px 20px;
             padding: 6px 16px;
             border: none;
             border-radius: 13px;
