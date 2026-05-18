@@ -21,13 +21,13 @@
                         <div
                             v-else-if="showMimePlaceholder"
                             class="card-link-placeholder"
-                            :class="`card-link-placeholder-${mimeCategory}`"
+                            :class="`card-link-placeholder-${placeholderCategory}`"
                         >
                             <MimeTypeIcon
-                                :category="mimeCategory"
+                                :category="placeholderCategory"
                                 class="card-link-placeholder-icon"
                             />
-                            <div class="card-link-placeholder-meta">
+                            <div v-if="showPlaceholderMeta" class="card-link-placeholder-meta">
                                 <span v-if="mimeType" class="card-link-placeholder-mime">
                                     {{ mimeType }}
                                 </span>
@@ -189,8 +189,13 @@ const ogImageStyle = computed(() => {
 const mimeType = computed(() => props.enclosure.openGraph?.mimeType ?? null);
 const resourceSize = computed(() => props.enclosure.openGraph?.resourceSize ?? null);
 const mimeCategory = computed(() => classifyMimeType(mimeType.value));
-const showMimePlaceholder = computed(
-    () => !ogImageUrl.value && mimeCategory.value !== MimeCategory.HTML && mimeType.value !== null,
+const showMimePlaceholder = computed(() => !ogImageUrl.value);
+// Treat unknown mime as HTML so plain website links still get the link icon.
+const placeholderCategory = computed(() =>
+    mimeType.value === null ? MimeCategory.HTML : mimeCategory.value,
+);
+const showPlaceholderMeta = computed(
+    () => placeholderCategory.value !== MimeCategory.HTML,
 );
 
 const resourceSizeLabel = computed(() => {
