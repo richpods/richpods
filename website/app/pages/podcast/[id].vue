@@ -301,13 +301,6 @@ useHead(() => {
   }
   return {
     title: p.title,
-    meta: [
-      { name: "description", content: p.description },
-      { property: "og:title", content: p.title },
-      { property: "og:description", content: p.description },
-      { property: "og:image", content: p.coverImageUrl },
-      { property: "og:type", content: "website" },
-    ],
     link: [
       {
         rel: "alternate",
@@ -317,6 +310,19 @@ useHead(() => {
       },
     ],
   };
+});
+
+useSeoMeta({
+  description: () => podcast.value?.description ?? "",
+  ogTitle: () => podcast.value?.title ?? "",
+  ogDescription: () => podcast.value?.description ?? "",
+  ogImage: () => podcast.value?.coverImageUrl ?? "",
+  ogImageAlt: () => podcast.value?.title ?? "",
+  ogType: "website",
+  twitterCard: "summary_large_image",
+  twitterTitle: () => podcast.value?.title ?? "",
+  twitterDescription: () => podcast.value?.description ?? "",
+  twitterImage: () => podcast.value?.coverImageUrl ?? "",
 });
 </script>
 <style scoped lang="scss">

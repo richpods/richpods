@@ -1,6 +1,8 @@
 {
     "meta": {
-        "siteTitle": "RichPods"
+        "siteTitle": "RichPods",
+        "siteDescription": "A new dimension for storytelling. RichPods enriches podcasts with interactive multimedia — maps, charts, info boxes, images and slideshows — delivered at exactly the right moment.",
+        "ogImageAlt": "RichPods – a new dimension for storytelling"
     },
     "nav": {
         "listen": "Listen",
@@ -29,11 +31,13 @@
         "demoText": "{transformPodcast} Maps. Info boxes. Interactive charts. Images and slideshows. Delivered at the right moment, interactive and easy to create.",
         "transformPodcast": "Transform your podcast into a multimedia experience:",
         "ctaTitle": "Ready to take your podcast to the next level?",
-        "ctaEmail": "📧 Send us an email"
+        "ctaEmail": "📧 Send us an email",
+        "description": "A new dimension for storytelling. RichPods rethinks how interactive elements can be woven into classic, linear podcast formats."
     },
     "team": {
         "title": "Team",
         "subtitle": "We combine technical expertise, podcast know-how, and design ambition.",
+        "description": "Meet the team behind RichPods — combining technical expertise, podcast know-how, and design ambition.",
         "photoAlt": "Team photo of Philipp Naderer-Puiu and Sonja Harter.",
         "philippName": "Philipp Naderer-Puiu",
         "philippBio": "Philipp focuses on building scalable web applications. He works with open data from public authorities and transport companies, transforming raw data with the software he develops and preparing it for a wide range of channels. He has also been a software developer in the media sector for nearly 20 years.",
@@ -45,6 +49,7 @@
     "listen": {
         "title": "Listen",
         "subtitle": "Discover the latest RichPods — podcasts enriched with interactive content.",
+        "description": "Discover the latest RichPods — podcasts enriched with interactive multimedia content.",
         "unverified": "Not from the original creator.",
         "loadMore": "Show more",
         "loading": "Loading…",
@@ -95,6 +100,7 @@
     },
     "contact": {
         "title": "Contact",
+        "description": "Contact details and privacy policy for RichPods.",
         "address": "Bruno-Marek-Allee 5/51, 1020 Vienna",
         "photos": "Photos: {photographer}",
         "privacyTitle": "Privacy Policy",

@@ -50,6 +50,14 @@ const { t } = useI18n();
 useHead({
     titleTemplate: t("meta.siteTitle"),
 });
+
+useSeoMeta({
+    description: () => t("home.description"),
+    ogTitle: () => t("meta.siteTitle"),
+    ogDescription: () => t("home.description"),
+    twitterTitle: () => t("meta.siteTitle"),
+    twitterDescription: () => t("home.description"),
+});
 </script>
 <style scoped lang="scss">
 .hero em {

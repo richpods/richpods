@@ -1,6 +1,8 @@
 {
     "meta": {
-        "siteTitle": "RichPods"
+        "siteTitle": "RichPods",
+        "siteDescription": "Eine neue Dimension des Storytellings. RichPods ergänzt Podcasts um interaktive multimediale Elemente — Karten, Diagramme, Infoboxen, Bilder und Slideshows — jeweils zum richtigen Zeitpunkt.",
+        "ogImageAlt": "RichPods – eine neue Dimension des Storytellings"
     },
     "nav": {
         "listen": "Anhören",
@@ -29,11 +31,13 @@
         "demoText": "{transformPodcast} Karten. Infoboxen. Interaktive Diagramme. Bilder und Slideshows. Zum richtigen Zeitpunkt, interaktiv und einfach anzulegen.",
         "transformPodcast": "Verwandle Deinen Podcast in ein multimediales Erlebnis:",
         "ctaTitle": "Willst du deinen Podcast auf das nächste Level bringen?",
-        "ctaEmail": "📧 Mail senden"
+        "ctaEmail": "📧 Mail senden",
+        "description": "Eine neue Dimension des Storytellings. RichPods denkt die Art und Weise neu, wie interaktive Elemente in klassische lineare Podcast-Formate integriert werden können."
     },
     "team": {
         "title": "Team",
         "subtitle": "Wir kombinieren technisches Fachwissen, Podcast-Expertise und gestalterischen Anspruch.",
+        "description": "Lerne das Team hinter RichPods kennen — wir kombinieren technisches Fachwissen, Podcast-Expertise und gestalterischen Anspruch.",
         "photoAlt": "Teamfoto von Philipp Naderer-Puiu und Sonja Harter.",
         "philippName": "Philipp Naderer-Puiu",
         "philippBio": "Sein Schwerpunkt liegt in der Entwicklung von skalierfähigen Web-Anwendungen. Dabei beschäftigt er sich u.a. mit Offenen Daten, die von Behörden oder Verkehrsunternehmen bereitgestellt werden. Diese Rohdaten werden durch die von ihm entwickelte Software transformiert und für unterschiedlichste Kanäle aufbereitet. Außerdem arbeitet Philipp seit fast 20 Jahren als Softwareentwickler im Medienbereich.",
@@ -45,6 +49,7 @@
     "listen": {
         "title": "Anhören",
         "subtitle": "Entdecke die neuesten RichPods — Podcasts, angereichert mit interaktiven Inhalten.",
+        "description": "Entdecke die neuesten RichPods — Podcasts, angereichert mit interaktiven multimedialen Inhalten.",
         "unverified": "Nicht vom Podcast-Urheber.",
         "loadMore": "Mehr anzeigen",
         "loading": "Wird geladen…",
@@ -95,6 +100,7 @@
     },
     "contact": {
         "title": "Kontakt",
+        "description": "Kontaktinformationen und Datenschutz für RichPods.",
         "address": "Bruno-Marek-Allee 5/51, 1020 Wien",
         "photos": "Fotos: {photographer}",
         "privacyTitle": "Datenschutz",

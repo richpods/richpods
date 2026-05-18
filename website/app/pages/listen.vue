@@ -65,6 +65,14 @@ useHead({
     title: t("listen.title"),
 });
 
+useSeoMeta({
+    description: () => t("listen.description"),
+    ogTitle: () => `${t("listen.title")} | ${t("meta.siteTitle")}`,
+    ogDescription: () => t("listen.description"),
+    twitterTitle: () => `${t("listen.title")} | ${t("meta.siteTitle")}`,
+    twitterDescription: () => t("listen.description"),
+});
+
 const PAGE_SIZE = 24;
 const MAX_TOTAL = 120;
 

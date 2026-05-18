@@ -65,6 +65,14 @@ const { t } = useI18n();
 useHead({
    title: t("team.title")
 });
+
+useSeoMeta({
+    description: () => t("team.description"),
+    ogTitle: () => `${t("team.title")} | ${t("meta.siteTitle")}`,
+    ogDescription: () => t("team.description"),
+    twitterTitle: () => `${t("team.title")} | ${t("meta.siteTitle")}`,
+    twitterDescription: () => t("team.description"),
+});
 </script>
 <style scoped lang="scss">
 .team {
