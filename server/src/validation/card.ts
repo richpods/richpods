@@ -113,9 +113,8 @@ const imageCardSchema = Joi.object({
 });
 
 const blankCardSchema = Joi.object({
-    title: Joi.string().valid("[empty card]").required().messages({
-        "any.only": "Blank card title must be '[empty card]'",
-        "any.required": "Title is required",
+    title: Joi.string().allow("").valid("").required().messages({
+        "any.only": "Blank card title must be empty",
     }),
     cardType: Joi.string().valid("BLANK").required(),
     visibleAsChapter: Joi.boolean().valid(false).required().messages({

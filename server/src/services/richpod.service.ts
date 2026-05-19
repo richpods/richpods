@@ -680,10 +680,18 @@ function mapEnclosureToGraphQL(
                 IMAGE: GraphQLCardType.Image,
                 BLANK: GraphQLCardType.Blank,
             };
+            const resolvedCardType =
+                cardTypeMap[enclosure.cardType || "BLANK"] || GraphQLCardType.Blank;
+            // Legacy BLANK cards stored "[empty card]" as the title. Drop this normalization
+            // once no Firestore document carries that literal anymore.
+            const normalizedTitle =
+                resolvedCardType === GraphQLCardType.Blank && enclosure.title === "[empty card]"
+                    ? ""
+                    : enclosure.title;
             return {
                 __typename: "Card",
-                title: enclosure.title,
-                cardType: cardTypeMap[enclosure.cardType || "BLANK"] || GraphQLCardType.Blank,
+                title: normalizedTitle,
+                cardType: resolvedCardType,
                 visibleAsChapter: enclosure.visibleAsChapter ?? false,
                 url: enclosure.url || null,
                 openGraph: enclosure.openGraph

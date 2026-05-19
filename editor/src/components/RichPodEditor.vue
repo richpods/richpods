@@ -582,7 +582,7 @@ function chooseCardType(cardType: "LINK" | "COVER" | "CITATION" | "IMAGE" | "BLA
             enclosure.imageLink = "";
             break;
         case "BLANK":
-            enclosure.title = "[empty card]";
+            enclosure.title = "";
             enclosure.visibleAsChapter = false;
             break;
     }
