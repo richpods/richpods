@@ -19,6 +19,22 @@
         format("truetype");
 }
 
+@font-face {
+    font-display: swap;
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 100 800;
+    src: url("@richpods/shared/assets/fonts/JetBrainsMono[wght].woff2") format("woff2");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: "JetBrains Mono";
+    font-style: italic;
+    font-weight: 100 800;
+    src: url("@richpods/shared/assets/fonts/JetBrainsMono-Italic[wght].woff2") format("woff2");
+}
+
 .visually-hidden {
     @include mixins.visually-hidden();
 }

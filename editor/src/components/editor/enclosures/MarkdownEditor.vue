@@ -741,36 +741,39 @@ onBeforeUnmount(() => {
         }
 
         blockquote {
-            padding-left: 1rem;
-            border-left: 3px solid #e5e7eb;
-            font-style: italic;
-            margin: 1.5rem 0;
+            margin: 1em 0;
+            padding: 0.25em 0 0.25em 1em;
+            border-left: 4px solid #d1d5db;
             color: #6b7280;
+            font-style: italic;
         }
 
         code {
+            font-family: var(--richpod-font-family-mono);
+            font-size: 0.85em;
+            padding: 0.15em 0.35em;
             background-color: #f3f4f6;
-            border-radius: 0.25rem;
             color: #1f2937;
-            font-family: "JetBrains Mono", "SF Mono", Monaco, Consolas, monospace;
-            font-size: 0.85rem;
-            padding: 0.125rem 0.25rem;
+            border-radius: 4px;
         }
 
         pre {
-            background: #1e293b;
-            border-radius: 0.5rem;
-            color: #f1f5f9;
-            font-family: "JetBrains Mono", "SF Mono", Monaco, Consolas, monospace;
             margin: 1.5rem 0;
             padding: 0.75rem 1rem;
+            background: #1e293b;
+            color: #f1f5f9;
+            border-radius: 0.5rem;
             overflow-x: auto;
+            font-family: var(--richpod-font-family-mono);
+            font-size: 0.85em;
+            line-height: 1.5;
 
             code {
-                background: none;
-                color: inherit;
-                font-size: 0.8rem;
                 padding: 0;
+                background: transparent;
+                color: inherit;
+                border-radius: 0;
+                font-size: inherit;
             }
         }
 
@@ -784,7 +787,7 @@ onBeforeUnmount(() => {
         hr {
             border: none;
             border-top: 1px solid #e5e7eb;
-            margin: 2rem 0;
+            margin: 1.5rem 0;
         }
 
         a {

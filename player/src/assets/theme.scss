@@ -19,6 +19,9 @@ $richpod-desktop-xwide-breakpoint: 1600px;
     --richpod-overlay-backdrop: rgba(47, 44, 53, 0.4);
 
     --richpod-font-family-text: "Open Sans", sans-serif;
+    --richpod-font-family-mono:
+        "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+        "Liberation Mono", monospace;
 
     --richpod-controls-height: 100px;
     --richpod-controls-background-color: var(--richpod-background-color);

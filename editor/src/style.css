@@ -6,8 +6,16 @@
     font-display: swap;
     font-family: "JetBrains Mono";
     font-style: normal;
-    font-weight: 400;
-    src: url("@richpods/shared/assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+    font-weight: 100 800;
+    src: url("@richpods/shared/assets/fonts/JetBrainsMono[wght].woff2") format("woff2");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: "JetBrains Mono";
+    font-style: italic;
+    font-weight: 100 800;
+    src: url("@richpods/shared/assets/fonts/JetBrainsMono-Italic[wght].woff2") format("woff2");
 }
 
 @font-face {
@@ -28,6 +36,10 @@
 }
 
 :root {
+    --richpod-font-family-mono:
+        "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+        "Liberation Mono", monospace;
+
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
     font-weight: 400;

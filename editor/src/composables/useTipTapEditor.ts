@@ -52,35 +52,6 @@ type MarkdownEditorLike = {
     getText: () => string;
 };
 
-function sanitizeMarkdown(markdown: string): string {
-    if (!markdown) return "";
-
-    const codeBlocks: string[] = [];
-    const inlineCodes: string[] = [];
-
-    let sanitized = markdown
-        .replace(/```[\s\S]*?```/g, (match) => {
-            const token = `__CODE_BLOCK_${codeBlocks.length}__`;
-            codeBlocks.push(match);
-            return token;
-        })
-        .replace(/`[^`]*`/g, (match) => {
-            const token = `__INLINE_CODE_${inlineCodes.length}__`;
-            inlineCodes.push(match);
-            return token;
-        })
-        .replace(/<\s*\/??\s*[a-zA-Z!][^>]*>/g, "");
-
-    codeBlocks.forEach((block, index) => {
-        sanitized = sanitized.replace(`__CODE_BLOCK_${index}__`, block);
-    });
-    inlineCodes.forEach((code, index) => {
-        sanitized = sanitized.replace(`__INLINE_CODE_${index}__`, code);
-    });
-
-    return sanitized;
-}
-
 export function useTipTapEditor() {
     const richpodStore = useRichPodStore();
     const { currentChapter } = storeToRefs(richpodStore);
@@ -124,7 +95,6 @@ export function useTipTapEditor() {
             },
             onUpdate: ({ editor: editorInstance }) => {
                 const markdown = editorToMarkdown(editorInstance);
-                const sanitized = sanitizeMarkdown(markdown);
 
                 const chapterValue = currentChapter.value;
                 if (!chapterValue || chapterValue.enclosure.__typename !== "Markdown") {
@@ -136,7 +106,7 @@ export function useTipTapEditor() {
                         ? chapterValue.enclosure.text
                         : "";
 
-                if (currentText === sanitized) {
+                if (currentText === markdown) {
                     return;
                 }
 
@@ -148,7 +118,7 @@ export function useTipTapEditor() {
                         ...chapter,
                         enclosure: {
                             ...chapter.enclosure,
-                            text: sanitized,
+                            text: markdown,
                         },
                     };
                 });
@@ -190,8 +160,7 @@ export function useTipTapEditor() {
 
     const setMarkdownContent = (markdown: string) => {
         if (!editor.value) return;
-        const sanitized = sanitizeMarkdown(markdown);
-        const htmlContent = markdownToHtml(sanitized);
+        const htmlContent = markdownToHtml(markdown);
         editor.value.commands.setContent(htmlContent as Content);
     };
 

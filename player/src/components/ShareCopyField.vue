@@ -106,7 +106,7 @@ function selectContent(event: FocusEvent) {
     }
 
     textarea {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-family: var(--richpod-font-family-mono);
         font-size: 12px;
         resize: vertical;
     }

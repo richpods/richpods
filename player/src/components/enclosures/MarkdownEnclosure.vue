@@ -38,8 +38,7 @@
 <script setup lang="ts">
 import type { Markdown } from "@/graphql/generated.ts";
 import { ref, watch } from "vue";
-import { Renderer, marked } from "marked";
-import type { Tokens } from "marked";
+import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
 import EnclosureHeader from "./EnclosureHeader.vue";
 
@@ -50,21 +49,20 @@ const props = defineProps<{
 const parsedHtml = ref("");
 
 const headingOffset = props.enclosure.title != "" ? 2 : 1;
-const renderer = {
-    heading({ tokens, depth }: Tokens.Heading) {
-        const level = depth + headingOffset;
-        return `<h${level}>${this.parser.parseInline(tokens)}</h${level}>\n`;
-    },
-    link({ href, title, tokens }: Tokens.Link) {
-        const text = this.parser.parseInline(tokens);
-        const titleAttr = title ? ` title="${title}"` : "";
-        return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer nofollow ugc">${text}</a>`;
-    },
-} as Renderer;
 
-marked.use({
-    async: true,
-    renderer,
+const md = new MarkdownIt({
+    html: false,
+    linkify: true,
+    typographer: true,
+});
+
+md.core.ruler.push("offset_headings", (state) => {
+    for (const token of state.tokens) {
+        if (token.type === "heading_open" || token.type === "heading_close") {
+            const level = Math.min(Number(token.tag.slice(1)) + headingOffset, 6);
+            token.tag = `h${level}`;
+        }
+    }
 });
 
 DOMPurify.addHook("afterSanitizeAttributes", (node) => {
@@ -76,8 +74,8 @@ DOMPurify.addHook("afterSanitizeAttributes", (node) => {
 
 watch(
     () => props.enclosure.text,
-    async (newText) => {
-        const rawHtml = await marked.parse(newText);
+    (newText) => {
+        const rawHtml = md.render(newText ?? "");
         parsedHtml.value = DOMPurify.sanitize(rawHtml, { ADD_ATTR: ["target"] });
     },
     { immediate: true },
@@ -179,10 +177,13 @@ watch(
     a {
         color: var(--richpod-link-color, #2563eb);
         text-decoration: underline;
-        text-underline-offset: 2px;
+        text-decoration-color: var(--richpod-link-underline-color, #93c5fd);
+        text-underline-offset: 3px;
+        transition: all 0.2s;
 
         &:hover {
             color: var(--richpod-link-hover-color, #1d4ed8);
+            text-decoration-color: var(--richpod-link-underline-hover-color, #60a5fa);
         }
     }
 
@@ -223,33 +224,36 @@ watch(
     }
 
     code {
-        font-family:
-            ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-        font-size: 0.9em;
-        padding: 0.1em 0.35em;
-        background: var(--richpod-code-bg-color, rgba(0, 0, 0, 0.07));
+        font-family: var(--richpod-font-family-mono);
+        font-size: 0.85em;
+        padding: 0.15em 0.35em;
+        background: var(--richpod-code-bg-color, #f3f4f6);
+        color: var(--richpod-code-color, #1f2937);
         border-radius: 4px;
     }
 
     pre {
-        margin: 1em 0;
-        padding: 12px 14px;
-        background: var(--richpod-code-bg-color, rgba(0, 0, 0, 0.07));
-        border-radius: 6px;
+        margin: 1.5rem 0;
+        padding: 0.75rem 1rem;
+        background: var(--richpod-code-block-bg-color, #1e293b);
+        color: var(--richpod-code-block-color, #f1f5f9);
+        border-radius: 0.5rem;
         overflow-x: auto;
-        font-size: 0.9em;
+        font-family: var(--richpod-font-family-mono);
+        font-size: 0.85em;
         line-height: 1.5;
 
         code {
             padding: 0;
             background: transparent;
+            color: inherit;
             border-radius: 0;
             font-size: inherit;
         }
     }
 
     hr {
-        margin: 1.5em 0;
+        margin: 1.5rem 0;
         border: 0;
         border-top: 1px solid var(--richpod-border-color, #d1d5db);
     }
@@ -275,9 +279,11 @@ watch(
     }
 
     img {
+        display: block;
         max-width: 100%;
         height: auto;
-        border-radius: 4px;
+        margin: 1.5em 0;
+        border-radius: 0.5rem;
     }
 }
 
