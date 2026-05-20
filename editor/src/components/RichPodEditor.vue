@@ -56,6 +56,7 @@
                     @save-now="saveNow"
                     @add-chapter="openTypeChooser"
                     @go-to-verification="goToVerification"
+                    @open-chapter="activeEditorTab = 'chapters'"
                 />
                 <aside
                     v-else

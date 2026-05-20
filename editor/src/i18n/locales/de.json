@@ -311,7 +311,13 @@
         "validationInvalid": "Audio-Validierung fehlgeschlagen",
         "publishRequiresValidation": "Audio muss vor der Veröffentlichung validiert werden.",
         "explicitLabel": "Expliziter Inhalt",
-        "changeCover": "Ändern"
+        "changeCover": "Ändern",
+        "tabEpisode": "Episode",
+        "tabChapters": "Kapitelliste",
+        "chapterListEmpty": "Noch keine Kapitel.",
+        "chapterUntitled": "Ohne Titel",
+        "chapterVisible": "Im Kapitelverzeichnis sichtbar",
+        "chapterHidden": "Im Kapitelverzeichnis ausgeblendet"
     },
     "typeChooser": {
         "title": "Kapiteltyp auswählen",

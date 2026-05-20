@@ -194,9 +194,7 @@ const showMimePlaceholder = computed(() => !ogImageUrl.value);
 const placeholderCategory = computed(() =>
     mimeType.value === null ? MimeCategory.HTML : mimeCategory.value,
 );
-const showPlaceholderMeta = computed(
-    () => placeholderCategory.value !== MimeCategory.HTML,
-);
+const showPlaceholderMeta = computed(() => placeholderCategory.value !== MimeCategory.HTML);
 
 const resourceSizeLabel = computed(() => {
     const size = resourceSize.value;

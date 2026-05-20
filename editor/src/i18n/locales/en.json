@@ -311,7 +311,13 @@
         "validationInvalid": "Audio validation failed",
         "publishRequiresValidation": "Audio must be validated before publishing.",
         "explicitLabel": "Explicit Content",
-        "changeCover": "Change"
+        "changeCover": "Change",
+        "tabEpisode": "Episode",
+        "tabChapters": "Chapter List",
+        "chapterListEmpty": "No chapters yet.",
+        "chapterUntitled": "Untitled",
+        "chapterVisible": "Visible in chapter list",
+        "chapterHidden": "Hidden from chapter list"
     },
     "typeChooser": {
         "title": "Choose Chapter Type",
