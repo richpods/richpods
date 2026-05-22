@@ -678,7 +678,7 @@ function chapterTypeIcon(chapter: EditorChapter): string {
         case "GeoMap":
             return "ion:map-outline";
         case "InteractiveChart":
-            return "ion:stats-chart-outline";
+            return "ion:bar-chart-outline";
         default:
             return "ion:cube-outline";
     }

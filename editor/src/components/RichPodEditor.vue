@@ -119,7 +119,6 @@
 
     <TypeChooserModal
         :open="showTypeChooser"
-        :enclosure-types="enclosureTypes"
         :verified="isVerified"
         :bypass-verification="hasPrivilegedRole()"
         :has-podcast-artwork="hasPodcastArtwork"
@@ -177,7 +176,7 @@ import { useRichPodLock } from "@/composables/useRichPodLock";
 import { fetchRichPodById } from "@/services/richpodService";
 import { useCurrentUserRole } from "@/composables/useCurrentUserRole";
 import { useHostedValidation } from "@/composables/useHostedValidation";
-import type { EditorChapter, EnclosureType, StartTimeAddState } from "@/types/editor";
+import type { EditorChapter, StartTimeAddState } from "@/types/editor";
 import type { Chapter } from "@/graphql/generated";
 import type { RichPodLock } from "@/services/richpodLockService";
 import type { Component } from "vue";
@@ -442,15 +441,6 @@ function onMediaRefreshed(media: { url: string; mimeType: string }) {
 }
 const chaptersForPlayer = computed(() => chapters.value as unknown as Chapter[]);
 
-const enclosureTypes: EnclosureType[] = [
-    { type: "Markdown", icon: "\uD83D\uDCDD" },
-    { type: "Slideshow", icon: "\uD83D\uDDBC\uFE0F" },
-    { type: "Poll", icon: "\uD83D\uDCCB" },
-    { type: "GeoMap", icon: "\uD83D\uDDFA\uFE0F" },
-    { type: "InteractiveChart", icon: "\uD83D\uDCCA" },
-    { type: "Card", icon: "\uD83C\uDFF7\uFE0F" },
-];
-
 const hasPodcastArtwork = computed(() => !!richpod.value.origin?.artworkUrl);
 const hasEpisodeArtwork = computed(() => !!richpod.value.origin?.episode?.artworkUrl);
 
@@ -526,11 +516,6 @@ function chooseType(type: string) {
             endpoint: "",
             pollId: "",
         };
-    }
-    // Card type should never reach here; handled by chooseCardType
-    if (type === "Card") {
-        closeTypeChooser();
-        return;
     }
 
     const time = pendingChapterTime.value ?? currentTime.value;

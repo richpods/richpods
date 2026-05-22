@@ -321,9 +321,7 @@
     },
     "typeChooser": {
         "title": "Kapiteltyp auswählen",
-        "chooseCardType": "Kartentyp auswählen",
         "chapterTypesAriaLabel": "Kapiteltypen",
-        "cardTypesAriaLabel": "Kartentypen",
         "slideshow": "Slideshow",
         "slideshowRequiresVerification": "Slideshow erfordert Podcast-Verifizierung",
         "poll": "Umfrage",
@@ -332,17 +330,16 @@
         "types": {
             "markdown": "Text",
             "slideshow": "Slideshow",
-            "interactiveChart": "Interaktives Diagramm",
+            "interactiveChart": "Diagramm",
             "geoMap": "Karte",
-            "poll": "Umfrage",
-            "card": "Karte"
+            "poll": "Umfrage"
         },
         "cardTypes": {
             "link": "Link",
             "cover": "Cover",
             "citation": "Zitat",
             "image": "Bild",
-            "blank": "Leer"
+            "blank": "Platzhalter"
         }
     },
     "cardEditor": {

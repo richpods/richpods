@@ -152,11 +152,6 @@ export interface PodcastOrigin {
     };
 }
 
-export interface EnclosureType {
-    type: string;
-    icon: string;
-}
-
 export type PreviewViewportId = "desktop" | "tablet" | "smartphone";
 
 export type PreviewViewportOption = {

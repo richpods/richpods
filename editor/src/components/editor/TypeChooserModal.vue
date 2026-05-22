@@ -7,24 +7,7 @@
     >
         <div class="bg-white rounded-lg p-6 w-full max-w-xl">
             <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                    <button
-                        v-if="cardSubtypeView"
-                        type="button"
-                        class="text-gray-500 hover:text-gray-700 p-1"
-                        @click="backToMainTypes"
-                        :aria-label="t('common.back')"
-                    >
-                        &larr;
-                    </button>
-                    <h3 class="text-lg font-medium">
-                        {{
-                            cardSubtypeView
-                                ? t("typeChooser.chooseCardType")
-                                : t("typeChooser.title")
-                        }}
-                    </h3>
-                </div>
+                <h3 class="text-lg font-medium">{{ t("typeChooser.title") }}</h3>
                 <button
                     type="button"
                     class="text-gray-500 hover:text-gray-700 p-1"
@@ -35,56 +18,28 @@
                 </button>
             </div>
 
-            <!-- Main type chooser -->
             <div
-                v-if="!cardSubtypeView"
                 class="grid grid-cols-2 gap-4"
                 role="group"
                 :aria-label="t('typeChooser.chapterTypesAriaLabel')"
             >
                 <button
-                    v-for="t in enclosureTypes"
-                    :key="t.type"
+                    v-for="item in visibleMenuItems"
+                    :key="itemKey(item)"
                     type="button"
                     class="border rounded-md p-4 flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                     :class="
-                        isTypeDisabled(t.type)
+                        isItemDisabled(item)
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
                             : 'hover:bg-gray-50'
                     "
-                    @click="!isTypeDisabled(t.type) && handleChoose(t.type)"
-                    :disabled="isTypeDisabled(t.type)"
-                    :aria-label="getDisabledTooltip(t.type)"
-                    :title="getDisabledTooltip(t.type)"
+                    @click="!isItemDisabled(item) && handleSelect(item)"
+                    :disabled="isItemDisabled(item)"
+                    :aria-label="getItemTooltip(item)"
+                    :title="getItemTooltip(item)"
                 >
-                    <span class="text-2xl" aria-hidden="true">{{ t.icon }}</span>
-                    <span class="text-sm font-medium">{{ getTypeLabel(t.type) }}</span>
-                </button>
-            </div>
-
-            <!-- Card subtype chooser -->
-            <div
-                v-else
-                class="grid grid-cols-2 gap-4"
-                role="group"
-                :aria-label="t('typeChooser.cardTypesAriaLabel')"
-            >
-                <button
-                    v-for="ct in availableCardTypes"
-                    :key="ct.cardType"
-                    type="button"
-                    class="border rounded-md p-4 flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                    :class="
-                        isCardTypeDisabled(ct.cardType)
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
-                            : 'hover:bg-gray-50'
-                    "
-                    @click="!isCardTypeDisabled(ct.cardType) && handleChooseCardType(ct.cardType)"
-                    :disabled="isCardTypeDisabled(ct.cardType)"
-                    :title="getCardTypeTooltip(ct.cardType)"
-                >
-                    <span class="text-2xl" aria-hidden="true">{{ ct.icon }}</span>
-                    <span class="text-sm font-medium">{{ getCardTypeLabel(ct.cardType) }}</span>
+                    <Icon :icon="item.icon" class="w-6 h-6 shrink-0" aria-hidden="true" />
+                    <span class="text-sm font-medium text-left">{{ t(item.labelKey) }}</span>
                 </button>
             </div>
         </div>
@@ -94,20 +49,18 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import type { EnclosureType } from "@/types/editor";
+import { Icon } from "@iconify/vue";
 
 const { t } = useI18n();
 
 type CardSubtype = "LINK" | "COVER" | "CITATION" | "IMAGE" | "BLANK";
 
-type CardTypeOption = {
-    cardType: CardSubtype;
-    icon: string;
-};
+type ChapterTypeMenuItem =
+    | { kind: "type"; type: string; icon: string; labelKey: string }
+    | { kind: "card"; cardType: CardSubtype; icon: string; labelKey: string };
 
 const props = defineProps<{
     open: boolean;
-    enclosureTypes: EnclosureType[];
     verified?: boolean;
     bypassVerification?: boolean;
     hasPodcastArtwork?: boolean;
@@ -121,29 +74,88 @@ const emit = defineEmits<{
 }>();
 
 const dialogRef = ref<HTMLDialogElement>();
-const cardSubtypeView = ref(false);
 
-const allCardTypes: CardTypeOption[] = [
-    { cardType: "LINK", icon: "\uD83D\uDD17" },
-    { cardType: "COVER", icon: "\uD83C\uDFA8" },
-    { cardType: "CITATION", icon: "\u201C" },
-    { cardType: "IMAGE", icon: "\uD83D\uDDBC\uFE0F" },
-    { cardType: "BLANK", icon: "\u25A1" },
+// Single flat, ordered list driving the menu. Reorder these entries to change
+// the order in which chapter types appear.
+const menuItems: ChapterTypeMenuItem[] = [
+    {
+        kind: "card",
+        cardType: "LINK",
+        icon: "ion:link-outline",
+        labelKey: "typeChooser.cardTypes.link",
+    },
+    {
+        kind: "card",
+        cardType: "COVER",
+        icon: "ion:easel-outline",
+        labelKey: "typeChooser.cardTypes.cover",
+    },
+    {
+        kind: "type",
+        type: "Markdown",
+        icon: "ion:document-text-outline",
+        labelKey: "typeChooser.types.markdown",
+    },
+    {
+        kind: "type",
+        type: "GeoMap",
+        icon: "ion:map-outline",
+        labelKey: "typeChooser.types.geoMap",
+    },
+    {
+        kind: "card",
+        cardType: "IMAGE",
+        icon: "ion:image-outline",
+        labelKey: "typeChooser.cardTypes.image",
+    },
+    {
+        kind: "type",
+        type: "Slideshow",
+        icon: "ion:images-outline",
+        labelKey: "typeChooser.types.slideshow",
+    },
+    {
+        kind: "type",
+        type: "InteractiveChart",
+        icon: "ion:bar-chart-outline",
+        labelKey: "typeChooser.types.interactiveChart",
+    },
+    {
+        kind: "type",
+        type: "Poll",
+        icon: "ion:chatbubbles-outline",
+        labelKey: "typeChooser.types.poll",
+    },
+    {
+        kind: "card",
+        cardType: "CITATION",
+        icon: "ion:chatbox-ellipses-outline",
+        labelKey: "typeChooser.cardTypes.citation",
+    },
+    {
+        kind: "card",
+        cardType: "BLANK",
+        icon: "ion:square-outline",
+        labelKey: "typeChooser.cardTypes.blank",
+    },
 ];
 
-const availableCardTypes = computed(() => {
-    return allCardTypes.filter((ct) => {
+const visibleMenuItems = computed(() =>
+    menuItems.filter((item) => {
+        if (item.kind !== "card") {
+            return true;
+        }
         // Cover requires at least one artwork source
-        if (ct.cardType === "COVER") {
+        if (item.cardType === "COVER") {
             return !!props.hasPodcastArtwork || !!props.hasEpisodeArtwork;
         }
         // Image only for privileged users
-        if (ct.cardType === "IMAGE") {
+        if (item.cardType === "IMAGE") {
             return !!props.bypassVerification;
         }
         return true;
-    });
-});
+    }),
+);
 
 watch(
     () => props.open,
@@ -151,7 +163,6 @@ watch(
         if (dialogRef.value) {
             if (isOpen && !dialogRef.value.open) {
                 dialogRef.value.showModal();
-                cardSubtypeView.value = false;
             } else if (!isOpen && dialogRef.value.open) {
                 dialogRef.value.close();
             }
@@ -159,92 +170,44 @@ watch(
     },
 );
 
+function itemKey(item: ChapterTypeMenuItem): string {
+    return item.kind === "card" ? `card:${item.cardType}` : `type:${item.type}`;
+}
+
 function handleClose() {
-    cardSubtypeView.value = false;
     emit("close");
 }
 
-function handleChoose(type: string) {
-    if (type === "Card") {
-        cardSubtypeView.value = true;
-        return;
+function handleSelect(item: ChapterTypeMenuItem) {
+    if (item.kind === "card") {
+        emit("chooseCard", item.cardType);
+    } else {
+        emit("choose", item.type);
     }
-    emit("choose", type);
     handleClose();
 }
 
-function handleChooseCardType(cardType: CardSubtype) {
-    emit("chooseCard", cardType);
-    handleClose();
-}
-
-function backToMainTypes() {
-    cardSubtypeView.value = false;
-}
-
-function isTypeDisabled(type: string): boolean {
+function isItemDisabled(item: ChapterTypeMenuItem): boolean {
+    if (item.kind !== "type") {
+        return false;
+    }
     if (props.bypassVerification) {
         return false;
     }
-    if (type === "Slideshow" || type === "Poll") {
+    if (item.type === "Slideshow" || item.type === "Poll") {
         return !props.verified;
     }
     return false;
 }
 
-function isCardTypeDisabled(cardType: CardSubtype): boolean {
-    void cardType;
-    return false;
-}
-
-function getTypeLabel(type: string): string {
-    switch (type) {
-        case "Markdown":
-            return t("typeChooser.types.markdown");
-        case "Slideshow":
-            return t("typeChooser.types.slideshow");
-        case "InteractiveChart":
-            return t("typeChooser.types.interactiveChart");
-        case "GeoMap":
-            return t("typeChooser.types.geoMap");
-        case "Poll":
-            return t("typeChooser.types.poll");
-        case "Card":
-            return t("typeChooser.types.card");
-        default:
-            return type;
-    }
-}
-
-function getCardTypeLabel(cardType: CardSubtype): string {
-    switch (cardType) {
-        case "LINK":
-            return t("typeChooser.cardTypes.link");
-        case "COVER":
-            return t("typeChooser.cardTypes.cover");
-        case "CITATION":
-            return t("typeChooser.cardTypes.citation");
-        case "IMAGE":
-            return t("typeChooser.cardTypes.image");
-        case "BLANK":
-            return t("typeChooser.cardTypes.blank");
-        default:
-            return cardType;
-    }
-}
-
-function getDisabledTooltip(type: string): string {
-    if (type === "Slideshow" && isTypeDisabled(type)) {
+function getItemTooltip(item: ChapterTypeMenuItem): string {
+    if (item.kind === "type" && item.type === "Slideshow" && isItemDisabled(item)) {
         return t("typeChooser.slideshowRequiresVerification");
     }
-    if (type === "Poll" && isTypeDisabled(type)) {
+    if (item.kind === "type" && item.type === "Poll" && isItemDisabled(item)) {
         return t("typeChooser.pollRequiresVerification");
     }
-    return t("typeChooser.chooseType", { type: getTypeLabel(type) });
-}
-
-function getCardTypeTooltip(cardType: CardSubtype): string {
-    return t("typeChooser.chooseType", { type: getCardTypeLabel(cardType) });
+    return t("typeChooser.chooseType", { type: t(item.labelKey) });
 }
 </script>
 

@@ -321,9 +321,7 @@
     },
     "typeChooser": {
         "title": "Choose Chapter Type",
-        "chooseCardType": "Choose Card Type",
         "chapterTypesAriaLabel": "Chapter types",
-        "cardTypesAriaLabel": "Card types",
         "slideshow": "Slideshow",
         "slideshowRequiresVerification": "Slideshow requires podcast verification",
         "poll": "Poll",
@@ -334,15 +332,14 @@
             "slideshow": "Slideshow",
             "interactiveChart": "Interactive chart",
             "geoMap": "Map",
-            "poll": "Poll",
-            "card": "Card"
+            "poll": "Poll"
         },
         "cardTypes": {
             "link": "Link",
             "cover": "Cover",
             "citation": "Citation",
             "image": "Image",
-            "blank": "Blank"
+            "blank": "Placeholder"
         }
     },
     "cardEditor": {
