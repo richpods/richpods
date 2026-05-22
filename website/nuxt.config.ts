@@ -42,6 +42,7 @@ export default defineNuxtConfig({
             baseURL: "",
             graphqlEndpoint: process.env.NUXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql",
             playerUrlPattern: process.env.NUXT_PUBLIC_PLAYER_URL_PATTERN || "http://localhost:5174/player/{ID}",
+            editorUrl: process.env.NUXT_PUBLIC_EDITOR_URL || "http://localhost:5173/editor"
         },
     },
     vite: {

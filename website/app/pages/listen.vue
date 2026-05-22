@@ -45,6 +45,7 @@
 import RipoHero from "~/components/RipoHero.vue";
 import RichPodCard from "~/components/RichPodCard.vue";
 import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
+import type { RichPodSummary } from "~/composables/useRecentRichPods";
 
 definePageMeta({
     i18n: {
@@ -55,11 +56,8 @@ definePageMeta({
     },
 });
 
-const config = useRuntimeConfig();
 const { t } = useI18n();
-
-const expandPlayerUrl = (id: string) =>
-    config.public.playerUrlPattern.replace("{ID}", encodeURIComponent(id));
+const { fetchRichPodsPage, expandPlayerUrl } = useRecentRichPods();
 
 useHead({
     title: t("listen.title"),
@@ -76,103 +74,18 @@ useSeoMeta({
 const PAGE_SIZE = 24;
 const MAX_TOTAL = 120;
 
-type RichPodResponse = {
-    id: string;
-    title: string;
-    description: string;
-    origin: {
-        title: string;
-        artworkUrl: string | null;
-        verified: boolean;
-        episode: {
-            title: string;
-            artworkUrl: string | null;
-        };
-    };
-    createdAt: string;
-};
-
-type PaginatedResponse = {
-    items: RichPodResponse[];
-    nextCursor: string | null;
-};
-
-type GraphQLResponse = {
-    data?: { recentPublishedRichPods?: PaginatedResponse | null } | null;
-    errors?: Array<{ message?: string | null }> | null;
-};
-
-const graphqlEndpoint = config.public.graphqlEndpoint.trim();
-
-const RICHPODS_QUERY = `
-    query RecentPublishedRichPods($first: Int, $after: String) {
-        recentPublishedRichPods(first: $first, after: $after) {
-            items {
-                id
-                title
-                description
-                origin {
-                    title
-                    artworkUrl
-                    verified
-                    episode {
-                        title
-                        artworkUrl
-                    }
-                }
-                createdAt
-            }
-            nextCursor
-        }
-    }
-`;
-
-async function fetchPage(after?: string | null): Promise<PaginatedResponse> {
-    if (!graphqlEndpoint) {
-        throw new Error("Missing NUXT_PUBLIC_GRAPHQL_ENDPOINT runtime config value");
-    }
-
-    const response = await $fetch<GraphQLResponse>(graphqlEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: {
-            query: RICHPODS_QUERY,
-            variables: { first: PAGE_SIZE, after: after ?? null },
-        },
-    });
-
-    const firstErrorMessage = response.errors
-        ?.map((errorItem) => errorItem.message?.trim())
-        .find((message) => Boolean(message));
-
-    if (firstErrorMessage) {
-        throw new Error(firstErrorMessage);
-    }
-
-    if (response.errors?.length) {
-        throw new Error("GraphQL query failed without a detailed error message");
-    }
-
-    const result = response.data?.recentPublishedRichPods;
-    if (!result) {
-        throw new Error("No data received from API");
-    }
-
-    return result;
-}
-
 const loadingMore = ref(false);
 
 const { data: paginationState, error, status } = await useAsyncData(
     "recentRichPods",
     async () => {
-        const page = await fetchPage();
+        const page = await fetchRichPodsPage(PAGE_SIZE);
         return { items: page.items, nextCursor: page.nextCursor };
     },
     {
         server: false,
         lazy: true,
-        default: () => ({ items: [] as RichPodResponse[], nextCursor: null as string | null }),
+        default: () => ({ items: [] as RichPodSummary[], nextCursor: null as string | null }),
     },
 );
 
@@ -183,7 +96,7 @@ async function loadMore() {
     if (!nextCursor.value || loadingMore.value || allRichPods.value.length >= MAX_TOTAL) return;
     loadingMore.value = true;
     try {
-        const page = await fetchPage(nextCursor.value);
+        const page = await fetchRichPodsPage(PAGE_SIZE, nextCursor.value);
         paginationState.value = {
             items: [...paginationState.value.items, ...page.items],
             nextCursor: page.nextCursor,

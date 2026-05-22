@@ -8,6 +8,7 @@
             <div class="links">
                 <NuxtLink :to="localePath('index')">{{ $t("footer.home") }}</NuxtLink>
                 <NuxtLink :to="localePath('listen')">{{ $t("footer.listen") }}</NuxtLink>
+                <a :href="editorUrl">{{ $t("footer.editor") }}</a>
                 <NuxtLink :to="localePath('team')">{{ $t("footer.team") }}</NuxtLink>
                 <NuxtLink :to="localePath('kontakt')">{{ $t("footer.contact") }}</NuxtLink>
                 <NuxtLink :to="localePath('kontakt')">{{ $t("footer.privacy") }}</NuxtLink>
@@ -60,6 +61,7 @@ import DropdownMenu from "~/components/DropdownMenu.vue";
 
 const localePath = useLocalePath();
 const switchLocalePath = useSwitchLocalePath();
+const editorUrl = useRuntimeConfig().public.editorUrl;
 const { locale, locales } = useI18n();
 
 const availableLocales = computed(() =>
