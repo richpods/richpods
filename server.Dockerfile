@@ -7,7 +7,7 @@ RUN test -n "$COMMIT_HASH" || (echo "ERROR: COMMIT_HASH build arg is required" &
 WORKDIR /app
 
 # Copy root workspace files for pnpm install
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY server/package.json ./server/
 COPY shared/package.json ./shared/
 
@@ -41,7 +41,7 @@ RUN addgroup -g 1001 -S nodejs && \
 WORKDIR /app
 
 # Copy root workspace files for pnpm install
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY server/package.json ./server/
 COPY shared/package.json ./shared/
 

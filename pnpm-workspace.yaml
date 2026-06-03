@@ -1,38 +1,53 @@
 packages:
-    - editor
-    - player
-    - server
-    - shared
-    - website
-    - cloud-functions/validate-mp3
-    - cloud-functions/check-verifications
-    - cloud-functions/check-media
+  - editor
+  - player
+  - server
+  - shared
+  - website
+  - cloud-functions/validate-mp3
+  - cloud-functions/check-verifications
+  - cloud-functions/check-media
+  - cloud-functions/generative-ai-tools
 
 catalog:
-    "@graphql-codegen/cli": "6.2.1"
-    "@graphql-codegen/typescript": "5.0.9"
-    "@graphql-codegen/typescript-graphql-request": "7.0.0"
-    "@graphql-codegen/typescript-operations": "5.0.9"
-    "@graphql-codegen/typescript-resolvers": "5.1.7"
-    "@richpods/coloeus": "0.3.3"
-    "@richpods/echarts-sandbox": "0.0.1"
-    "@richpods/tiny-geojson-tool": "0.4.1"
-    "@tsconfig/node24": "24.0.4"
-    "@types/node": "25.5.2"
-    "@vue/eslint-config-prettier": "10.2.0"
-    "@vue/eslint-config-typescript": "14.7.0"
-    "@vue/tsconfig": "0.9.1"
-    "dompurify": "3.3.3"
-    "firebase": "12.11.0"
-    "graphql": "16.13.2"
-    "maplibre-gl": "5.22.0"
-    "modern-normalize": "3.0.1"
-    "pmtiles": "4.4.1"
-    "typescript": "6.0.2"
-    "vitest": "4.1.4"
-    "vue": "3.5.32"
-    "vue-i18n": "11.3.2"
-    "vue-router": "5.0.4"
-
-onlyBuiltDependencies:
-    - sharp
+  "@graphql-codegen/cli": "6.2.1"
+  "@graphql-codegen/typescript": "5.0.9"
+  "@graphql-codegen/typescript-graphql-request": "7.0.0"
+  "@graphql-codegen/typescript-operations": "5.0.9"
+  "@graphql-codegen/typescript-resolvers": "5.1.7"
+  "@richpods/coloeus": "0.3.3"
+  "@richpods/echarts-sandbox": "0.0.1"
+  "@richpods/tiny-geojson-tool": "0.4.1"
+  "@tsconfig/node24": "24.0.4"
+  "@types/node": "25.5.2"
+  "@vue/eslint-config-prettier": "10.2.0"
+  "@vue/eslint-config-typescript": "14.7.0"
+  "@vue/tsconfig": "0.9.1"
+  "dompurify": "3.3.3"
+  "firebase": "12.11.0"
+  "graphql": "16.13.2"
+  "maplibre-gl": "5.22.0"
+  "modern-normalize": "3.0.1"
+  "pmtiles": "4.4.1"
+  "typescript": "6.0.2"
+  "vitest": "4.1.4"
+  "vue": "3.5.32"
+  "vue-i18n": "11.3.2"
+  "vue-router": "5.0.4"
+overrides:
+  vite: 8.0.8
+saveExact: true
+linkWorkspacePackages: true
+preferWorkspacePackages: true
+saveWorkspaceProtocol: true
+sharedWorkspaceLockfile: true
+allowBuilds:
+  '@firebase/util': false
+  '@google/genai': false
+  '@parcel/watcher': false
+  better-sqlite3: false
+  esbuild: false
+  protobufjs: false
+  re2: false
+  sharp: true
+  unrs-resolver: false
