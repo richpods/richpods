@@ -287,3 +287,64 @@ export interface HostedEpisodeDocument {
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
+
+// --- AI chapter generation ---
+
+/**
+ * One transcription document per RichPod (doc id === richPodId). The bulky
+ * transcript JSON lives in GCS (gcsTranscriptName); this document exists so a
+ * RichPod is never transcribed twice. Transcripts are internal-only and are
+ * not exposed through any public or authenticated interface.
+ */
+export interface TranscriptionDocument {
+    richPod: DocumentReference;
+    gcsTranscriptName: string;
+    language: string;
+    summary: string;
+    audioDurationSeconds: number | null;
+    createdAt: Timestamp;
+}
+
+export const ChapterGenerationState = {
+    PENDING: "pending",
+    TRANSCRIBING: "transcribing",
+    GENERATING: "generating",
+    COMPLETED: "completed",
+    FAILED: "failed",
+} as const;
+
+export type ChapterGenerationStateValue =
+    (typeof ChapterGenerationState)[keyof typeof ChapterGenerationState];
+
+/**
+ * A single generated chapter suggestion. Shaped like a saved chapter so that,
+ * once accepted by the editor, it flows unchanged through the existing
+ * setRichPodChapters save path.
+ */
+export interface ChapterSuggestionData {
+    begin: string;
+    enclosureType: EnclosureTypeValue;
+    enclosure: Enclosure;
+}
+
+/**
+ * One status document per RichPod (doc id === richPodId) tracking an async
+ * chapter generation job. The editor polls this via GraphQL.
+ *
+ * Suggestions are cached inline and reused by the editor without recomputing.
+ * Re-generation is expensive, so it is gated: after the suggestions are applied,
+ * `baselineChapterCount` records how many chapters the RichPod then had, and a
+ * new run is only allowed once more than 5 — or more than 50% — of those
+ * chapters have been deleted. Absent on docs whose suggestions were never
+ * applied.
+ */
+export interface ChapterGenerationDocument {
+    richPod: DocumentReference;
+    requestedBy: DocumentReference;
+    state: ChapterGenerationStateValue;
+    error: string | null;
+    suggestions: ChapterSuggestionData[];
+    baselineChapterCount?: number;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}

@@ -30,6 +30,7 @@ import type {
     User,
 } from "../graphql.js";
 import { isPrivilegedRole } from "@richpods/shared/utils/roles";
+import { geminiConfig } from "../config/gemini.js";
 import type { PaginatedResult } from "../utils/pagination.js";
 import { ValidationError } from "../validation/validator.js";
 
@@ -599,13 +600,27 @@ function mapToGraphQL(
         hostedEpisodeId: data.hostedEpisodeId ?? null,
         publishedAt: data.publishedAt?.toDate().toISOString() ?? null,
         explicit: data.explicit ?? false,
+        aiAudioEligible: isOriginAudioEligible(data.origin),
     };
+}
+
+/**
+ * Soft checks the episode MIME type and file size against the configured limits.
+ * Only used for UI states, enforced authoritatively when a generation job is requested.
+ */
+function isOriginAudioEligible(origin: PodcastOrigin): boolean {
+    const media = origin.episode.media;
+    return (
+        geminiConfig.allowedMimeTypes.includes(media.type) &&
+        media.length > 0 &&
+        media.length <= geminiConfig.maxFileSizeBytes
+    );
 }
 
 /**
  * Map Firestore enclosure to GraphQL enclosure union type based on enclosureType
  */
-function mapEnclosureToGraphQL(
+export function mapEnclosureToGraphQL(
     enclosureType: EnclosureTypeValue,
     enclosure: Enclosure,
     origin?: PodcastOrigin,

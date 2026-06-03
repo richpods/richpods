@@ -4,6 +4,7 @@ import { db, RICHPODS_COLLECTION } from "../config/firestore.js";
 import { fetchFeed } from "./feed.service.js";
 import { parseIntEnv } from "../utils/env.js";
 import { runCheckFlow, isFresh } from "@richpods/shared/media/check";
+import { assertSafePublicUrl } from "@richpods/shared/utils/ssrf";
 import type { CheckFlowDeps, HeadCheckResponse } from "@richpods/shared/media/types";
 import {
     RichPodState as FirestoreRichPodState,
@@ -14,11 +15,21 @@ import {
 const MEDIA_CHECK_TTL_MS = parseIntEnv("MEDIA_CHECK_TTL_MS", 86_400_000, { min: 60_000 });
 const HEAD_CHECK_TIMEOUT_MS = parseIntEnv("HEAD_CHECK_TIMEOUT_MS", 5000, { min: 1000 });
 async function performHeadCheck(url: string, timeoutMs?: number): Promise<HeadCheckResponse> {
+    await assertSafePublicUrl(url);
     const response = await got.head(url, {
         followRedirect: true,
         timeout: { request: timeoutMs ?? HEAD_CHECK_TIMEOUT_MS },
         retry: { limit: 0 },
         throwHttpErrors: false,
+        hooks: {
+            beforeRedirect: [
+                async (redirectOptions) => {
+                    if (redirectOptions.url) {
+                        await assertSafePublicUrl(redirectOptions.url.toString());
+                    }
+                },
+            ],
+        },
     });
 
     return {

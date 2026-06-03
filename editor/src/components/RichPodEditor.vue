@@ -52,11 +52,21 @@
                     :is-hosted="isHosted"
                     :hosted-validation-status="hostedValidationStatus"
                     :hosted-validation-error="hostedValidationError"
+                    :show-generate-ai-chapters="showGenerateAiChapters"
+                    :ai-generation-busy="aiGenerationBusy"
+                    :ai-generation-state="aiGenerationState"
+                    :has-cached-suggestions="aiHasCachedSuggestions"
+                    :can-regenerate="aiCanRegenerate"
+                    :can-request-transcript="canRequestTranscript"
+                    :session-id="lock.sessionId"
                     @save="saveChanges"
                     @save-now="saveNow"
                     @add-chapter="openTypeChooser"
+                    @generate-ai-chapters="onGenerateAiChapters"
+                    @view-ai-suggestions="onViewAiSuggestions"
                     @go-to-verification="goToVerification"
                     @open-chapter="activeEditorTab = 'chapters'"
+                    @transcript-presence="transcriptPresent = $event"
                 />
                 <aside
                     v-else
@@ -144,6 +154,14 @@
         @go-back="onLockGoBack"
         @takeover="onLockTakeover"
     />
+
+    <ChapterSuggestionsModal
+        :open="showSuggestionsModal"
+        :suggestions="aiSuggestions"
+        :existing-chapter-begins="existingChapterBegins"
+        @close="closeSuggestionsModal"
+        @accept="acceptSuggestions"
+    />
 </template>
 
 <script setup lang="ts">
@@ -168,6 +186,7 @@ import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
 import TypeChooserModal from "@/components/editor/TypeChooserModal.vue";
 import PollDeleteConfirmModal from "@/components/editor/PollDeleteConfirmModal.vue";
 import LockTakeoverModal from "@/components/editor/LockTakeoverModal.vue";
+import ChapterSuggestionsModal from "@/components/editor/ChapterSuggestionsModal.vue";
 import { useRichPodStore } from "@/stores/useRichPodStore";
 import { useEditorUiStore } from "@/stores/useEditorUiStore";
 import { useValidation } from "@/composables/useValidation";
@@ -176,6 +195,7 @@ import { useRichPodLock } from "@/composables/useRichPodLock";
 import { fetchRichPodById } from "@/services/richpodService";
 import { useCurrentUserRole } from "@/composables/useCurrentUserRole";
 import { useHostedValidation } from "@/composables/useHostedValidation";
+import { useChapterGeneration } from "@/composables/useChapterGeneration";
 import type { EditorChapter, StartTimeAddState } from "@/types/editor";
 import type { Chapter } from "@/graphql/generated";
 import type { RichPodLock } from "@/services/richpodLockService";
@@ -188,8 +208,16 @@ const router = useRouter();
 const { hasPrivilegedRole } = useCurrentUserRole();
 const richpodStore = useRichPodStore();
 const editorUiStore = useEditorUiStore();
-const { richpod, chapters, currentChapter, isDirty, isVerified, isHosted, hostedEpisodeId } =
-    storeToRefs(richpodStore);
+const {
+    richpod,
+    chapters,
+    currentChapter,
+    isDirty,
+    isVerified,
+    isHosted,
+    hostedEpisodeId,
+    aiAudioEligible,
+} = storeToRefs(richpodStore);
 
 const { validationStatus: hostedValidationStatus, validationError: hostedValidationError } =
     useHostedValidation(hostedEpisodeId);
@@ -226,6 +254,107 @@ function onLockGoBack() {
 
 const { audioError, setAudio } = useAudio();
 const showBrokenMediaPanel = computed(() => !isHosted.value && !!audioError.value);
+
+const showSuggestionsModal = ref(false);
+
+const {
+    state: aiGenerationState,
+    error: aiGenerationError,
+    suggestions: aiSuggestions,
+    busy: aiGenerationBusy,
+    canRegenerate: aiCanRegenerate,
+    hasCachedSuggestions: aiHasCachedSuggestions,
+    start: startAiGeneration,
+    sync: syncAiGeneration,
+    recordChapterCountBaseline: recordAiBaseline,
+} = useChapterGeneration(richpodId, lock.sessionId, () => {
+    showSuggestionsModal.value = true;
+});
+
+// Whether a transcript exists — reported up from the sidebar's transcript tab.
+const transcriptPresent = ref(false);
+
+// AI features are available for verified podcasts; privileged users may use
+// them for any podcast.
+const aiFeaturesAvailable = computed(() => hasPrivilegedRole() || isVerified.value);
+
+// Chapter generation consumes the transcript, so it's offered only once a
+// transcript exists. It is re-runnable at any time (existing chapters are
+// honoured by the job to avoid collisions).
+const showGenerateAiChapters = computed(
+    () =>
+        aiFeaturesAvailable.value &&
+        aiAudioEligible.value &&
+        lockHeld.value &&
+        transcriptPresent.value,
+);
+
+// Transcript generation is allowed regardless of existing chapters — it only
+// needs AI feature availability, eligible audio and a held lock.
+const canRequestTranscript = computed(
+    () => aiFeaturesAvailable.value && aiAudioEligible.value && lockHeld.value,
+);
+
+watch(aiGenerationState, (state) => {
+    if (state === "FAILED") {
+        error.value = aiGenerationError.value || t("chapterGeneration.failed");
+    }
+});
+
+// Once a transcript exists, load any cached suggestions so the sidebar can offer
+// "View suggestions" without recomputing, and learn whether re-generation is
+// currently allowed. Only for users who can use the feature.
+watch(
+    () => transcriptPresent.value && aiFeaturesAvailable.value,
+    (ready, wasReady) => {
+        if (ready && !wasReady) {
+            void syncAiGeneration();
+        }
+    },
+    { immediate: true },
+);
+
+async function onGenerateAiChapters() {
+    if (!showGenerateAiChapters.value || aiGenerationBusy.value) return;
+    error.value = "";
+    await startAiGeneration();
+}
+
+// The begins of chapters already on the RichPod, so the suggestions modal can
+// disable any suggestion that would collide with an existing chapter.
+const existingChapterBegins = computed(() => chapters.value.map((chapter) => chapter.begin));
+
+function onViewAiSuggestions() {
+    showSuggestionsModal.value = true;
+}
+
+function closeSuggestionsModal() {
+    showSuggestionsModal.value = false;
+}
+
+async function acceptSuggestions(selected: EditorChapter[]) {
+    showSuggestionsModal.value = false;
+    if (selected.length === 0 || !lockHeld.value) return;
+
+    for (const suggestion of selected) {
+        richpodStore.addChapter({
+            begin: suggestion.begin,
+            enclosure: { ...suggestion.enclosure },
+            _isNew: true,
+        });
+    }
+    runValidation();
+    const saved = await saveChanges();
+    // Snapshot the resulting chapter count as the baseline the re-generation gate
+    // measures deletions against — but only once the chapters actually persisted.
+    // A failed save (validation error, lost lock) would otherwise stamp the stale
+    // pre-acceptance count and permanently disable regeneration. Cached
+    // suggestions are kept so the editor can still re-open them via "View
+    // suggestions" and retry acceptance.
+    if (saved) {
+        await recordAiBaseline();
+    }
+}
 
 const activeEditorTab = ref<"details" | "chapters">("chapters");
 const error = ref("");
@@ -271,10 +400,10 @@ async function loadRichPod() {
 async function saveChanges() {
     if (!richpodId.value) {
         console.warn("No RichPod ID - this should have been created already");
-        return;
+        return null;
     }
     if (!lockHeld.value) {
-        return;
+        return null;
     }
 
     error.value = "";
@@ -287,9 +416,11 @@ async function saveChanges() {
             richpodStore.setRichPod(updated, targetIndex);
             editorUiStore.clearValidationErrors();
         }
+        return updated;
     } catch (err: unknown) {
         console.error("Error saving RichPod:", err);
         error.value = err instanceof Error ? err.message : t("editor.saveFailed");
+        return null;
     }
 }
 
@@ -763,6 +894,10 @@ async function removeChapterAndSave(idx: number) {
         if (updated) {
             richpodStore.setRichPod(updated, targetIndex);
             editorUiStore.clearValidationErrors();
+        }
+
+        if (aiHasCachedSuggestions.value) {
+            void syncAiGeneration();
         }
     } catch (err: unknown) {
         console.error("Error deleting chapter:", err);

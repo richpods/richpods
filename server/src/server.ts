@@ -20,6 +20,7 @@ import { verifySigningCapability } from "./services/hosted-storage.service.js";
 const requiredEnvVars = [
     "API_BASE_URL",
     "GCS_BUCKET_NAME",
+    "GCS_TRANSCRIPT_BUCKET_NAME",
     "GCS_UPLOAD_BUCKET_NAME",
     "GCS_HOSTED_BUCKET_NAME",
     "GOOGLE_CLOUD_PROJECT",

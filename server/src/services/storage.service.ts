@@ -12,6 +12,13 @@ if (BUCKET_NAME.length <= 2) {
     throw new Error("GCS_BUCKET_NAME environment variable is required");
 }
 
+// Transcripts live in their own bucket, separate from enclosures, so the two
+// can have independent lifecycle/access policies.
+const TRANSCRIPT_BUCKET_NAME = process.env.GCS_TRANSCRIPT_BUCKET_NAME ?? "";
+if (TRANSCRIPT_BUCKET_NAME.length <= 2) {
+    throw new Error("GCS_TRANSCRIPT_BUCKET_NAME environment variable is required");
+}
+
 /**
  * Generate a GCS name with the pattern:
  * /${richpod-id}/${timestamp}-${enclosure-typename}-${random-uuid}.json
@@ -73,6 +80,31 @@ export async function getEnclosure(gcsName: string): Promise<Enclosure | null> {
         return JSON.parse(data.toString("utf-8")) as Enclosure;
     } catch (error) {
         console.error(`Error fetching enclosure ${gcsName}:`, error);
+        return null;
+    }
+}
+
+/**
+ * Download and parse a transcript JSON object from the transcript bucket. Returns
+ * null when the object does not exist or cannot be parsed. Transcripts are
+ * internal-only artifacts (never served directly to clients) and live in their
+ * own bucket (GCS_TRANSCRIPT_BUCKET_NAME), separate from enclosures.
+ */
+export async function downloadTranscriptObject<T>(gcsName: string): Promise<T | null> {
+    try {
+        const bucket = storage.bucket(TRANSCRIPT_BUCKET_NAME);
+        const file = bucket.file(gcsName);
+
+        const [exists] = await file.exists();
+        if (!exists) {
+            console.error(`Error, loading non-existing object: ${gcsName}`);
+            return null;
+        }
+
+        const [data] = await file.download();
+        return JSON.parse(data.toString("utf-8")) as T;
+    } catch (error) {
+        console.error(`Error fetching object ${gcsName}:`, error);
         return null;
     }
 }

@@ -177,4 +177,5 @@ export type RichPodForEdit = {
     isHosted: boolean;
     hostedEpisodeId?: string | null;
     explicit: boolean;
+    aiAudioEligible: boolean;
 };

@@ -15,3 +15,6 @@ export const UPLOADS_COLLECTION = "uploads";
 export const HOSTED_PODCASTS_COLLECTION = "hosted_podcasts";
 export const HOSTED_EPISODES_COLLECTION = "hosted_episodes";
 export const AUDIO_VALIDATIONS_COLLECTION = "audio_validations";
+export const TRANSCRIPTIONS_COLLECTION = "transcriptions";
+export const CHAPTER_GENERATIONS_COLLECTION = "chapter_generations" as const;
+export const TRANSCRIPT_GENERATIONS_COLLECTION = "transcript_generations" as const;

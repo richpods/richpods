@@ -83,10 +83,34 @@ export type Chapter = {
   enclosure: Enclosure;
 };
 
+export enum ChapterGenerationState {
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  Generating = 'GENERATING',
+  None = 'NONE',
+  Pending = 'PENDING',
+  Transcribing = 'TRANSCRIBING'
+}
+
+export type ChapterGenerationStatus = {
+  __typename?: 'ChapterGenerationStatus';
+  canRegenerate: Scalars['Boolean']['output'];
+  error?: Maybe<Scalars['String']['output']>;
+  state: ChapterGenerationState;
+  suggestions: Array<ChapterSuggestion>;
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
 export type ChapterInput = {
   begin: Scalars['String']['input'];
   enclosure: Scalars['JSON']['input'];
   enclosureType: EnclosureType;
+};
+
+export type ChapterSuggestion = {
+  __typename?: 'ChapterSuggestion';
+  begin: Scalars['String']['output'];
+  enclosure: Enclosure;
 };
 
 export enum ChartFormat {
@@ -251,7 +275,10 @@ export type Mutation = {
   deleteHostedEpisode: Scalars['Boolean']['output'];
   deleteHostedPodcast: Scalars['Boolean']['output'];
   deleteRichPod: Scalars['Boolean']['output'];
+  generateAiChapters: ChapterGenerationStatus;
+  generateTranscript: ChapterGenerationStatus;
   heartbeatRichPodLock: RichPodLock;
+  recordChapterGenerationBaseline: ChapterGenerationStatus;
   refreshEpisodeMedia: PodcastMedia;
   releaseRichPodLock: Scalars['Boolean']['output'];
   setRichPodChapters: RichPod;
@@ -298,8 +325,26 @@ export type MutationDeleteRichPodArgs = {
 };
 
 
+export type MutationGenerateAiChaptersArgs = {
+  richPodId: Scalars['ID']['input'];
+  sessionId: Scalars['String']['input'];
+};
+
+
+export type MutationGenerateTranscriptArgs = {
+  richPodId: Scalars['ID']['input'];
+  sessionId: Scalars['String']['input'];
+};
+
+
 export type MutationHeartbeatRichPodLockArgs = {
   id: Scalars['ID']['input'];
+  sessionId: Scalars['String']['input'];
+};
+
+
+export type MutationRecordChapterGenerationBaselineArgs = {
+  richPodId: Scalars['ID']['input'];
   sessionId: Scalars['String']['input'];
 };
 
@@ -532,6 +577,7 @@ export type PublicHostedPodcast = {
 
 export type Query = {
   __typename?: 'Query';
+  chapterGenerationStatus: ChapterGenerationStatus;
   currentUser?: Maybe<User>;
   extractFeedUrl: Scalars['String']['output'];
   hostedEpisode?: Maybe<HostedEpisode>;
@@ -546,9 +592,16 @@ export type Query = {
   recentPublishedRichPods: PaginatedRichPods;
   richPod?: Maybe<RichPod>;
   richPodLock?: Maybe<RichPodLock>;
+  richPodTranscript?: Maybe<Transcript>;
+  transcriptGenerationStatus: ChapterGenerationStatus;
   user?: Maybe<User>;
   userRichPods: PaginatedRichPods;
   userVerifications: PaginatedVerifications;
+};
+
+
+export type QueryChapterGenerationStatusArgs = {
+  richPodId: Scalars['ID']['input'];
 };
 
 
@@ -621,6 +674,16 @@ export type QueryRichPodLockArgs = {
 };
 
 
+export type QueryRichPodTranscriptArgs = {
+  richPodId: Scalars['ID']['input'];
+};
+
+
+export type QueryTranscriptGenerationStatusArgs = {
+  richPodId: Scalars['ID']['input'];
+};
+
+
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
@@ -640,6 +703,11 @@ export type QueryUserVerificationsArgs = {
 
 export type RichPod = {
   __typename?: 'RichPod';
+  /**
+   * Whether this RichPod's audio is within the limits (MIME type, size,
+   * duration) required for AI-assisted chapter generation.
+   */
+  aiAudioEligible: Scalars['Boolean']['output'];
   chapters: Array<Chapter>;
   createdAt: Scalars['String']['output'];
   description: Scalars['String']['output'];
@@ -705,6 +773,26 @@ export type Slideshow = BaseEnclosure & {
   description?: Maybe<Scalars['String']['output']>;
   slides: Array<Slide>;
   title: Scalars['String']['output'];
+};
+
+/**
+ * The AI-generated transcript of a RichPod's episode audio. Editor-only — never
+ * exposed through any public interface.
+ */
+export type Transcript = {
+  __typename?: 'Transcript';
+  language: Scalars['String']['output'];
+  segments: Array<TranscriptSegment>;
+  summary: Scalars['String']['output'];
+};
+
+export type TranscriptSegment = {
+  __typename?: 'TranscriptSegment';
+  begin: Scalars['String']['output'];
+  end: Scalars['String']['output'];
+  language: Scalars['String']['output'];
+  speaker?: Maybe<Scalars['String']['output']>;
+  text: Scalars['String']['output'];
 };
 
 export type UpdateHostedPodcastInput = {
@@ -868,7 +956,10 @@ export type ResolversTypes = {
   CardOpenGraph: ResolverTypeWrapper<CardOpenGraph>;
   CardType: CardType;
   Chapter: ResolverTypeWrapper<Omit<Chapter, 'enclosure'> & { enclosure: ResolversTypes['Enclosure'] }>;
+  ChapterGenerationState: ChapterGenerationState;
+  ChapterGenerationStatus: ResolverTypeWrapper<Omit<ChapterGenerationStatus, 'suggestions'> & { suggestions: Array<ResolversTypes['ChapterSuggestion']> }>;
   ChapterInput: ChapterInput;
+  ChapterSuggestion: ResolverTypeWrapper<Omit<ChapterSuggestion, 'enclosure'> & { enclosure: ResolversTypes['Enclosure'] }>;
   ChartFormat: ChartFormat;
   Coloeus: ResolverTypeWrapper<Coloeus>;
   CreateHostedPodcastInput: CreateHostedPodcastInput;
@@ -920,6 +1011,8 @@ export type ResolversTypes = {
   Slide: ResolverTypeWrapper<Slide>;
   Slideshow: ResolverTypeWrapper<Slideshow>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  Transcript: ResolverTypeWrapper<Transcript>;
+  TranscriptSegment: ResolverTypeWrapper<TranscriptSegment>;
   UpdateHostedPodcastInput: UpdateHostedPodcastInput;
   UpdateProfileInput: UpdateProfileInput;
   UpdateRichPodInput: UpdateRichPodInput;
@@ -935,7 +1028,9 @@ export type ResolversParentTypes = {
   Card: Card;
   CardOpenGraph: CardOpenGraph;
   Chapter: Omit<Chapter, 'enclosure'> & { enclosure: ResolversParentTypes['Enclosure'] };
+  ChapterGenerationStatus: Omit<ChapterGenerationStatus, 'suggestions'> & { suggestions: Array<ResolversParentTypes['ChapterSuggestion']> };
   ChapterInput: ChapterInput;
+  ChapterSuggestion: Omit<ChapterSuggestion, 'enclosure'> & { enclosure: ResolversParentTypes['Enclosure'] };
   Coloeus: Coloeus;
   CreateHostedPodcastInput: CreateHostedPodcastInput;
   CreateRichPodInput: CreateRichPodInput;
@@ -982,6 +1077,8 @@ export type ResolversParentTypes = {
   Slide: Slide;
   Slideshow: Slideshow;
   String: Scalars['String']['output'];
+  Transcript: Transcript;
+  TranscriptSegment: TranscriptSegment;
   UpdateHostedPodcastInput: UpdateHostedPodcastInput;
   UpdateProfileInput: UpdateProfileInput;
   UpdateRichPodInput: UpdateRichPodInput;
@@ -1027,6 +1124,19 @@ export type CardOpenGraphResolvers<ContextType = any, ParentType extends Resolve
 };
 
 export type ChapterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Chapter'] = ResolversParentTypes['Chapter']> = {
+  begin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  enclosure?: Resolver<ResolversTypes['Enclosure'], ParentType, ContextType>;
+};
+
+export type ChapterGenerationStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['ChapterGenerationStatus'] = ResolversParentTypes['ChapterGenerationStatus']> = {
+  canRegenerate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  state?: Resolver<ResolversTypes['ChapterGenerationState'], ParentType, ContextType>;
+  suggestions?: Resolver<Array<ResolversTypes['ChapterSuggestion']>, ParentType, ContextType>;
+  updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type ChapterSuggestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ChapterSuggestion'] = ResolversParentTypes['ChapterSuggestion']> = {
   begin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   enclosure?: Resolver<ResolversTypes['Enclosure'], ParentType, ContextType>;
 };
@@ -1151,7 +1261,10 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   deleteHostedEpisode?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteHostedEpisodeArgs, 'id'>>;
   deleteHostedPodcast?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteHostedPodcastArgs, 'id'>>;
   deleteRichPod?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteRichPodArgs, 'id'>>;
+  generateAiChapters?: Resolver<ResolversTypes['ChapterGenerationStatus'], ParentType, ContextType, RequireFields<MutationGenerateAiChaptersArgs, 'richPodId' | 'sessionId'>>;
+  generateTranscript?: Resolver<ResolversTypes['ChapterGenerationStatus'], ParentType, ContextType, RequireFields<MutationGenerateTranscriptArgs, 'richPodId' | 'sessionId'>>;
   heartbeatRichPodLock?: Resolver<ResolversTypes['RichPodLock'], ParentType, ContextType, RequireFields<MutationHeartbeatRichPodLockArgs, 'id' | 'sessionId'>>;
+  recordChapterGenerationBaseline?: Resolver<ResolversTypes['ChapterGenerationStatus'], ParentType, ContextType, RequireFields<MutationRecordChapterGenerationBaselineArgs, 'richPodId' | 'sessionId'>>;
   refreshEpisodeMedia?: Resolver<ResolversTypes['PodcastMedia'], ParentType, ContextType, RequireFields<MutationRefreshEpisodeMediaArgs, 'richPodId'>>;
   releaseRichPodLock?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationReleaseRichPodLockArgs, 'id' | 'sessionId'>>;
   setRichPodChapters?: Resolver<ResolversTypes['RichPod'], ParentType, ContextType, RequireFields<MutationSetRichPodChaptersArgs, 'chapters' | 'id' | 'sessionId'>>;
@@ -1289,6 +1402,7 @@ export type PublicHostedPodcastResolvers<ContextType = any, ParentType extends R
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  chapterGenerationStatus?: Resolver<ResolversTypes['ChapterGenerationStatus'], ParentType, ContextType, RequireFields<QueryChapterGenerationStatusArgs, 'richPodId'>>;
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   extractFeedUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryExtractFeedUrlArgs, 'url'>>;
   hostedEpisode?: Resolver<Maybe<ResolversTypes['HostedEpisode']>, ParentType, ContextType, RequireFields<QueryHostedEpisodeArgs, 'id'>>;
@@ -1303,12 +1417,15 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   recentPublishedRichPods?: Resolver<ResolversTypes['PaginatedRichPods'], ParentType, ContextType, Partial<QueryRecentPublishedRichPodsArgs>>;
   richPod?: Resolver<Maybe<ResolversTypes['RichPod']>, ParentType, ContextType, RequireFields<QueryRichPodArgs, 'id'>>;
   richPodLock?: Resolver<Maybe<ResolversTypes['RichPodLock']>, ParentType, ContextType, RequireFields<QueryRichPodLockArgs, 'id'>>;
+  richPodTranscript?: Resolver<Maybe<ResolversTypes['Transcript']>, ParentType, ContextType, RequireFields<QueryRichPodTranscriptArgs, 'richPodId'>>;
+  transcriptGenerationStatus?: Resolver<ResolversTypes['ChapterGenerationStatus'], ParentType, ContextType, RequireFields<QueryTranscriptGenerationStatusArgs, 'richPodId'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   userRichPods?: Resolver<ResolversTypes['PaginatedRichPods'], ParentType, ContextType, Partial<QueryUserRichPodsArgs>>;
   userVerifications?: Resolver<ResolversTypes['PaginatedVerifications'], ParentType, ContextType, Partial<QueryUserVerificationsArgs>>;
 };
 
 export type RichPodResolvers<ContextType = any, ParentType extends ResolversParentTypes['RichPod'] = ResolversParentTypes['RichPod']> = {
+  aiAudioEligible?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   chapters?: Resolver<Array<ResolversTypes['Chapter']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1351,6 +1468,20 @@ export type SlideshowResolvers<ContextType = any, ParentType extends ResolversPa
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type TranscriptResolvers<ContextType = any, ParentType extends ResolversParentTypes['Transcript'] = ResolversParentTypes['Transcript']> = {
+  language?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  segments?: Resolver<Array<ResolversTypes['TranscriptSegment']>, ParentType, ContextType>;
+  summary?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type TranscriptSegmentResolvers<ContextType = any, ParentType extends ResolversParentTypes['TranscriptSegment'] = ResolversParentTypes['TranscriptSegment']> = {
+  begin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  end?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  language?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  speaker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   biography?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   editorLanguage?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1380,6 +1511,8 @@ export type Resolvers<ContextType = any> = {
   Card?: CardResolvers<ContextType>;
   CardOpenGraph?: CardOpenGraphResolvers<ContextType>;
   Chapter?: ChapterResolvers<ContextType>;
+  ChapterGenerationStatus?: ChapterGenerationStatusResolvers<ContextType>;
+  ChapterSuggestion?: ChapterSuggestionResolvers<ContextType>;
   Coloeus?: ColoeusResolvers<ContextType>;
   Enclosure?: EnclosureResolvers<ContextType>;
   EpisodeInfo?: EpisodeInfoResolvers<ContextType>;
@@ -1415,6 +1548,8 @@ export type Resolvers<ContextType = any> = {
   RichPodLockAcquireResult?: RichPodLockAcquireResultResolvers<ContextType>;
   Slide?: SlideResolvers<ContextType>;
   Slideshow?: SlideshowResolvers<ContextType>;
+  Transcript?: TranscriptResolvers<ContextType>;
+  TranscriptSegment?: TranscriptSegmentResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   Verification?: VerificationResolvers<ContextType>;
 };

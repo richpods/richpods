@@ -101,6 +101,19 @@
                         {{ t("sidebar.tabChapters") }}
                     </button>
                 </Tab>
+                <Tab v-if="showTranscriptTab" as="template" v-slot="{ selected }">
+                    <button
+                        type="button"
+                        :class="[
+                            'px-4 py-2 -mb-px text-sm font-medium border-b-2 focus:outline-none',
+                            selected
+                                ? 'border-blue-600 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700',
+                        ]"
+                    >
+                        {{ t("sidebar.tabTranscript") }}
+                    </button>
+                </Tab>
             </TabList>
             <TabPanels>
                 <TabPanel :unmount="false" class="focus:outline-none">
@@ -504,6 +517,117 @@
                         </li>
                     </ul>
                 </TabPanel>
+
+                <TabPanel v-if="showTranscriptTab" class="focus:outline-none">
+                    <template v-if="hasTranscript">
+                        <div
+                            v-if="showGenerateAiChapters || aiGenerationBusy"
+                            class="space-y-2 mb-4"
+                        >
+                            <button
+                                v-if="aiGenerationBusy"
+                                type="button"
+                                class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-blue-600 text-blue-600 text-sm rounded-md disabled:opacity-40 disabled:cursor-not-allowed"
+                                disabled
+                            >
+                                <RipoSpinner :size="14" color="#2563eb" />
+                                <span>{{ aiGenerationStatusLabel }}</span>
+                            </button>
+                            <template v-else-if="hasCachedSuggestions">
+                                <button
+                                    type="button"
+                                    class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-blue-600 text-blue-600 text-sm rounded-md hover:bg-blue-50"
+                                    @click="emit('view-ai-suggestions')"
+                                    :title="t('chapterGeneration.viewHint')"
+                                >
+                                    <Icon icon="ion:sparkles-outline" class="w-4 h-4" />
+                                    <span>{{ t("chapterGeneration.view") }}</span>
+                                </button>
+                                <button
+                                    v-if="canRegenerate"
+                                    type="button"
+                                    class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-300 text-gray-600 text-sm rounded-md hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                    :disabled="isSaving"
+                                    @click="emit('generate-ai-chapters')"
+                                    :title="t('chapterGeneration.generateHint')"
+                                >
+                                    <Icon icon="ion:refresh-outline" class="w-4 h-4" />
+                                    <span>{{ t("chapterGeneration.regenerate") }}</span>
+                                </button>
+                            </template>
+                            <button
+                                v-else
+                                type="button"
+                                class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-blue-600 text-blue-600 text-sm rounded-md hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                :disabled="isSaving"
+                                @click="emit('generate-ai-chapters')"
+                                :title="t('chapterGeneration.generateHint')"
+                            >
+                                <Icon icon="ion:sparkles-outline" class="w-4 h-4" />
+                                <span>{{ t("chapterGeneration.generate") }}</span>
+                            </button>
+                        </div>
+
+                        <div
+                            class="flex items-start gap-2 mb-4 p-3 rounded-md bg-blue-50 border border-blue-100 text-sm text-blue-800"
+                        >
+                            <Icon
+                                icon="ion:alert-circle-outline"
+                                class="w-4 h-4 flex-shrink-0 mt-0.5"
+                                aria-hidden="true"
+                            />
+                            <span>{{ t("transcript.aiNotice") }}</span>
+                        </div>
+
+                        <ul class="space-y-1">
+                            <li v-for="segment in transcriptSegments" :key="segment.key">
+                                <button
+                                    type="button"
+                                    class="w-full flex gap-3 px-2 py-2 rounded-md text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    @click="goToTranscriptSegment(segment.begin)"
+                                    :title="t('transcript.jumpTo', { time: segment.time })"
+                                >
+                                    <span
+                                        class="font-mono tabular-nums text-xs text-blue-600 w-14 flex-shrink-0 pt-0.5"
+                                    >
+                                        {{ segment.time }}
+                                    </span>
+                                    <span class="flex-1 text-sm text-gray-800 leading-relaxed">
+                                        {{ segment.text }}
+                                    </span>
+                                </button>
+                            </li>
+                        </ul>
+                    </template>
+
+                    <div v-else class="text-center py-8 px-4">
+                        <Icon
+                            icon="ion:document-text-outline"
+                            class="w-10 h-10 mx-auto text-gray-300 mb-3"
+                            aria-hidden="true"
+                        />
+                        <p class="text-sm text-gray-600 mb-1">{{ t("transcript.emptyTitle") }}</p>
+                        <p class="text-xs text-gray-400 mb-4">{{ t("transcript.emptyHint") }}</p>
+                        <button
+                            type="button"
+                            class="inline-flex items-center gap-1.5 px-3 py-2 border border-blue-600 text-blue-600 text-sm rounded-md hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                            :disabled="transcriptGenBusy || isSaving"
+                            @click="startTranscriptGeneration"
+                        >
+                            <template v-if="transcriptGenBusy">
+                                <RipoSpinner :size="14" color="#2563eb" />
+                                <span>{{ transcriptGenStatusLabel }}</span>
+                            </template>
+                            <template v-else>
+                                <Icon icon="ion:sparkles-outline" class="w-4 h-4" />
+                                <span>{{ t("transcript.generate") }}</span>
+                            </template>
+                        </button>
+                        <p v-if="transcriptGenFailed" class="text-xs text-red-600 mt-3">
+                            {{ t("transcript.generateFailed") }}
+                        </p>
+                    </div>
+                </TabPanel>
             </TabPanels>
         </TabGroup>
     </aside>
@@ -524,6 +648,8 @@ import { useRichPodStore } from "@/stores/useRichPodStore";
 import { useEditorUiStore } from "@/stores/useEditorUiStore";
 import { useValidation } from "@/composables/useValidation";
 import { useEpisodeCoverUpload } from "@/composables/useEpisodeCoverUpload";
+import { useTranscript } from "@/composables/useTranscript";
+import { useTranscriptGeneration } from "@/composables/useTranscriptGeneration";
 import { RichPodState } from "@/graphql/generated";
 import type { SaveStatus } from "@/composables/useAutoSave";
 import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";
@@ -550,21 +676,107 @@ const props = defineProps<{
     isHosted: boolean;
     hostedValidationStatus: string | null;
     hostedValidationError: string | null;
+    showGenerateAiChapters: boolean;
+    aiGenerationBusy: boolean;
+    aiGenerationState: string;
+    hasCachedSuggestions: boolean;
+    canRegenerate: boolean;
+    canRequestTranscript: boolean;
+    sessionId: string;
 }>();
 
 const emit = defineEmits<{
     (e: "save"): void;
     (e: "save-now"): void;
     (e: "add-chapter"): void;
+    (e: "generate-ai-chapters"): void;
+    (e: "view-ai-suggestions"): void;
     (e: "go-to-verification"): void;
     (e: "open-chapter"): void;
+    (e: "transcript-presence", present: boolean): void;
 }>();
+
+const aiGenerationStatusLabel = computed(() => {
+    switch (props.aiGenerationState) {
+        case "TRANSCRIBING":
+            return t("chapterGeneration.transcribing");
+        case "GENERATING":
+            return t("chapterGeneration.generating");
+        default:
+            return t("chapterGeneration.starting");
+    }
+});
 
 const richpodStore = useRichPodStore();
 const editorUiStore = useEditorUiStore();
 const { richpod, isDirty, chapters, hostedEpisodeId, activeChapterIndex } =
     storeToRefs(richpodStore);
 const { seekTo } = useAudio();
+const { transcript, load: loadTranscript } = useTranscript(richpodId);
+
+// Transcripts are editor-only and fetched lazily once per RichPod. We load
+// eagerly (non-blocking) to decide whether to surface the Transcript tab — the
+// query returns null cheaply when a RichPod has never been transcribed.
+watch(
+    richpodId,
+    (id) => {
+        if (id) loadTranscript();
+    },
+    { immediate: true },
+);
+
+const hasTranscript = computed(() => !!transcript.value && transcript.value.segments.length > 0);
+
+// Report transcript presence up so the editor can gate the chapter-generation
+// button (chapters require a transcript first).
+watch(hasTranscript, (present) => emit("transcript-presence", present), { immediate: true });
+
+const {
+    state: transcriptGenState,
+    busy: transcriptGenBusy,
+    start: startTranscriptGeneration,
+    sync: syncTranscriptGeneration,
+} = useTranscriptGeneration(richpodId, props.sessionId, () => {
+    void loadTranscript();
+});
+
+// Show the tab when a transcript already exists, or when the editor is allowed
+// to request one. Hide the generate button once a transcript is present.
+const showTranscriptTab = computed(() => hasTranscript.value || props.canRequestTranscript);
+
+// Pick up any in-flight (or finished) transcript job as soon as the editor opens
+// — not when the tab is first shown — so the "Transcript & AI" tab renders its
+// correct state immediately and no button flashes when it is opened.
+watch(
+    () => !!richpodId.value && props.canRequestTranscript,
+    (ready, wasReady) => {
+        if (ready && !wasReady) void syncTranscriptGeneration();
+    },
+    { immediate: true },
+);
+
+const transcriptGenStatusLabel = computed(() =>
+    transcriptGenState.value === "TRANSCRIBING"
+        ? t("chapterGeneration.transcribing")
+        : t("chapterGeneration.starting"),
+);
+
+const transcriptGenFailed = computed(() => transcriptGenState.value === "FAILED");
+
+const transcriptSegments = computed(() =>
+    (transcript.value?.segments ?? []).map((segment, index) => ({
+        key: `${segment.begin}-${index}`,
+        begin: segment.begin,
+        time: formatTime(toSeconds(segment.begin)),
+        text: segment.text,
+    })),
+);
+
+function goToTranscriptSegment(begin: string) {
+    seekTo(toSeconds(begin));
+    emit("open-chapter");
+}
+
 const { validationErrors, validationErrorsByChapter, canEditorSave } = storeToRefs(editorUiStore);
 const { runValidation } = useValidation();
 const {

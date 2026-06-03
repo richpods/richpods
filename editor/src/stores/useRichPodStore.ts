@@ -48,6 +48,7 @@ function cloneRichPod(richpod: RichPodForEdit): RichPodForEdit {
         isHosted: richpod.isHosted,
         hostedEpisodeId: richpod.hostedEpisodeId,
         explicit: richpod.explicit,
+        aiAudioEligible: richpod.aiAudioEligible,
     };
 }
 
@@ -62,6 +63,7 @@ export function createEmptyRichPod(): RichPodForEdit {
         isHosted: false,
         hostedEpisodeId: null,
         explicit: false,
+        aiAudioEligible: false,
     };
 }
 
@@ -83,6 +85,7 @@ export const useRichPodStore = defineStore("richpod", () => {
     const state = computed(() => richpod.value.state);
     const isHosted = computed(() => richpod.value.isHosted);
     const hostedEpisodeId = computed(() => richpod.value.hostedEpisodeId);
+    const aiAudioEligible = computed(() => richpod.value.aiAudioEligible);
 
     function setRichPod(next: RichPodForEdit, chapterIndex?: number) {
         richpod.value = cloneRichPod(next);
@@ -229,6 +232,7 @@ export const useRichPodStore = defineStore("richpod", () => {
         state,
         isHosted,
         hostedEpisodeId,
+        aiAudioEligible,
         isDirty,
         activeChapterIndex,
         setRichPod,

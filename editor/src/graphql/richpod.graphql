@@ -126,3 +126,39 @@ mutation RefreshEpisodeMedia($richPodId: ID!) {
         checksum
     }
 }
+
+mutation GenerateAiChapters($richPodId: ID!, $sessionId: String!) {
+    generateAiChapters(richPodId: $richPodId, sessionId: $sessionId) {
+        ...ChapterGenerationStatusFields
+    }
+}
+
+mutation RecordChapterGenerationBaseline($richPodId: ID!, $sessionId: String!) {
+    recordChapterGenerationBaseline(richPodId: $richPodId, sessionId: $sessionId) {
+        ...ChapterGenerationStatusFields
+    }
+}
+
+mutation GenerateTranscript($richPodId: ID!, $sessionId: String!) {
+    generateTranscript(richPodId: $richPodId, sessionId: $sessionId) {
+        ...ChapterGenerationStatusFields
+    }
+}
+
+query ChapterGenerationStatus($richPodId: ID!) {
+    chapterGenerationStatus(richPodId: $richPodId) {
+        ...ChapterGenerationStatusFields
+    }
+}
+
+query TranscriptGenerationStatus($richPodId: ID!) {
+    transcriptGenerationStatus(richPodId: $richPodId) {
+        ...ChapterGenerationStatusFields
+    }
+}
+
+query RichPodTranscript($richPodId: ID!) {
+    richPodTranscript(richPodId: $richPodId) {
+        ...TranscriptFields
+    }
+}

@@ -29,6 +29,10 @@
             "types": "./dist/utils/bytes.d.ts",
             "import": "./dist/utils/bytes.js"
         },
+        "./utils/ssrf": {
+            "types": "./dist/utils/ssrf.d.ts",
+            "import": "./dist/utils/ssrf.js"
+        },
         "./media/types": {
             "types": "./dist/media/types.d.ts",
             "import": "./dist/media/types.js"
@@ -52,6 +56,7 @@
         "build": "tsc -p tsconfig.json"
     },
     "dependencies": {
+        "ipaddr.js": "1.9.1",
         "xml2js": "0.6.2"
     },
     "devDependencies": {

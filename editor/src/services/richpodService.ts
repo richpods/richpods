@@ -29,6 +29,7 @@ function mapEnclosure(enclosure: GraphQLRichPod["chapters"][number]["enclosure"]
                 __typename: enclosure.__typename,
                 title: enclosure.title,
                 text: enclosure.text,
+                links: enclosure.links?.map((link) => ({ label: link.label, url: link.url })) ?? [],
             };
         case "InteractiveChart":
             // Chart format is explicitly specified in chartFormat field
@@ -132,6 +133,23 @@ export async function fetchRichPodById(id: string): Promise<RichPodForEdit> {
         isHosted: richpod.isHosted,
         hostedEpisodeId: richpod.hostedEpisodeId ?? null,
         explicit: richpod.explicit,
+        aiAudioEligible: richpod.aiAudioEligible,
+    };
+}
+
+/**
+ * Map an AI chapter suggestion (same Enclosure union as saved chapters) to an
+ * editable chapter. Marked `_isNew` so it rides the normal save flow when
+ * accepted.
+ */
+export function suggestionToEditorChapter(suggestion: {
+    begin: string;
+    enclosure: GraphQLRichPod["chapters"][number]["enclosure"];
+}): EditorChapter {
+    return {
+        begin: suggestion.begin,
+        enclosure: mapEnclosure(suggestion.enclosure),
+        _isNew: true,
     };
 }
 

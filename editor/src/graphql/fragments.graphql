@@ -32,73 +32,102 @@ fragment RichPodFields on RichPod {
     isHosted
     hostedEpisodeId
     explicit
+    aiAudioEligible
     editor {
         ...UserFields
+    }
+}
+
+fragment EnclosureFields on Enclosure {
+    __typename
+    ... on Markdown {
+        title
+        text
+        links {
+            label
+            url
+        }
+    }
+    ... on InteractiveChart {
+        title
+        description
+        chartFormat
+        chart
+    }
+    ... on GeoMap {
+        title
+        description
+        geoJSON
+    }
+    ... on Slideshow {
+        title
+        description
+        slides {
+            imageUrl
+            imageAlt
+            caption
+            credit
+        }
+    }
+    ... on Poll {
+        coloeus {
+            endpoint
+            pollId
+        }
+    }
+    ... on Card {
+        title
+        cardType
+        visibleAsChapter
+        url
+        openGraph {
+            ogTitle
+            ogDescription
+            ogImageUrl
+            ogImageWidth
+            ogImageHeight
+            mimeType
+            resourceSize
+        }
+        description
+        coverSource
+        coverImageUrl
+        quoteText
+        citationSource
+        citationUrl
+        imageUrl
+        imageAlt
+        imageLink
     }
 }
 
 fragment ChapterFields on Chapter {
     begin
     enclosure {
-        __typename
-        ... on Markdown {
-            title
-            text
-            links {
-                label
-                url
-            }
-        }
-        ... on InteractiveChart {
-            title
-            description
-            chartFormat
-            chart
-        }
-        ... on GeoMap {
-            title
-            description
-            geoJSON
-        }
-        ... on Slideshow {
-            title
-            description
-            slides {
-                imageUrl
-                imageAlt
-                caption
-                credit
-            }
-        }
-        ... on Poll {
-            coloeus {
-                endpoint
-                pollId
-            }
-        }
-        ... on Card {
-            title
-            cardType
-            visibleAsChapter
-            url
-            openGraph {
-                ogTitle
-                ogDescription
-                ogImageUrl
-                ogImageWidth
-                ogImageHeight
-                mimeType
-                resourceSize
-            }
-            description
-            coverSource
-            coverImageUrl
-            quoteText
-            citationSource
-            citationUrl
-            imageUrl
-            imageAlt
-            imageLink
+        ...EnclosureFields
+    }
+}
+
+fragment TranscriptFields on Transcript {
+    language
+    summary
+    segments {
+        begin
+        end
+        text
+        speaker
+    }
+}
+
+fragment ChapterGenerationStatusFields on ChapterGenerationStatus {
+    state
+    error
+    updatedAt
+    canRegenerate
+    suggestions {
+        begin
+        enclosure {
+            ...EnclosureFields
         }
     }
 }

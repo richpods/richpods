@@ -81,6 +81,7 @@ web_modules/
 .env.production.local
 .env.local
 !.env.example
+!.env.development.example
 !**/.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -157,3 +158,4 @@ cloud-functions/check-media/build
 *serviceaccount.json
 *key*.json
 .claude
+cloud-functions/generative-ai-tools/build

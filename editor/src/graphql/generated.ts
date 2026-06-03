@@ -88,10 +88,36 @@ export type Chapter = {
     enclosure: Enclosure;
 };
 
+export const ChapterGenerationState = {
+    Completed: "COMPLETED",
+    Failed: "FAILED",
+    Generating: "GENERATING",
+    None: "NONE",
+    Pending: "PENDING",
+    Transcribing: "TRANSCRIBING",
+} as const;
+
+export type ChapterGenerationState =
+    (typeof ChapterGenerationState)[keyof typeof ChapterGenerationState];
+export type ChapterGenerationStatus = {
+    __typename?: "ChapterGenerationStatus";
+    canRegenerate: Scalars["Boolean"]["output"];
+    error?: Maybe<Scalars["String"]["output"]>;
+    state: ChapterGenerationState;
+    suggestions: Array<ChapterSuggestion>;
+    updatedAt?: Maybe<Scalars["String"]["output"]>;
+};
+
 export type ChapterInput = {
     begin: Scalars["String"]["input"];
     enclosure: Scalars["JSON"]["input"];
     enclosureType: EnclosureType;
+};
+
+export type ChapterSuggestion = {
+    __typename?: "ChapterSuggestion";
+    begin: Scalars["String"]["output"];
+    enclosure: Enclosure;
 };
 
 export const ChartFormat = {
@@ -260,7 +286,10 @@ export type Mutation = {
     deleteHostedEpisode: Scalars["Boolean"]["output"];
     deleteHostedPodcast: Scalars["Boolean"]["output"];
     deleteRichPod: Scalars["Boolean"]["output"];
+    generateAiChapters: ChapterGenerationStatus;
+    generateTranscript: ChapterGenerationStatus;
     heartbeatRichPodLock: RichPodLock;
+    recordChapterGenerationBaseline: ChapterGenerationStatus;
     refreshEpisodeMedia: PodcastMedia;
     releaseRichPodLock: Scalars["Boolean"]["output"];
     setRichPodChapters: RichPod;
@@ -300,8 +329,23 @@ export type MutationDeleteRichPodArgs = {
     id: Scalars["ID"]["input"];
 };
 
+export type MutationGenerateAiChaptersArgs = {
+    richPodId: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+};
+
+export type MutationGenerateTranscriptArgs = {
+    richPodId: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+};
+
 export type MutationHeartbeatRichPodLockArgs = {
     id: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+};
+
+export type MutationRecordChapterGenerationBaselineArgs = {
+    richPodId: Scalars["ID"]["input"];
     sessionId: Scalars["String"]["input"];
 };
 
@@ -524,6 +568,7 @@ export type PublicHostedPodcast = {
 
 export type Query = {
     __typename?: "Query";
+    chapterGenerationStatus: ChapterGenerationStatus;
     currentUser?: Maybe<User>;
     extractFeedUrl: Scalars["String"]["output"];
     hostedEpisode?: Maybe<HostedEpisode>;
@@ -538,9 +583,15 @@ export type Query = {
     recentPublishedRichPods: PaginatedRichPods;
     richPod?: Maybe<RichPod>;
     richPodLock?: Maybe<RichPodLock>;
+    richPodTranscript?: Maybe<Transcript>;
+    transcriptGenerationStatus: ChapterGenerationStatus;
     user?: Maybe<User>;
     userRichPods: PaginatedRichPods;
     userVerifications: PaginatedVerifications;
+};
+
+export type QueryChapterGenerationStatusArgs = {
+    richPodId: Scalars["ID"]["input"];
 };
 
 export type QueryExtractFeedUrlArgs = {
@@ -600,6 +651,14 @@ export type QueryRichPodLockArgs = {
     id: Scalars["ID"]["input"];
 };
 
+export type QueryRichPodTranscriptArgs = {
+    richPodId: Scalars["ID"]["input"];
+};
+
+export type QueryTranscriptGenerationStatusArgs = {
+    richPodId: Scalars["ID"]["input"];
+};
+
 export type QueryUserArgs = {
     id: Scalars["ID"]["input"];
 };
@@ -617,6 +676,11 @@ export type QueryUserVerificationsArgs = {
 
 export type RichPod = {
     __typename?: "RichPod";
+    /**
+     * Whether this RichPod's audio is within the limits (MIME type, size,
+     * duration) required for AI-assisted chapter generation.
+     */
+    aiAudioEligible: Scalars["Boolean"]["output"];
     chapters: Array<Chapter>;
     createdAt: Scalars["String"]["output"];
     description: Scalars["String"]["output"];
@@ -685,6 +749,26 @@ export type Slideshow = BaseEnclosure & {
     description?: Maybe<Scalars["String"]["output"]>;
     slides: Array<Slide>;
     title: Scalars["String"]["output"];
+};
+
+/**
+ * The AI-generated transcript of a RichPod's episode audio. Editor-only — never
+ * exposed through any public interface.
+ */
+export type Transcript = {
+    __typename?: "Transcript";
+    language: Scalars["String"]["output"];
+    segments: Array<TranscriptSegment>;
+    summary: Scalars["String"]["output"];
+};
+
+export type TranscriptSegment = {
+    __typename?: "TranscriptSegment";
+    begin: Scalars["String"]["output"];
+    end: Scalars["String"]["output"];
+    language: Scalars["String"]["output"];
+    speaker?: Maybe<Scalars["String"]["output"]>;
+    text: Scalars["String"]["output"];
 };
 
 export type UpdateHostedPodcastInput = {
@@ -859,6 +943,7 @@ export type RichPodFieldsFragment = {
     isHosted: boolean;
     hostedEpisodeId?: string | null;
     explicit: boolean;
+    aiAudioEligible: boolean;
     editor?: {
         __typename?: "User";
         id: string;
@@ -871,6 +956,81 @@ export type RichPodFieldsFragment = {
         totalQuotaBytes?: number | null;
     } | null;
 };
+
+type EnclosureFields_Card_Fragment = {
+    __typename: "Card";
+    title: string;
+    cardType: CardType;
+    visibleAsChapter: boolean;
+    url?: string | null;
+    description?: string | null;
+    coverSource?: string | null;
+    coverImageUrl?: string | null;
+    quoteText?: string | null;
+    citationSource?: string | null;
+    citationUrl?: string | null;
+    imageUrl?: string | null;
+    imageAlt?: string | null;
+    imageLink?: string | null;
+    openGraph?: {
+        __typename?: "CardOpenGraph";
+        ogTitle?: string | null;
+        ogDescription?: string | null;
+        ogImageUrl?: string | null;
+        ogImageWidth?: number | null;
+        ogImageHeight?: number | null;
+        mimeType?: string | null;
+        resourceSize?: number | null;
+    } | null;
+};
+
+type EnclosureFields_GeoMap_Fragment = {
+    __typename: "GeoMap";
+    title: string;
+    description?: string | null;
+    geoJSON: any;
+};
+
+type EnclosureFields_InteractiveChart_Fragment = {
+    __typename: "InteractiveChart";
+    title: string;
+    description?: string | null;
+    chartFormat: ChartFormat;
+    chart: any;
+};
+
+type EnclosureFields_Markdown_Fragment = {
+    __typename: "Markdown";
+    title: string;
+    text: string;
+    links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+};
+
+type EnclosureFields_Poll_Fragment = {
+    __typename: "Poll";
+    coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
+};
+
+type EnclosureFields_Slideshow_Fragment = {
+    __typename: "Slideshow";
+    title: string;
+    description?: string | null;
+    slides: Array<{
+        __typename?: "Slide";
+        imageUrl: string;
+        imageAlt: string;
+        caption: string;
+        credit: string;
+    }>;
+};
+
+export type EnclosureFieldsFragment =
+    | EnclosureFields_Card_Fragment
+    | EnclosureFields_GeoMap_Fragment
+    | EnclosureFields_InteractiveChart_Fragment
+    | EnclosureFields_Markdown_Fragment
+    | EnclosureFields_Poll_Fragment
+    | EnclosureFields_Slideshow_Fragment;
 
 export type ChapterFieldsFragment = {
     __typename?: "Chapter";
@@ -932,6 +1092,88 @@ export type ChapterFieldsFragment = {
                   credit: string;
               }>;
           };
+};
+
+export type TranscriptFieldsFragment = {
+    __typename?: "Transcript";
+    language: string;
+    summary: string;
+    segments: Array<{
+        __typename?: "TranscriptSegment";
+        begin: string;
+        end: string;
+        text: string;
+        speaker?: string | null;
+    }>;
+};
+
+export type ChapterGenerationStatusFieldsFragment = {
+    __typename?: "ChapterGenerationStatus";
+    state: ChapterGenerationState;
+    error?: string | null;
+    updatedAt?: string | null;
+    canRegenerate: boolean;
+    suggestions: Array<{
+        __typename?: "ChapterSuggestion";
+        begin: string;
+        enclosure:
+            | {
+                  __typename: "Card";
+                  title: string;
+                  cardType: CardType;
+                  visibleAsChapter: boolean;
+                  url?: string | null;
+                  description?: string | null;
+                  coverSource?: string | null;
+                  coverImageUrl?: string | null;
+                  quoteText?: string | null;
+                  citationSource?: string | null;
+                  citationUrl?: string | null;
+                  imageUrl?: string | null;
+                  imageAlt?: string | null;
+                  imageLink?: string | null;
+                  openGraph?: {
+                      __typename?: "CardOpenGraph";
+                      ogTitle?: string | null;
+                      ogDescription?: string | null;
+                      ogImageUrl?: string | null;
+                      ogImageWidth?: number | null;
+                      ogImageHeight?: number | null;
+                      mimeType?: string | null;
+                      resourceSize?: number | null;
+                  } | null;
+              }
+            | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
+            | {
+                  __typename: "InteractiveChart";
+                  title: string;
+                  description?: string | null;
+                  chartFormat: ChartFormat;
+                  chart: any;
+              }
+            | {
+                  __typename: "Markdown";
+                  title: string;
+                  text: string;
+                  links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+              }
+            | {
+                  __typename: "Poll";
+                  coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
+              }
+            | {
+                  __typename: "Slideshow";
+                  title: string;
+                  description?: string | null;
+                  slides: Array<{
+                      __typename?: "Slide";
+                      imageUrl: string;
+                      imageAlt: string;
+                      caption: string;
+                      credit: string;
+                  }>;
+              };
+    }>;
 };
 
 export type HostedPodcastsQueryVariables = Exact<{
@@ -1312,6 +1554,7 @@ export type CreateRichPodMutation = {
         isHosted: boolean;
         hostedEpisodeId?: string | null;
         explicit: boolean;
+        aiAudioEligible: boolean;
         origin: {
             __typename?: "PodcastOrigin";
             id: string;
@@ -1429,6 +1672,7 @@ export type UpdateRichPodMutation = {
         isHosted: boolean;
         hostedEpisodeId?: string | null;
         explicit: boolean;
+        aiAudioEligible: boolean;
         origin: {
             __typename?: "PodcastOrigin";
             id: string;
@@ -1552,6 +1796,7 @@ export type SetRichPodChaptersMutation = {
         isHosted: boolean;
         hostedEpisodeId?: string | null;
         explicit: boolean;
+        aiAudioEligible: boolean;
         origin: {
             __typename?: "PodcastOrigin";
             id: string;
@@ -1667,6 +1912,7 @@ export type GetRichPodQuery = {
         isHosted: boolean;
         hostedEpisodeId?: string | null;
         explicit: boolean;
+        aiAudioEligible: boolean;
         origin: {
             __typename?: "PodcastOrigin";
             id: string;
@@ -1778,6 +2024,409 @@ export type RefreshEpisodeMediaMutation = {
         length: number;
         checksum: string;
     };
+};
+
+export type GenerateAiChaptersMutationVariables = Exact<{
+    richPodId: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+}>;
+
+export type GenerateAiChaptersMutation = {
+    __typename?: "Mutation";
+    generateAiChapters: {
+        __typename?: "ChapterGenerationStatus";
+        state: ChapterGenerationState;
+        error?: string | null;
+        updatedAt?: string | null;
+        canRegenerate: boolean;
+        suggestions: Array<{
+            __typename?: "ChapterSuggestion";
+            begin: string;
+            enclosure:
+                | {
+                      __typename: "Card";
+                      title: string;
+                      cardType: CardType;
+                      visibleAsChapter: boolean;
+                      url?: string | null;
+                      description?: string | null;
+                      coverSource?: string | null;
+                      coverImageUrl?: string | null;
+                      quoteText?: string | null;
+                      citationSource?: string | null;
+                      citationUrl?: string | null;
+                      imageUrl?: string | null;
+                      imageAlt?: string | null;
+                      imageLink?: string | null;
+                      openGraph?: {
+                          __typename?: "CardOpenGraph";
+                          ogTitle?: string | null;
+                          ogDescription?: string | null;
+                          ogImageUrl?: string | null;
+                          ogImageWidth?: number | null;
+                          ogImageHeight?: number | null;
+                          mimeType?: string | null;
+                          resourceSize?: number | null;
+                      } | null;
+                  }
+                | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
+                | {
+                      __typename: "InteractiveChart";
+                      title: string;
+                      description?: string | null;
+                      chartFormat: ChartFormat;
+                      chart: any;
+                  }
+                | {
+                      __typename: "Markdown";
+                      title: string;
+                      text: string;
+                      links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+                  }
+                | {
+                      __typename: "Poll";
+                      coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
+                  }
+                | {
+                      __typename: "Slideshow";
+                      title: string;
+                      description?: string | null;
+                      slides: Array<{
+                          __typename?: "Slide";
+                          imageUrl: string;
+                          imageAlt: string;
+                          caption: string;
+                          credit: string;
+                      }>;
+                  };
+        }>;
+    };
+};
+
+export type RecordChapterGenerationBaselineMutationVariables = Exact<{
+    richPodId: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+}>;
+
+export type RecordChapterGenerationBaselineMutation = {
+    __typename?: "Mutation";
+    recordChapterGenerationBaseline: {
+        __typename?: "ChapterGenerationStatus";
+        state: ChapterGenerationState;
+        error?: string | null;
+        updatedAt?: string | null;
+        canRegenerate: boolean;
+        suggestions: Array<{
+            __typename?: "ChapterSuggestion";
+            begin: string;
+            enclosure:
+                | {
+                      __typename: "Card";
+                      title: string;
+                      cardType: CardType;
+                      visibleAsChapter: boolean;
+                      url?: string | null;
+                      description?: string | null;
+                      coverSource?: string | null;
+                      coverImageUrl?: string | null;
+                      quoteText?: string | null;
+                      citationSource?: string | null;
+                      citationUrl?: string | null;
+                      imageUrl?: string | null;
+                      imageAlt?: string | null;
+                      imageLink?: string | null;
+                      openGraph?: {
+                          __typename?: "CardOpenGraph";
+                          ogTitle?: string | null;
+                          ogDescription?: string | null;
+                          ogImageUrl?: string | null;
+                          ogImageWidth?: number | null;
+                          ogImageHeight?: number | null;
+                          mimeType?: string | null;
+                          resourceSize?: number | null;
+                      } | null;
+                  }
+                | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
+                | {
+                      __typename: "InteractiveChart";
+                      title: string;
+                      description?: string | null;
+                      chartFormat: ChartFormat;
+                      chart: any;
+                  }
+                | {
+                      __typename: "Markdown";
+                      title: string;
+                      text: string;
+                      links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+                  }
+                | {
+                      __typename: "Poll";
+                      coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
+                  }
+                | {
+                      __typename: "Slideshow";
+                      title: string;
+                      description?: string | null;
+                      slides: Array<{
+                          __typename?: "Slide";
+                          imageUrl: string;
+                          imageAlt: string;
+                          caption: string;
+                          credit: string;
+                      }>;
+                  };
+        }>;
+    };
+};
+
+export type GenerateTranscriptMutationVariables = Exact<{
+    richPodId: Scalars["ID"]["input"];
+    sessionId: Scalars["String"]["input"];
+}>;
+
+export type GenerateTranscriptMutation = {
+    __typename?: "Mutation";
+    generateTranscript: {
+        __typename?: "ChapterGenerationStatus";
+        state: ChapterGenerationState;
+        error?: string | null;
+        updatedAt?: string | null;
+        canRegenerate: boolean;
+        suggestions: Array<{
+            __typename?: "ChapterSuggestion";
+            begin: string;
+            enclosure:
+                | {
+                      __typename: "Card";
+                      title: string;
+                      cardType: CardType;
+                      visibleAsChapter: boolean;
+                      url?: string | null;
+                      description?: string | null;
+                      coverSource?: string | null;
+                      coverImageUrl?: string | null;
+                      quoteText?: string | null;
+                      citationSource?: string | null;
+                      citationUrl?: string | null;
+                      imageUrl?: string | null;
+                      imageAlt?: string | null;
+                      imageLink?: string | null;
+                      openGraph?: {
+                          __typename?: "CardOpenGraph";
+                          ogTitle?: string | null;
+                          ogDescription?: string | null;
+                          ogImageUrl?: string | null;
+                          ogImageWidth?: number | null;
+                          ogImageHeight?: number | null;
+                          mimeType?: string | null;
+                          resourceSize?: number | null;
+                      } | null;
+                  }
+                | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
+                | {
+                      __typename: "InteractiveChart";
+                      title: string;
+                      description?: string | null;
+                      chartFormat: ChartFormat;
+                      chart: any;
+                  }
+                | {
+                      __typename: "Markdown";
+                      title: string;
+                      text: string;
+                      links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+                  }
+                | {
+                      __typename: "Poll";
+                      coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
+                  }
+                | {
+                      __typename: "Slideshow";
+                      title: string;
+                      description?: string | null;
+                      slides: Array<{
+                          __typename?: "Slide";
+                          imageUrl: string;
+                          imageAlt: string;
+                          caption: string;
+                          credit: string;
+                      }>;
+                  };
+        }>;
+    };
+};
+
+export type ChapterGenerationStatusQueryVariables = Exact<{
+    richPodId: Scalars["ID"]["input"];
+}>;
+
+export type ChapterGenerationStatusQuery = {
+    __typename?: "Query";
+    chapterGenerationStatus: {
+        __typename?: "ChapterGenerationStatus";
+        state: ChapterGenerationState;
+        error?: string | null;
+        updatedAt?: string | null;
+        canRegenerate: boolean;
+        suggestions: Array<{
+            __typename?: "ChapterSuggestion";
+            begin: string;
+            enclosure:
+                | {
+                      __typename: "Card";
+                      title: string;
+                      cardType: CardType;
+                      visibleAsChapter: boolean;
+                      url?: string | null;
+                      description?: string | null;
+                      coverSource?: string | null;
+                      coverImageUrl?: string | null;
+                      quoteText?: string | null;
+                      citationSource?: string | null;
+                      citationUrl?: string | null;
+                      imageUrl?: string | null;
+                      imageAlt?: string | null;
+                      imageLink?: string | null;
+                      openGraph?: {
+                          __typename?: "CardOpenGraph";
+                          ogTitle?: string | null;
+                          ogDescription?: string | null;
+                          ogImageUrl?: string | null;
+                          ogImageWidth?: number | null;
+                          ogImageHeight?: number | null;
+                          mimeType?: string | null;
+                          resourceSize?: number | null;
+                      } | null;
+                  }
+                | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
+                | {
+                      __typename: "InteractiveChart";
+                      title: string;
+                      description?: string | null;
+                      chartFormat: ChartFormat;
+                      chart: any;
+                  }
+                | {
+                      __typename: "Markdown";
+                      title: string;
+                      text: string;
+                      links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+                  }
+                | {
+                      __typename: "Poll";
+                      coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
+                  }
+                | {
+                      __typename: "Slideshow";
+                      title: string;
+                      description?: string | null;
+                      slides: Array<{
+                          __typename?: "Slide";
+                          imageUrl: string;
+                          imageAlt: string;
+                          caption: string;
+                          credit: string;
+                      }>;
+                  };
+        }>;
+    };
+};
+
+export type TranscriptGenerationStatusQueryVariables = Exact<{
+    richPodId: Scalars["ID"]["input"];
+}>;
+
+export type TranscriptGenerationStatusQuery = {
+    __typename?: "Query";
+    transcriptGenerationStatus: {
+        __typename?: "ChapterGenerationStatus";
+        state: ChapterGenerationState;
+        error?: string | null;
+        updatedAt?: string | null;
+        canRegenerate: boolean;
+        suggestions: Array<{
+            __typename?: "ChapterSuggestion";
+            begin: string;
+            enclosure:
+                | {
+                      __typename: "Card";
+                      title: string;
+                      cardType: CardType;
+                      visibleAsChapter: boolean;
+                      url?: string | null;
+                      description?: string | null;
+                      coverSource?: string | null;
+                      coverImageUrl?: string | null;
+                      quoteText?: string | null;
+                      citationSource?: string | null;
+                      citationUrl?: string | null;
+                      imageUrl?: string | null;
+                      imageAlt?: string | null;
+                      imageLink?: string | null;
+                      openGraph?: {
+                          __typename?: "CardOpenGraph";
+                          ogTitle?: string | null;
+                          ogDescription?: string | null;
+                          ogImageUrl?: string | null;
+                          ogImageWidth?: number | null;
+                          ogImageHeight?: number | null;
+                          mimeType?: string | null;
+                          resourceSize?: number | null;
+                      } | null;
+                  }
+                | { __typename: "GeoMap"; title: string; description?: string | null; geoJSON: any }
+                | {
+                      __typename: "InteractiveChart";
+                      title: string;
+                      description?: string | null;
+                      chartFormat: ChartFormat;
+                      chart: any;
+                  }
+                | {
+                      __typename: "Markdown";
+                      title: string;
+                      text: string;
+                      links: Array<{ __typename?: "MarkdownLink"; label: string; url: string }>;
+                  }
+                | {
+                      __typename: "Poll";
+                      coloeus: { __typename?: "Coloeus"; endpoint: string; pollId: string };
+                  }
+                | {
+                      __typename: "Slideshow";
+                      title: string;
+                      description?: string | null;
+                      slides: Array<{
+                          __typename?: "Slide";
+                          imageUrl: string;
+                          imageAlt: string;
+                          caption: string;
+                          credit: string;
+                      }>;
+                  };
+        }>;
+    };
+};
+
+export type RichPodTranscriptQueryVariables = Exact<{
+    richPodId: Scalars["ID"]["input"];
+}>;
+
+export type RichPodTranscriptQuery = {
+    __typename?: "Query";
+    richPodTranscript?: {
+        __typename?: "Transcript";
+        language: string;
+        summary: string;
+        segments: Array<{
+            __typename?: "TranscriptSegment";
+            begin: string;
+            end: string;
+            text: string;
+            speaker?: string | null;
+        }>;
+    } | null;
 };
 
 export type UserRichPodsQueryVariables = Exact<{
@@ -1957,78 +2606,112 @@ export const RichPodFieldsFragmentDoc = gql`
         isHosted
         hostedEpisodeId
         explicit
+        aiAudioEligible
         editor {
             ...UserFields
         }
     }
     ${UserFieldsFragmentDoc}
 `;
+export const EnclosureFieldsFragmentDoc = gql`
+    fragment EnclosureFields on Enclosure {
+        __typename
+        ... on Markdown {
+            title
+            text
+            links {
+                label
+                url
+            }
+        }
+        ... on InteractiveChart {
+            title
+            description
+            chartFormat
+            chart
+        }
+        ... on GeoMap {
+            title
+            description
+            geoJSON
+        }
+        ... on Slideshow {
+            title
+            description
+            slides {
+                imageUrl
+                imageAlt
+                caption
+                credit
+            }
+        }
+        ... on Poll {
+            coloeus {
+                endpoint
+                pollId
+            }
+        }
+        ... on Card {
+            title
+            cardType
+            visibleAsChapter
+            url
+            openGraph {
+                ogTitle
+                ogDescription
+                ogImageUrl
+                ogImageWidth
+                ogImageHeight
+                mimeType
+                resourceSize
+            }
+            description
+            coverSource
+            coverImageUrl
+            quoteText
+            citationSource
+            citationUrl
+            imageUrl
+            imageAlt
+            imageLink
+        }
+    }
+`;
 export const ChapterFieldsFragmentDoc = gql`
     fragment ChapterFields on Chapter {
         begin
         enclosure {
-            __typename
-            ... on Markdown {
-                title
-                text
-                links {
-                    label
-                    url
-                }
-            }
-            ... on InteractiveChart {
-                title
-                description
-                chartFormat
-                chart
-            }
-            ... on GeoMap {
-                title
-                description
-                geoJSON
-            }
-            ... on Slideshow {
-                title
-                description
-                slides {
-                    imageUrl
-                    imageAlt
-                    caption
-                    credit
-                }
-            }
-            ... on Poll {
-                coloeus {
-                    endpoint
-                    pollId
-                }
-            }
-            ... on Card {
-                title
-                cardType
-                visibleAsChapter
-                url
-                openGraph {
-                    ogTitle
-                    ogDescription
-                    ogImageUrl
-                    ogImageWidth
-                    ogImageHeight
-                    mimeType
-                    resourceSize
-                }
-                description
-                coverSource
-                coverImageUrl
-                quoteText
-                citationSource
-                citationUrl
-                imageUrl
-                imageAlt
-                imageLink
+            ...EnclosureFields
+        }
+    }
+    ${EnclosureFieldsFragmentDoc}
+`;
+export const TranscriptFieldsFragmentDoc = gql`
+    fragment TranscriptFields on Transcript {
+        language
+        summary
+        segments {
+            begin
+            end
+            text
+            speaker
+        }
+    }
+`;
+export const ChapterGenerationStatusFieldsFragmentDoc = gql`
+    fragment ChapterGenerationStatusFields on ChapterGenerationStatus {
+        state
+        error
+        updatedAt
+        canRegenerate
+        suggestions {
+            begin
+            enclosure {
+                ...EnclosureFields
             }
         }
     }
+    ${EnclosureFieldsFragmentDoc}
 `;
 export const RichPodLockFieldsFragmentDoc = gql`
     fragment RichPodLockFields on RichPodLock {
@@ -2444,6 +3127,54 @@ export const RefreshEpisodeMediaDocument = gql`
             checksum
         }
     }
+`;
+export const GenerateAiChaptersDocument = gql`
+    mutation GenerateAiChapters($richPodId: ID!, $sessionId: String!) {
+        generateAiChapters(richPodId: $richPodId, sessionId: $sessionId) {
+            ...ChapterGenerationStatusFields
+        }
+    }
+    ${ChapterGenerationStatusFieldsFragmentDoc}
+`;
+export const RecordChapterGenerationBaselineDocument = gql`
+    mutation RecordChapterGenerationBaseline($richPodId: ID!, $sessionId: String!) {
+        recordChapterGenerationBaseline(richPodId: $richPodId, sessionId: $sessionId) {
+            ...ChapterGenerationStatusFields
+        }
+    }
+    ${ChapterGenerationStatusFieldsFragmentDoc}
+`;
+export const GenerateTranscriptDocument = gql`
+    mutation GenerateTranscript($richPodId: ID!, $sessionId: String!) {
+        generateTranscript(richPodId: $richPodId, sessionId: $sessionId) {
+            ...ChapterGenerationStatusFields
+        }
+    }
+    ${ChapterGenerationStatusFieldsFragmentDoc}
+`;
+export const ChapterGenerationStatusDocument = gql`
+    query ChapterGenerationStatus($richPodId: ID!) {
+        chapterGenerationStatus(richPodId: $richPodId) {
+            ...ChapterGenerationStatusFields
+        }
+    }
+    ${ChapterGenerationStatusFieldsFragmentDoc}
+`;
+export const TranscriptGenerationStatusDocument = gql`
+    query TranscriptGenerationStatus($richPodId: ID!) {
+        transcriptGenerationStatus(richPodId: $richPodId) {
+            ...ChapterGenerationStatusFields
+        }
+    }
+    ${ChapterGenerationStatusFieldsFragmentDoc}
+`;
+export const RichPodTranscriptDocument = gql`
+    query RichPodTranscript($richPodId: ID!) {
+        richPodTranscript(richPodId: $richPodId) {
+            ...TranscriptFields
+        }
+    }
+    ${TranscriptFieldsFragmentDoc}
 `;
 export const UserRichPodsDocument = gql`
     query UserRichPods($first: Int, $after: String, $state: RichPodState) {
@@ -2995,6 +3726,114 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
                     }),
                 "RefreshEpisodeMedia",
                 "mutation",
+                variables,
+            );
+        },
+        GenerateAiChapters(
+            variables: GenerateAiChaptersMutationVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<GenerateAiChaptersMutation> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<GenerateAiChaptersMutation>({
+                        document: GenerateAiChaptersDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "GenerateAiChapters",
+                "mutation",
+                variables,
+            );
+        },
+        RecordChapterGenerationBaseline(
+            variables: RecordChapterGenerationBaselineMutationVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<RecordChapterGenerationBaselineMutation> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<RecordChapterGenerationBaselineMutation>({
+                        document: RecordChapterGenerationBaselineDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "RecordChapterGenerationBaseline",
+                "mutation",
+                variables,
+            );
+        },
+        GenerateTranscript(
+            variables: GenerateTranscriptMutationVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<GenerateTranscriptMutation> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<GenerateTranscriptMutation>({
+                        document: GenerateTranscriptDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "GenerateTranscript",
+                "mutation",
+                variables,
+            );
+        },
+        ChapterGenerationStatus(
+            variables: ChapterGenerationStatusQueryVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<ChapterGenerationStatusQuery> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<ChapterGenerationStatusQuery>({
+                        document: ChapterGenerationStatusDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "ChapterGenerationStatus",
+                "query",
+                variables,
+            );
+        },
+        TranscriptGenerationStatus(
+            variables: TranscriptGenerationStatusQueryVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<TranscriptGenerationStatusQuery> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<TranscriptGenerationStatusQuery>({
+                        document: TranscriptGenerationStatusDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "TranscriptGenerationStatus",
+                "query",
+                variables,
+            );
+        },
+        RichPodTranscript(
+            variables: RichPodTranscriptQueryVariables,
+            requestHeaders?: GraphQLClientRequestHeaders,
+            signal?: RequestInit["signal"],
+        ): Promise<RichPodTranscriptQuery> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<RichPodTranscriptQuery>({
+                        document: RichPodTranscriptDocument,
+                        variables,
+                        requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
+                        signal,
+                    }),
+                "RichPodTranscript",
+                "query",
                 variables,
             );
         },

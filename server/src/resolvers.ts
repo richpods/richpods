@@ -40,6 +40,14 @@ import {
     getPublicPublishedEpisodes,
     deleteHostedEpisode,
 } from "./services/hosted-episode.service.js";
+import {
+    startChapterGeneration,
+    startTranscriptGeneration,
+    recordChapterGenerationBaseline,
+    getChapterGenerationStatus,
+    getTranscriptGenerationStatus,
+    getRichPodTranscript,
+} from "./services/aiChapters.service.js";
 import { validate, validateField } from "./validation/validator.js";
 import {
     signUpInputSchema,
@@ -93,6 +101,8 @@ import {
     PodcastMedia,
     RichPodLock,
     RichPodLockAcquireResult,
+    ChapterGenerationStatus,
+    Transcript,
 } from "./graphql.js";
 import { Request } from "express";
 import { parseAcceptLanguageHeader, type SupportedLanguage } from "@richpods/shared/i18n/language";
@@ -392,6 +402,62 @@ export function createResolvers(req: Request, auth: AuthContext) {
             );
         },
 
+        generateAiChapters: async ({
+            richPodId,
+            sessionId,
+        }: {
+            richPodId: string;
+            sessionId: string;
+        }): Promise<ChapterGenerationStatus> => {
+            const userId = requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, richPodId, "richPodId");
+            const validatedSessionId = validateField<string>(
+                lockSessionIdSchema,
+                sessionId,
+                "sessionId",
+            );
+            return startChapterGeneration(validatedId, userId, validatedSessionId, auth.role);
+        },
+
+        recordChapterGenerationBaseline: async ({
+            richPodId,
+            sessionId,
+        }: {
+            richPodId: string;
+            sessionId: string;
+        }): Promise<ChapterGenerationStatus> => {
+            const userId = requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, richPodId, "richPodId");
+            const validatedSessionId = validateField<string>(
+                lockSessionIdSchema,
+                sessionId,
+                "sessionId",
+            );
+            return recordChapterGenerationBaseline(
+                validatedId,
+                userId,
+                validatedSessionId,
+                auth.role,
+            );
+        },
+
+        generateTranscript: async ({
+            richPodId,
+            sessionId,
+        }: {
+            richPodId: string;
+            sessionId: string;
+        }): Promise<ChapterGenerationStatus> => {
+            const userId = requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, richPodId, "richPodId");
+            const validatedSessionId = validateField<string>(
+                lockSessionIdSchema,
+                sessionId,
+                "sessionId",
+            );
+            return startTranscriptGeneration(validatedId, userId, validatedSessionId, auth.role);
+        },
+
         startRichPodVerification: async ({ feedUrl }: { feedUrl: string }) => {
             const userId = requireAuth(auth);
             const validatedInput = validate<{ feedUrl: string }>(startVerificationSchema, {
@@ -470,6 +536,36 @@ export function createResolvers(req: Request, auth: AuthContext) {
             const userId = requirePrivilegedAuth(auth);
             const validatedId = validateField<string>(idSchema, id, "id");
             return getHostedEpisode(validatedId, userId);
+        },
+
+        chapterGenerationStatus: async ({
+            richPodId,
+        }: {
+            richPodId: string;
+        }): Promise<ChapterGenerationStatus> => {
+            const userId = requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, richPodId, "richPodId");
+            return getChapterGenerationStatus(validatedId, userId);
+        },
+
+        transcriptGenerationStatus: async ({
+            richPodId,
+        }: {
+            richPodId: string;
+        }): Promise<ChapterGenerationStatus> => {
+            const userId = requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, richPodId, "richPodId");
+            return getTranscriptGenerationStatus(validatedId, userId);
+        },
+
+        richPodTranscript: async ({
+            richPodId,
+        }: {
+            richPodId: string;
+        }): Promise<Transcript | null> => {
+            const userId = requireAuth(auth);
+            const validatedId = validateField<string>(idSchema, richPodId, "richPodId");
+            return getRichPodTranscript(validatedId, userId);
         },
 
         publicHostedPodcast: async ({

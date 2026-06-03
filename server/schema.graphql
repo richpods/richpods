@@ -267,6 +267,51 @@ type RichPod {
     hostedEpisodeId: ID
     publishedAt: String
     explicit: Boolean!
+    """
+    Whether this RichPod's audio is within the limits (MIME type, size,
+    duration) required for AI-assisted chapter generation.
+    """
+    aiAudioEligible: Boolean!
+}
+
+enum ChapterGenerationState {
+    NONE
+    PENDING
+    TRANSCRIBING
+    GENERATING
+    COMPLETED
+    FAILED
+}
+
+type ChapterSuggestion {
+    begin: String!
+    enclosure: Enclosure!
+}
+
+type ChapterGenerationStatus {
+    state: ChapterGenerationState!
+    error: String
+    suggestions: [ChapterSuggestion!]!
+    updatedAt: String
+    canRegenerate: Boolean!
+}
+
+type TranscriptSegment {
+    begin: String!
+    end: String!
+    text: String!
+    language: String!
+    speaker: String
+}
+
+"""
+The AI-generated transcript of a RichPod's episode audio. Editor-only — never
+exposed through any public interface.
+"""
+type Transcript {
+    language: String!
+    summary: String!
+    segments: [TranscriptSegment!]!
 }
 
 type Verification {
@@ -531,6 +576,9 @@ type Query {
     hostedPodcast(id: ID!): HostedPodcast
     hostedEpisodes(podcastId: ID!, first: Int, after: String): PaginatedHostedEpisodes!
     hostedEpisode(id: ID!): HostedEpisode
+    chapterGenerationStatus(richPodId: ID!): ChapterGenerationStatus!
+    transcriptGenerationStatus(richPodId: ID!): ChapterGenerationStatus!
+    richPodTranscript(richPodId: ID!): Transcript
     publicHostedPodcast(id: ID!): PublicHostedPodcast
     publicHostedPodcastEpisodes(
         podcastId: ID!
@@ -548,6 +596,9 @@ type Mutation {
     createRichPod(input: CreateRichPodInput!): RichPod!
     updateRichPod(id: ID!, sessionId: String!, input: UpdateRichPodInput!): RichPod!
     setRichPodChapters(id: ID!, sessionId: String!, chapters: [ChapterInput!]!): RichPod!
+    generateAiChapters(richPodId: ID!, sessionId: String!): ChapterGenerationStatus!
+    recordChapterGenerationBaseline(richPodId: ID!, sessionId: String!): ChapterGenerationStatus!
+    generateTranscript(richPodId: ID!, sessionId: String!): ChapterGenerationStatus!
     deleteRichPod(id: ID!): Boolean!
     startRichPodVerification(feedUrl: String!): Verification!
     completeRichPodVerification(feedUrl: String!, code: String!): Verification!

@@ -33,6 +33,8 @@ spec:
                         value: $GOOGLE_CLOUD_PROJECT
                       - name: GCS_BUCKET_NAME
                         value: $GCS_BUCKET_NAME
+                      - name: GCS_TRANSCRIPT_BUCKET_NAME
+                        value: $GCS_TRANSCRIPT_BUCKET_NAME
                       - name: GCS_UPLOAD_BUCKET_NAME
                         value: $GCS_UPLOAD_BUCKET_NAME
                       - name: GCS_HOSTED_BUCKET_NAME
@@ -45,6 +47,16 @@ spec:
                         value: $WEBSITE_HOSTED_PODCAST_URL_PATTERN
                       - name: FIREBASE_API_KEY
                         value: $FIREBASE_API_KEY
+                      - name: GENAI_TASKS_FUNCTION_URL
+                        value: $GENAI_TASKS_FUNCTION_URL
+                      - name: GENAI_TASKS_QUEUE
+                        value: $GENAI_TASKS_QUEUE
+                      - name: CLOUD_TASKS_INVOKER_SA
+                        value: $CLOUD_TASKS_INVOKER_SA
+                      - name: GEMINI_MAX_FILE_SIZE
+                        value: "$GEMINI_MAX_FILE_SIZE"
+                      - name: GEMINI_MAX_AUDIO_LENGTH
+                        value: "$GEMINI_MAX_AUDIO_LENGTH"
                       - name: POSTMARK_FROM_EMAIL
                         value: $POSTMARK_FROM_EMAIL
                       - name: POSTMARK_SERVER_TOKEN
