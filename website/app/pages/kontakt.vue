@@ -35,7 +35,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import RipoButton from "~/components/RipoButton.vue";
+import RipoButton from "@richpods/shared/components/RipoButton.vue";
 
 definePageMeta({
     i18n: {

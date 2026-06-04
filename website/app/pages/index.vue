@@ -189,7 +189,7 @@
 </template>
 <script setup lang="ts">
 import RipoHero from "~/components/RipoHero.vue";
-import RipoButton from "~/components/RipoButton.vue";
+import RipoButton from "@richpods/shared/components/RipoButton.vue";
 import RichPodCard from "~/components/RichPodCard.vue";
 import FeatureCard from "~/components/FeatureCard.vue";
 import RipoSpinner from "@richpods/shared/components/RipoSpinner.vue";

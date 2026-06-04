@@ -40,6 +40,12 @@
 
     --button-secondary-color: #cc4e00;
 
+    --ripo-header-height: 100px;
+
+    @include mq($from: md) {
+        --ripo-header-height: 190px;
+    }
+
     @include mq($from: md, $until: xl) {
         --content-max-width: calc(100% - var(--space-l));
     }

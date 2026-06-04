@@ -35,10 +35,43 @@
         format("truetype");
 }
 
+@font-face {
+    font-display: swap;
+    font-family: "Playfair Display";
+    font-style: normal;
+    font-weight: 400;
+    src: url("@richpods/shared/assets/fonts/playfair-display-v37-latin_latin-ext-regular.woff2")
+        format("woff2");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: "Playfair Display";
+    font-style: normal;
+    font-weight: 600;
+    src: url("@richpods/shared/assets/fonts/playfair-display-v37-latin_latin-ext-600.woff2")
+        format("woff2");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: "Playfair Display";
+    font-style: normal;
+    font-weight: 700;
+    src: url("@richpods/shared/assets/fonts/playfair-display-v37-latin_latin-ext-700.woff2")
+        format("woff2");
+}
+
 :root {
     --richpod-font-family-mono:
         "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
         "Liberation Mono", monospace;
+
+    /* Tokens consumed by the shared header (RipoSiteHeader / RipoButton) so the
+       editor header matches the website. */
+    --heading-font-family: "Playfair Display";
+    --header-background-color: #fffaf5;
+    --hero-color: #2f2c35;
 
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;

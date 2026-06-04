@@ -35,6 +35,33 @@
     src: url("@richpods/shared/assets/fonts/JetBrainsMono-Italic[wght].woff2") format("woff2");
 }
 
+@font-face {
+    font-display: swap;
+    font-family: "Playfair Display";
+    font-style: normal;
+    font-weight: 400;
+    src: url("@richpods/shared/assets/fonts/playfair-display-v37-latin_latin-ext-regular.woff2")
+        format("woff2");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: "Playfair Display";
+    font-style: normal;
+    font-weight: 600;
+    src: url("@richpods/shared/assets/fonts/playfair-display-v37-latin_latin-ext-600.woff2")
+        format("woff2");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: "Playfair Display";
+    font-style: normal;
+    font-weight: 700;
+    src: url("@richpods/shared/assets/fonts/playfair-display-v37-latin_latin-ext-700.woff2")
+        format("woff2");
+}
+
 .visually-hidden {
     @include mixins.visually-hidden();
 }

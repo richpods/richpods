@@ -10,8 +10,26 @@ $richpod-desktop-xwide-breakpoint: 1600px;
     --richpod-content-max-width: 960px;
     --richpod-color: #fff;
     --richpod-background-color: #2f2c35;
-    --richpod-header-height: 65px;
+    --richpod-header-height: 80px;
     --richpod-header-background-color: #b2bc57;
+
+    /* Tokens consumed by the shared header (RipoSiteHeader / RipoButton) so the
+       player header matches the website and editor. The header keeps the
+       player's height and aligns its content with the app card. */
+    --heading-font-family: "Playfair Display";
+    --header-background-color: #fffaf5;
+    --hero-color: #2f2c35;
+    --ripo-header-height: var(--richpod-header-height);
+    --ripo-header-border-bottom: 2px solid var(--hero-color);
+    --content-max-width: calc(100% - 24px);
+
+    @media (min-width: #{$richpod-desktop-breakpoint}) {
+        --content-max-width: min(calc(100% - 24px), var(--richpod-desktop-max-width));
+    }
+
+    @media (min-width: #{$richpod-desktop-wide-breakpoint}) {
+        --content-max-width: min(calc(100% - 24px), var(--richpod-desktop-wide-max-width));
+    }
 
     --richpod-app-max-width: #{$richpod-app-max-width};
 

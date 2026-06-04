@@ -11,6 +11,13 @@ export default defineNuxtConfig({
     alias: {
         "@richpods/shared": resolve(__dirname, "../shared"),
     },
+    components: [
+        "~/components",
+        {
+            path: resolve(__dirname, "../shared/components"),
+            pathPrefix: false,
+        },
+    ],
     i18n: {
         locales: [
             { code: "en", language: "en-US", file: "en.json", name: "English" },

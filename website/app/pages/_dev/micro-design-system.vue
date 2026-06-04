@@ -49,7 +49,7 @@
 </template>
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import RipoButton from "~/components/RipoButton.vue";
+import RipoButton from "@richpods/shared/components/RipoButton.vue";
 import DropdownMenu from "~/components/DropdownMenu.vue";
 
 definePageMeta({

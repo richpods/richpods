@@ -15,12 +15,11 @@
 </template>
 
 <script setup lang="ts">
-import { NuxtLink } from "#components";
-import { computed, useAttrs } from "vue";
+import { computed, resolveComponent, useAttrs, type Component } from "vue";
 
-interface Props {
-    as?: "button" | "link" | "nuxt-link";
-    to?: string | Record<string, any>;
+type Props = {
+    as?: "button" | "link" | "nuxt-link" | "router-link";
+    to?: string | Record<string, unknown>;
     href?: string;
     type?: "button" | "submit" | "reset";
     disabled?: boolean;
@@ -29,7 +28,8 @@ interface Props {
     size?: "small" | "medium" | "large" | undefined;
     pill?: boolean;
     block?: boolean;
-}
+    active?: boolean;
+};
 
 const props = withDefaults(defineProps<Props>(), {
     as: "button",
@@ -39,18 +39,23 @@ const props = withDefaults(defineProps<Props>(), {
     size: "medium",
     pill: false,
     block: false,
+    active: false,
 });
 
 const emit = defineEmits(["click"]);
 const attrs = useAttrs();
 
 const isNuxtLink = computed(() => props.as === "nuxt-link");
+const isRouterLink = computed(() => props.as === "router-link");
 const isAnchor = computed(() => props.as === "link");
 const isButton = computed(() => props.as === "button");
 
-const componentType = computed(() => {
+const componentType = computed<string | Component>(() => {
     if (isNuxtLink.value) {
-        return NuxtLink;
+        return resolveComponent("NuxtLink");
+    }
+    if (isRouterLink.value) {
+        return resolveComponent("RouterLink");
     }
     if (isAnchor.value) {
         return "a";
@@ -59,8 +64,8 @@ const componentType = computed(() => {
 });
 
 const linkProps = computed(() => {
-    const result: Record<string, any> = { ...attrs };
-    if (isNuxtLink.value && props.to && !props.disabled) {
+    const result: Record<string, unknown> = { ...attrs };
+    if ((isNuxtLink.value || isRouterLink.value) && props.to && !props.disabled) {
         result.to = props.to;
     }
     if (isAnchor.value && props.href && !props.disabled) {
@@ -79,7 +84,8 @@ const buttonClasses = computed(() => [
     {
         "styled-button--disabled": props.disabled,
         "styled-button--block": props.block,
-    }
+        "styled-button--active": props.active,
+    },
 ]);
 
 const handleClick = (event: MouseEvent) => {
@@ -109,23 +115,22 @@ const handleClick = (event: MouseEvent) => {
     border: 2px solid #2E2C35;
     border-radius: 122px;
     color: #2F2C35;
-    padding: var(--space-2xs) var(--space-s);
-    font-size: var(--step-0);
-    font-family: var(--heading-font-family), serif; // Ensure --heading-font-family is defined globally
-    line-height: 1.4; // Adjusted for better vertical alignment with this font-size and padding
+    padding: var(--space-2xs, 0.5rem) var(--space-s, 1rem);
+    font-size: var(--step-0, 1rem);
+    font-family: var(--heading-font-family, "Playfair Display"), serif;
+    line-height: 1.4;
 
-    // Define hover, active, focus states for this specific variant
     &:hover:not(.styled-button--disabled):not(:disabled) {
-        background-color: #f5f5f5; // Slightly off-white
-        border-color: #201e24; // Slightly darker border
+        background-color: #f5f5f5;
+        border-color: #201e24;
     }
     &:active:not(.styled-button--disabled):not(:disabled) {
-        background-color: #ebebeb; // A bit more off-white
+        background-color: #ebebeb;
         border-color: #1a181f;
     }
     &:focus-visible:not(.styled-button--disabled):not(:disabled) {
         outline-color: #2E2C35;
-        box-shadow: 0 0 0 0.2rem rgba(46, 44, 53, 0.4); // Adjusted alpha for visibility
+        box-shadow: 0 0 0 0.2rem rgba(46, 44, 53, 0.4);
     }
 
     &--block {
@@ -133,18 +138,29 @@ const handleClick = (event: MouseEvent) => {
         width: 100%;
     }
 
+    &--active {
+        background-color: #2E2C35;
+        border-color: #2E2C35;
+        color: #fff;
+
+        &:hover:not(.styled-button--disabled):not(:disabled) {
+            background-color: #201e24;
+            border-color: #201e24;
+        }
+    }
+
     // Sizes
     &--small {
-        font-size: var(--step--1);
+        font-size: var(--step--1, 0.875rem);
     }
     &--large {
-        padding: var(--space-2xs) var(--space-m);
-        font-size: var(--step-1);
+        padding: var(--space-2xs, 0.5rem) var(--space-m, 1.5rem);
+        font-size: var(--step-1, 1.125rem);
     }
 
     // Variants
     &--secondary {
-        color: var(--button-secondary-color);
+        color: var(--button-secondary-color, #cc4e00);
     }
 }
 </style>

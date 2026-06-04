@@ -18,6 +18,11 @@
             <path d="M200 185.94c-2.34 32.48-26.72 58.06-53 58.06s-50.7-25.57-53-58.06C91.61 152.15 115.34 128 147 128s55.39 24.77 53 57.94z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
             <path d="M206 306c-18.05-8.27-37.93-11.45-59-11.45-52 0-102.1 25.85-114.65 76.2C30.39 379 34.59 387 42.43 387H156" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
         </template>
+        <template v-else-if="name === 'home'">
+            <path d="M80 212v236a16 16 0 0 0 16 16h96V328a24 24 0 0 1 24-24h80a24 24 0 0 1 24 24v136h96a16 16 0 0 0 16-16V212" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+            <path d="M480 256 266.89 52c-5-5.28-16.69-5.34-21.78 0L32 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+            <path d="M400 179V64h-48v69" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+        </template>
         <template v-else>
             <rect x="48" y="96" width="416" height="320" rx="40" ry="40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
             <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M112 160l144 112 144-112"/>
@@ -25,7 +30,7 @@
     </svg>
 </template>
 <script setup lang="ts">
-type NavIconName = "play" | "create" | "team" | "mail";
+type NavIconName = "play" | "create" | "team" | "mail" | "home";
 
 defineProps<{
     name: NavIconName;
@@ -35,7 +40,7 @@ defineProps<{
 .nav-icon {
     width: 1em;
     height: 1em;
-    margin-right: var(--space-3xs);
+    margin-right: var(--space-3xs, 0.25rem);
     flex-shrink: 0;
 }
 </style>
