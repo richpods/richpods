@@ -191,7 +191,9 @@ export type HostedEpisode = {
   episodeCoverUrl?: Maybe<Scalars['String']['output']>;
   hostedPodcastId: Scalars['ID']['output'];
   id: Scalars['ID']['output'];
+  publishedAt?: Maybe<Scalars['String']['output']>;
   richPodId?: Maybe<Scalars['ID']['output']>;
+  richPodState?: Maybe<RichPodState>;
   richPodTitle?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
   validationError?: Maybe<Scalars['String']['output']>;
@@ -1184,7 +1186,9 @@ export type HostedEpisodeResolvers<ContextType = any, ParentType extends Resolve
   episodeCoverUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hostedPodcastId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  publishedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   richPodId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  richPodState?: Resolver<Maybe<ResolversTypes['RichPodState']>, ParentType, ContextType>;
   richPodTitle?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   validationError?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

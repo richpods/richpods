@@ -740,18 +740,25 @@
         "rssFeedLabel": "RSS Feed",
         "copyFeedUrl": "Copy Feed-URL",
         "feedUrlCopied": "Feed URL copied to clipboard",
+        "websiteLabel": "Website",
+        "openWebsite": "Open",
+        "copyWebsiteUrl": "Copy website URL",
+        "websiteUrlCopied": "Website URL copied to clipboard",
+        "copyFailed": "Could not copy to clipboard",
         "episodesHeading": "Episodes"
     },
     "hostedEpisodes": {
         "noEpisodes": "No episodes yet",
         "existingEpisodes": "Existing Episodes",
         "untitledEpisode": "Untitled Episode",
-        "valid": "Valid",
+        "published": "Published",
+        "unpublished": "Unpublished",
         "invalid": "Invalid",
-        "pending": "Pending",
+        "pending": "Processing",
         "recoverRichPod": "Create RichPod",
         "deleteEpisode": "Delete episode",
-        "deleteConfirm": "Are you sure you want to delete this episode?"
+        "deleteConfirm": "Are you sure you want to delete this episode?",
+        "deleteWithRichPodConfirm": "This episode is linked to a RichPod. Deleting it permanently removes the RichPod and all of its content as well. Continue?"
     },
     "hostedForm": {
         "createTitle": "Create Hosted Podcast",

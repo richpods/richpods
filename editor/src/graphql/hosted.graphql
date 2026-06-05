@@ -55,6 +55,8 @@ query HostedEpisodes($podcastId: ID!, $first: Int, $after: String) {
             hostedPodcastId
             richPodId
             richPodTitle
+            richPodState
+            publishedAt
             audioUrl
             audioByteSize
             audioDurationSeconds
@@ -76,6 +78,8 @@ query HostedEpisode($id: ID!) {
         id
         hostedPodcastId
         richPodId
+        richPodState
+        publishedAt
         audioUrl
         audioByteSize
         audioDurationSeconds

@@ -428,6 +428,7 @@ import { Icon } from "@iconify/vue";
 import { Switch, SwitchGroup, SwitchLabel } from "@headlessui/vue";
 import { auth } from "@/lib/firebase";
 import { graphqlSdk } from "@/lib/graphql";
+import { hostedPodcastWebsiteUrl } from "@/lib/hostedPodcastUrl";
 import CategorySelect from "./CategorySelect.vue";
 
 type PlatformLinkKey =
@@ -475,15 +476,7 @@ const form = ref({
     platformLinkYouTubeMusic: "",
 });
 
-const websiteUrlPattern = import.meta.env.VITE_WEBSITE_HOSTED_PODCAST_URL_PATTERN as
-    | string
-    | undefined;
-
-const autoWebsiteUrl = computed(() => {
-    const pattern = websiteUrlPattern ?? "https://www.richpods.org/podcast/{ID}";
-    const id = podcastId.value || "{ID}";
-    return pattern.replace("{ID}", id);
-});
+const autoWebsiteUrl = computed(() => hostedPodcastWebsiteUrl(podcastId.value || "{ID}"));
 
 const platformLinkFields = computed<
     Array<{

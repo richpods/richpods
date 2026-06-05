@@ -740,18 +740,25 @@
         "rssFeedLabel": "RSS-Feed",
         "copyFeedUrl": "Feed-URL kopieren",
         "feedUrlCopied": "Feed-URL in die Zwischenablage kopiert",
+        "websiteLabel": "Website",
+        "openWebsite": "Öffnen",
+        "copyWebsiteUrl": "Website-URL kopieren",
+        "websiteUrlCopied": "Website-URL in die Zwischenablage kopiert",
+        "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
         "episodesHeading": "Episoden"
     },
     "hostedEpisodes": {
         "noEpisodes": "Noch keine Episoden",
         "existingEpisodes": "Vorhandene Episoden",
         "untitledEpisode": "Unbenannte Episode",
-        "valid": "G\u00fcltig",
+        "published": "Ver\u00f6ffentlicht",
+        "unpublished": "Unver\u00f6ffentlicht",
         "invalid": "Ung\u00fcltig",
-        "pending": "Ausstehend",
+        "pending": "Wird verarbeitet",
         "recoverRichPod": "RichPod erstellen",
         "deleteEpisode": "Episode l\u00f6schen",
-        "deleteConfirm": "M\u00f6chtest du diese Episode wirklich l\u00f6schen?"
+        "deleteConfirm": "M\u00f6chtest du diese Episode wirklich l\u00f6schen?",
+        "deleteWithRichPodConfirm": "Diese Episode ist mit einem RichPod verkn\u00fcpft. Beim L\u00f6schen werden der RichPod und alle seine Inhalte unwiderruflich mitgel\u00f6scht. Fortfahren?"
     },
     "hostedForm": {
         "createTitle": "Gehosteten Podcast erstellen",

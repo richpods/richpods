@@ -13,9 +13,10 @@ import type {
 } from "../types/firestore.js";
 import { ValidationStatus, RichPodState } from "../types/firestore.js";
 import { getUserReference } from "./user.service.js";
+import { deleteRichPod, mapFirestoreStateToGraphQL } from "./richpod.service.js";
 import { deleteEpisodeFiles, getHostedPublicUrl } from "./hosted-storage.service.js";
 import type { HostedEpisode, PublicHostedEpisode } from "../graphql.js";
-import { HostedEpisodeValidationStatus } from "../graphql.js";
+import { HostedEpisodeValidationStatus, RichPodState as GraphQLRichPodState } from "../graphql.js";
 import type { PaginatedResult } from "../utils/pagination.js";
 import { ValidationError } from "../validation/validator.js";
 
@@ -30,16 +31,32 @@ function mapValidationStatus(status: string): HostedEpisodeValidationStatus {
     }
 }
 
+type LinkedRichPodInfo = {
+    title: string | null;
+    state: GraphQLRichPodState;
+    publishedAt: string | null;
+};
+
+function toLinkedRichPodInfo(richPod: RichPodDocument): LinkedRichPodInfo {
+    return {
+        title: richPod.title || null,
+        state: mapFirestoreStateToGraphQL(richPod.state),
+        publishedAt: richPod.publishedAt ? richPod.publishedAt.toDate().toISOString() : null,
+    };
+}
+
 function mapToGraphQL(
     id: string,
     data: HostedEpisodeDocument,
-    richPodTitle?: string | null,
+    richPod?: LinkedRichPodInfo | null,
 ): HostedEpisode {
     return {
         id,
         hostedPodcastId: data.hostedPodcast.id,
         richPodId: data.richPod?.id ?? null,
-        richPodTitle: richPodTitle ?? null,
+        richPodTitle: richPod?.title ?? null,
+        richPodState: richPod?.state ?? null,
+        publishedAt: richPod?.publishedAt ?? null,
         audioUrl: getHostedPublicUrl(data.gcsAudioName),
         audioByteSize: data.audioByteSize,
         audioDurationSeconds: data.audioDurationSeconds,
@@ -229,15 +246,15 @@ export async function getHostedEpisode(
         throw new Error("Unauthorized: You can only access your own hosted episodes");
     }
 
-    let richPodTitle: string | null = null;
+    let linkedRichPod: LinkedRichPodInfo | null = null;
     if (data.richPod) {
         const richPodDoc = await data.richPod.get();
         if (richPodDoc.exists) {
-            richPodTitle = (richPodDoc.data() as RichPodDocument).title || null;
+            linkedRichPod = toLinkedRichPodInfo(richPodDoc.data() as RichPodDocument);
         }
     }
 
-    return mapToGraphQL(doc.id, data, richPodTitle);
+    return mapToGraphQL(doc.id, data, linkedRichPod);
 }
 
 export async function getHostedEpisodeDoc(
@@ -290,17 +307,17 @@ export async function getHostedEpisodesForPodcast(
     const hasNextPage = snapshot.docs.length > pageSize;
     const docs = hasNextPage ? snapshot.docs.slice(0, pageSize) : snapshot.docs;
 
-    // Batch-load linked RichPod titles in a single round-trip
+    // Batch-load linked RichPod metadata (title, state, publishedAt) in a single round-trip
     const richPodRefs = docs
         .map((doc) => (doc.data() as HostedEpisodeDocument).richPod)
         .filter((ref): ref is DocumentReference => ref !== null);
 
-    const richPodTitleMap = new Map<string, string>();
+    const richPodInfoMap = new Map<string, LinkedRichPodInfo>();
     if (richPodRefs.length > 0) {
         const richPodDocs = await db.getAll(...richPodRefs);
         for (const rpDoc of richPodDocs) {
             if (rpDoc.exists) {
-                richPodTitleMap.set(rpDoc.id, (rpDoc.data() as RichPodDocument).title || "");
+                richPodInfoMap.set(rpDoc.id, toLinkedRichPodInfo(rpDoc.data() as RichPodDocument));
             }
         }
     }
@@ -310,8 +327,8 @@ export async function getHostedEpisodesForPodcast(
         if (data.editor.id !== editorUserId) {
             throw new Error("Unauthorized: You can only access your own hosted episodes");
         }
-        const title = data.richPod ? (richPodTitleMap.get(data.richPod.id) ?? null) : null;
-        return mapToGraphQL(doc.id, data, title);
+        const linkedRichPod = data.richPod ? (richPodInfoMap.get(data.richPod.id) ?? null) : null;
+        return mapToGraphQL(doc.id, data, linkedRichPod);
     });
 
     const nextCursor = hasNextPage && docs.length > 0 ? docs[docs.length - 1].id : null;
@@ -462,11 +479,23 @@ export async function deleteHostedEpisode(
         throw new Error("Unauthorized: You can only delete your own hosted episodes");
     }
 
-    // Episodes with a linked RichPod must be deleted through deleteRichPod (cascade).
+    // Deleting a hosted episode must also remove its linked RichPod — the two
+    // cannot exist without each other. deleteRichPod owns the full cascade
+    // (RichPod, this episode, its GCS files, validation record, enclosures).
     if (episodeData.richPod) {
-        throw new Error(
-            "Cannot delete an episode with a linked RichPod. Delete the RichPod instead.",
-        );
+        // Guard against deleting a published episode: the client only offers
+        // deletion for unpublished episodes, but a stale list or a direct call
+        // could target one whose RichPod was published meanwhile.
+        const richPodDoc = await episodeData.richPod.get();
+        if (richPodDoc.exists) {
+            const richPodData = richPodDoc.data() as RichPodDocument;
+            if (richPodData.state === RichPodState.PUBLISHED) {
+                throw new Error(
+                    "Cannot delete a published episode. Unpublish the RichPod before deleting it.",
+                );
+            }
+        }
+        return deleteRichPod(episodeData.richPod.id, editorUserId);
     }
 
     const podcastId = episodeData.hostedPodcast.id;

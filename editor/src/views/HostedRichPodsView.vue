@@ -124,31 +124,75 @@
                         </button>
                     </div>
 
-                    <!-- Feed URL (only shown when episodes exist) -->
-                    <div v-if="podcast.episodeCount > 0" class="mt-4 border-t border-gray-100 pt-4">
-                        <h3
-                            class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5"
-                        >
-                            <Icon icon="ion:logo-rss" class="w-4 h-4 text-orange-500" />
-                            {{ t("hosted.rssFeedLabel") }}
-                        </h3>
-                        <div class="flex items-center gap-2">
-                            <input
-                                type="text"
-                                readonly
-                                :value="podcast.feedUrl"
-                                class="flex-1 min-w-0 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-base text-blue-800 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                @focus="($event.target as HTMLInputElement).select()"
-                            />
-                            <button
-                                type="button"
-                                @click="copyFeedUrl(podcast.feedUrl)"
-                                class="inline-flex items-center gap-1.5 bg-gray-900 text-white rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-800 transition-colors flex-shrink-0"
-                                :title="t('hosted.copyFeedUrl')"
+                    <!-- Links (only shown when episodes exist) -->
+                    <div
+                        v-if="podcast.episodeCount > 0"
+                        class="mt-4 border-t border-gray-100 pt-4 space-y-4"
+                    >
+                        <!-- Website -->
+                        <div>
+                            <h3
+                                class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5"
                             >
-                                <Icon icon="ion:copy-outline" class="w-5 h-5" />
-                                {{ t("hosted.copyFeedUrl") }}
-                            </button>
+                                <Icon icon="ion:globe-outline" class="w-4 h-4 text-blue-500" />
+                                {{ t("hosted.websiteLabel") }}
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    readonly
+                                    :value="hostedPodcastWebsiteUrl(podcast.id)"
+                                    class="flex-1 min-w-0 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-base text-blue-800 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    @focus="($event.target as HTMLInputElement).select()"
+                                />
+                                <a
+                                    :href="hostedPodcastWebsiteUrl(podcast.id)"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="inline-flex items-center gap-1.5 border border-gray-300 text-gray-700 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-50 transition-colors flex-shrink-0"
+                                    :title="t('hosted.openWebsite')"
+                                >
+                                    <Icon icon="ion:open-outline" class="w-5 h-5" />
+                                    {{ t("hosted.openWebsite") }}
+                                </a>
+                                <button
+                                    type="button"
+                                    @click="copyWebsiteUrl(podcast.id)"
+                                    class="inline-flex items-center gap-1.5 bg-gray-900 text-white rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-800 transition-colors flex-shrink-0"
+                                    :title="t('hosted.copyWebsiteUrl')"
+                                >
+                                    <Icon icon="ion:copy-outline" class="w-5 h-5" />
+                                    {{ t("hosted.copyWebsiteUrl") }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- RSS Feed -->
+                        <div>
+                            <h3
+                                class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5"
+                            >
+                                <Icon icon="ion:logo-rss" class="w-4 h-4 text-orange-500" />
+                                {{ t("hosted.rssFeedLabel") }}
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    readonly
+                                    :value="podcast.feedUrl"
+                                    class="flex-1 min-w-0 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-base text-blue-800 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    @focus="($event.target as HTMLInputElement).select()"
+                                />
+                                <button
+                                    type="button"
+                                    @click="copyFeedUrl(podcast.feedUrl)"
+                                    class="inline-flex items-center gap-1.5 bg-gray-900 text-white rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-800 transition-colors flex-shrink-0"
+                                    :title="t('hosted.copyFeedUrl')"
+                                >
+                                    <Icon icon="ion:copy-outline" class="w-5 h-5" />
+                                    {{ t("hosted.copyFeedUrl") }}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -186,6 +230,7 @@ import { useI18n } from "vue-i18n";
 import { Icon } from "@iconify/vue";
 import { graphqlSdk, DEFAULT_PAGE_SIZE, type HostedPodcastsQuery } from "@/lib/graphql";
 import HostedEpisodeList from "@/components/hosted/HostedEpisodeList.vue";
+import { hostedPodcastWebsiteUrl } from "@/lib/hostedPodcastUrl";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -254,9 +299,17 @@ async function handleDelete(podcast: HostedPodcast) {
 }
 
 function copyFeedUrl(feedUrl: string) {
-    navigator.clipboard.writeText(feedUrl).then(() => {
-        alert(t("hosted.feedUrlCopied"));
-    });
+    navigator.clipboard
+        .writeText(feedUrl)
+        .then(() => alert(t("hosted.feedUrlCopied")))
+        .catch(() => alert(t("hosted.copyFailed")));
+}
+
+function copyWebsiteUrl(podcastId: string) {
+    navigator.clipboard
+        .writeText(hostedPodcastWebsiteUrl(podcastId))
+        .then(() => alert(t("hosted.websiteUrlCopied")))
+        .catch(() => alert(t("hosted.copyFailed")));
 }
 
 onMounted(() => {

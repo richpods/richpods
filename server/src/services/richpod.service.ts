@@ -531,7 +531,7 @@ export async function deleteRichPod(id: string, editorUserId: string): Promise<b
 /**
  * Convert Firestore RichPodState to GraphQL RichPodState enum
  */
-function mapFirestoreStateToGraphQL(firestoreState?: RichPodStateType): RichPodState {
+export function mapFirestoreStateToGraphQL(firestoreState?: RichPodStateType): RichPodState {
     switch (firestoreState) {
         case FirestoreRichPodState.PUBLISHED:
             return RichPodState.Published;

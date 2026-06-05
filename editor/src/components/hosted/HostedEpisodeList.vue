@@ -54,12 +54,35 @@
                         </p>
 
                         <!-- Status badges -->
-                        <div class="flex items-center gap-2 mt-1">
+                        <div class="flex items-center gap-2 mt-1 flex-wrap">
+                            <!-- Publication status -->
                             <span
-                                v-if="episode.validationStatus === 'valid'"
+                                v-if="isPublished(episode)"
                                 class="inline-flex items-center px-1.5 py-0.5 text-xs rounded-full bg-green-100 text-green-800"
                             >
-                                {{ t("hostedEpisodes.valid") }}
+                                {{ t("hostedEpisodes.published") }}
+                            </span>
+                            <span
+                                v-else
+                                class="inline-flex items-center px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-700"
+                            >
+                                {{ t("hostedEpisodes.unpublished") }}
+                            </span>
+
+                            <!-- Publication date (only when published) -->
+                            <span
+                                v-if="isPublished(episode) && episode.publishedAt"
+                                class="text-xs text-gray-500"
+                            >
+                                {{ formatDate(episode.publishedAt) }}
+                            </span>
+
+                            <!-- Validation hint: only while not yet ready -->
+                            <span
+                                v-if="episode.validationStatus === 'pending'"
+                                class="inline-flex items-center px-1.5 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800"
+                            >
+                                {{ t("hostedEpisodes.pending") }}
                             </span>
                             <span
                                 v-else-if="episode.validationStatus === 'invalid'"
@@ -68,22 +91,17 @@
                             >
                                 {{ t("hostedEpisodes.invalid") }}
                             </span>
-                            <span
-                                v-else
-                                class="inline-flex items-center px-1.5 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800"
-                            >
-                                {{ t("hostedEpisodes.pending") }}
-                            </span>
 
+                            <!-- Episode length -->
                             <span v-if="episode.audioDurationSeconds" class="text-xs text-gray-500">
                                 {{ formatDuration(episode.audioDurationSeconds) }}
                             </span>
                         </div>
                     </div>
 
-                    <!-- Delete button (only for orphaned episodes without a RichPod) -->
+                    <!-- Delete button (only for unpublished episodes) -->
                     <div
-                        v-if="mode === 'full' && !episode.richPodId"
+                        v-if="mode === 'full' && !isPublished(episode)"
                         class="flex-shrink-0 flex items-center gap-1"
                     >
                         <button
@@ -137,8 +155,9 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Icon } from "@iconify/vue";
-import { graphqlSdk, type HostedEpisodesQuery } from "@/lib/graphql";
+import { graphqlSdk, RichPodState, type HostedEpisodesQuery } from "@/lib/graphql";
 import { auth } from "@/lib/firebase";
+import { useFormattedDate } from "@/composables/useFormattedDate";
 
 const props = withDefaults(
     defineProps<{
@@ -154,9 +173,14 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { formatDate } = useFormattedDate();
 const router = useRouter();
 
 type Episode = HostedEpisodesQuery["hostedEpisodes"]["items"][0];
+
+function isPublished(episode: Episode): boolean {
+    return episode.richPodState === RichPodState.Published;
+}
 
 const episodes = ref<Episode[]>([]);
 const loading = ref(true);
@@ -256,7 +280,12 @@ async function handleRecoverRichPod(episode: Episode) {
 }
 
 async function handleDeleteEpisode(episode: Episode) {
-    if (!confirm(t("hostedEpisodes.deleteConfirm"))) return;
+    // An episode linked to a RichPod cannot be deleted on its own: the server
+    // cascade-deletes the RichPod and all its content too. Warn accordingly.
+    const confirmMessage = episode.richPodId
+        ? t("hostedEpisodes.deleteWithRichPodConfirm")
+        : t("hostedEpisodes.deleteConfirm");
+    if (!confirm(confirmMessage)) return;
 
     deletingEpisodeId.value = episode.id;
     try {

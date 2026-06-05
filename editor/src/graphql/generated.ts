@@ -200,7 +200,9 @@ export type HostedEpisode = {
     episodeCoverUrl?: Maybe<Scalars["String"]["output"]>;
     hostedPodcastId: Scalars["ID"]["output"];
     id: Scalars["ID"]["output"];
+    publishedAt?: Maybe<Scalars["String"]["output"]>;
     richPodId?: Maybe<Scalars["ID"]["output"]>;
+    richPodState?: Maybe<RichPodState>;
     richPodTitle?: Maybe<Scalars["String"]["output"]>;
     updatedAt: Scalars["String"]["output"];
     validationError?: Maybe<Scalars["String"]["output"]>;
@@ -1257,6 +1259,8 @@ export type HostedEpisodesQuery = {
             hostedPodcastId: string;
             richPodId?: string | null;
             richPodTitle?: string | null;
+            richPodState?: RichPodState | null;
+            publishedAt?: string | null;
             audioUrl: string;
             audioByteSize: number;
             audioDurationSeconds?: number | null;
@@ -1283,6 +1287,8 @@ export type HostedEpisodeQuery = {
         id: string;
         hostedPodcastId: string;
         richPodId?: string | null;
+        richPodState?: RichPodState | null;
+        publishedAt?: string | null;
         audioUrl: string;
         audioByteSize: number;
         audioDurationSeconds?: number | null;
@@ -2818,6 +2824,8 @@ export const HostedEpisodesDocument = gql`
                 hostedPodcastId
                 richPodId
                 richPodTitle
+                richPodState
+                publishedAt
                 audioUrl
                 audioByteSize
                 audioDurationSeconds
@@ -2840,6 +2848,8 @@ export const HostedEpisodeDocument = gql`
             id
             hostedPodcastId
             richPodId
+            richPodState
+            publishedAt
             audioUrl
             audioByteSize
             audioDurationSeconds
