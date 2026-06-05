@@ -15,7 +15,7 @@ This is a monorepo managed with [pnpm workspaces](https://pnpm.io/workspaces).
 ## Prerequisites
 
 * **Node.js ≥ 24.0.0** (see `.nvmrc` — run `nvm use` if you use nvm)
-* **pnpm ≥ 10.30.0** — enabled via [corepack](https://nodejs.org/api/corepack.html) (`corepack enable`)
+* **pnpm ≥ 11.5.0** — enabled via [corepack](https://nodejs.org/api/corepack.html) (`corepack enable`)
 
 ## Install dependencies
 
@@ -41,6 +41,8 @@ Commit the generated `pnpm-lock.yaml` so CI and Docker builds are reproducible.
 | `website/` | `@richpods/website` | Public-facing Nuxt website |
 | `cloud-functions/validate-mp3` | `@richpods/validate-mp3` | Cloud Function: MP3 validation on upload |
 | `cloud-functions/check-verifications` | `@richpods/check-verifications` | Cloud Function: daily feed verification check |
+| `cloud-functions/check-media` | `@richpods/check-media` | Cloud Function: episode media availability check |
+| `cloud-functions/generative-ai-tools` | `@richpods/generative-ai-tools` | Cloud Function: AI transcript & chapter generation |
 
 ## Running workspaces
 
@@ -94,6 +96,13 @@ pnpm build:server
 pnpm build:editor
 pnpm build:player
 pnpm build:website
+pnpm build:functions   # all cloud-functions/* workspaces
+```
+
+Or build every workspace at once:
+
+```bash
+pnpm build:all
 ```
 
 ## User roles (Firebase custom claims)
@@ -161,7 +170,8 @@ This is just a quick overview over the main Open Source projects used. The whole
 
 * [Tailwind CSS](https://tailwindcss.com/) — utility-first CSS framework
 * [Headless UI](https://headlessui.com/) — accessible UI components
-* [Ionicons](https://ionic.io/ionicons) — icons for the editor
+* [Iconify](https://iconify.design/) — icon framework (Ionicons set) for the editor
+* [Heroicons](https://heroicons.com/) — additional UI icons
 
 ### Content and Rendering
 
