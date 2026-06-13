@@ -1,0 +1,79 @@
+name: Prepare Cloud Function deploy package
+description: >
+    Installs dependencies, builds the esbuild-bundled function, and assembles
+    a self-contained deploy package outside the pnpm workspace. Strips
+    devDependencies (which contain workspace:* references GCF cannot resolve)
+    and regenerates a standalone lockfile, so gcloud can deploy the result
+    as-is.
+
+inputs:
+    package-name:
+        description: "pnpm workspace package name, e.g. @richpods/check-media"
+        required: true
+    function-dir:
+        description: "Path to the cloud function directory, e.g. cloud-functions/check-media"
+        required: true
+
+outputs:
+    deploy-dir:
+        description: Directory containing the self-contained deploy package
+        value: ${{ steps.prepare.outputs.deploy-dir }}
+
+runs:
+    using: composite
+    steps:
+        - name: Setup Node.js
+          uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+          with:
+              node-version-file: .nvmrc
+
+        - name: Setup pnpm
+          uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+
+        - name: Install dependencies
+          shell: bash
+          run: pnpm --filter "${{ inputs.package-name }}..." install --frozen-lockfile
+
+        - name: Build
+          shell: bash
+          run: pnpm --filter "${{ inputs.package-name }}..." build
+
+        - name: Prepare deploy package
+          id: prepare
+          shell: bash
+          env:
+              PACKAGE_NAME: ${{ inputs.package-name }}
+              FUNCTION_DIR: ${{ inputs.function-dir }}
+          run: |
+              DEPLOY_DIR="${RUNNER_TEMP}/deploy-$(basename "$FUNCTION_DIR")"
+              export DEPLOY_DIR
+
+              pnpm --filter "$PACKAGE_NAME" deploy --prod \
+                --config.inject-workspace-packages=true "$DEPLOY_DIR"
+
+              # Ensure bundled build output is present
+              rm -rf "$DEPLOY_DIR/build"
+              cp -r "$FUNCTION_DIR/build" "$DEPLOY_DIR/build"
+
+              # Strip devDependencies (contains workspace:* refs GCF cannot resolve)
+              # and restore clean dependency versions from source
+              node <<'SCRIPT'
+              const fs = require("fs");
+              const deployPkg = process.env.DEPLOY_DIR + "/package.json";
+              const srcPkg = process.env.FUNCTION_DIR + "/package.json";
+              const pkg = JSON.parse(fs.readFileSync(deployPkg, "utf8"));
+              const src = JSON.parse(fs.readFileSync(srcPkg, "utf8"));
+              delete pkg.devDependencies;
+              delete pkg.pnpm;
+              delete pkg.optionalDependencies;
+              pkg.dependencies = src.dependencies;
+              pkg.scripts = { start: src.scripts.start };
+              fs.writeFileSync(deployPkg, JSON.stringify(pkg, null, 4) + "\n");
+              SCRIPT
+
+              # Regenerate a standalone lockfile outside the workspace
+              cd "$DEPLOY_DIR"
+              rm -rf node_modules pnpm-lock.yaml
+              pnpm install --lockfile-only
+
+              echo "deploy-dir=$DEPLOY_DIR" >> "$GITHUB_OUTPUT"
