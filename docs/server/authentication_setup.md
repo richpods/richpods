@@ -1,6 +1,6 @@
 # Authentication Setup Guide
 
-This guide explains how to configure Google Identity Platform (Firebase Auth) for the RichPods server. The server uses both the Firebase Web SDK v9 (`firebase/auth`) for client-side authentication operations and the Firebase Admin SDK (`firebase-admin`) for server-side token verification.
+This guide explains how to configure Google Identity Platform (Firebase Auth) for the RichPods server. The server uses the Firebase Web SDK v9 (`firebase/auth`) for email/password and Google sign-in operations, and the Firebase Admin SDK (`firebase-admin`) for server-side token verification.
 
 ## Prerequisites
 
@@ -58,10 +58,10 @@ For localhost testing with Google Sign-In:
 
 ## Testing Authentication
 
-### Testing with GraphQL Playground
+### Testing with the Local GraphQL IDE
 
 1. Start the server: `pnpm --filter @richpods/server dev`
-2. Open http://localhost:4000
+2. Open http://localhost:4000 in a non-production environment. The server serves Ruru there and sends GraphQL requests to `/graphql`.
 3. Test sign-up mutation:
 
 ```graphql
@@ -117,7 +117,7 @@ Include the token in the Authorization header:
 Authorization: Bearer <token>
 ```
 
-Protected mutations (createRichPod, updateRichPod, deleteRichPod, updateProfile) require authentication.
+Protected GraphQL operations and hosted/upload REST routes require authentication.
 
 ## Client-Side Integration
 

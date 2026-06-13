@@ -73,7 +73,7 @@ flowchart TD
         subgraph HostedFlow["3. Hosted RichPod"]
             direction TB
             CreatePodcast["Create Hosted Podcast<br/>(title, description, cover image)"]
-            CreatePodcast --> UploadEpisode["Upload MP3 episode<br/>(up to 500 MB)"]
+            CreatePodcast --> UploadEpisode["Upload MP3 episode<br/>(up to 50 MB by default)"]
             UploadEpisode --> AsyncValidation["Async MP3 validation<br/>(Cloud Function)"]
             AsyncValidation --> ValidationResult{Valid?}
             ValidationResult -->|No| Invalid["Episode marked invalid"]
