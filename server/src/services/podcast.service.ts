@@ -9,6 +9,12 @@ import type {
     EnclosureHeader,
 } from "../types/services.js";
 import { validateParsedRssFeed, assertFeedNotLocked } from "../validation/feed.js";
+import {
+    assertSafePublicUrl,
+    assertSafeRedirectTarget,
+    ssrfSafeDnsLookup,
+} from "@richpods/shared/utils/ssrf";
+import { toClientSafeFetchError } from "../utils/fetch-error.js";
 
 const RP_USER_AGENT = "RichPods/1.0 (+https://richpods.org/bot)";
 
@@ -60,6 +66,7 @@ export async function searchPodcastEpisodes(
 export async function extractFeedUrl(url: string): Promise<string> {
     try {
         const normalizedUrl = normalizeUrl(url);
+        await assertSafePublicUrl(normalizedUrl);
         // First check if the URL is already an RSS feed
         const response = await got.get(normalizedUrl, {
             responseType: "text",
@@ -70,6 +77,8 @@ export async function extractFeedUrl(url: string): Promise<string> {
             },
             retry: { limit: 1 },
             timeout: { request: 5000 },
+            dnsLookup: ssrfSafeDnsLookup,
+            hooks: { beforeRedirect: [assertSafeRedirectTarget] },
         });
 
         // Ensure we can safely sniff the body
@@ -163,13 +172,22 @@ export async function extractFeedUrl(url: string): Promise<string> {
  */
 async function parsePodcastFeed(feedUrl: string): Promise<ParsedPodcast> {
     try {
-        const response = await got.get(normalizeUrl(feedUrl), {
-            headers: {
-                "User-Agent": RP_USER_AGENT,
-            },
-            responseType: "text",
-            timeout: { request: 15000 },
-        });
+        const normalizedUrl = normalizeUrl(feedUrl);
+        await assertSafePublicUrl(normalizedUrl);
+        let response;
+        try {
+            response = await got.get(normalizedUrl, {
+                headers: {
+                    "User-Agent": RP_USER_AGENT,
+                },
+                responseType: "text",
+                timeout: { request: 15000 },
+                dnsLookup: ssrfSafeDnsLookup,
+                hooks: { beforeRedirect: [assertSafeRedirectTarget] },
+            });
+        } catch (error) {
+            throw toClientSafeFetchError(error, "podcast feed");
+        }
 
         const parsedFeed = await parseAndValidateRssFeed(response.body);
         const channel = parsedFeed.rss.channel;
@@ -217,11 +235,14 @@ async function parseAndValidateRssFeed(rawFeed: string): Promise<any> {
  */
 async function generateChecksum(mediaUrl: string): Promise<string> {
     try {
+        await assertSafePublicUrl(mediaUrl);
         const response = await got.head(mediaUrl, {
             timeout: { request: 10000 },
             headers: {
                 "User-Agent": RP_USER_AGENT,
             },
+            dnsLookup: ssrfSafeDnsLookup,
+            hooks: { beforeRedirect: [assertSafeRedirectTarget] },
         });
 
         const lastModified = response.headers["last-modified"] as string | undefined;

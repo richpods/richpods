@@ -102,15 +102,3 @@ export function episodeExistsInFeed(parsed: any, episodeGuid: string): boolean {
         return guid === episodeGuid;
     });
 }
-
-/**
- * Calculate the maximum feed size based on the current year
- * 20 MB for 2025, +1 MB for each subsequent year
- */
-export function getMaxFeedSize(): number {
-    const currentYear = new Date().getFullYear();
-    const baseYear = 2025;
-    const baseSizeMB = 20;
-    const yearDiff = Math.max(0, currentYear - baseYear);
-    return (baseSizeMB + yearDiff) * 1024 * 1024;
-}

@@ -1,3 +1,5 @@
+engineStrict: true
+
 packages:
   - editor
   - player
@@ -36,6 +38,7 @@ catalog:
   "vue-router": "5.0.4"
 overrides:
   vite: 8.0.8
+  ipaddr.js: 2.4.0
 saveExact: true
 linkWorkspacePackages: true
 preferWorkspacePackages: true

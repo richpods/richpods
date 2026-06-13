@@ -6,7 +6,7 @@
     "main": "build/index.js",
     "engines": {
         "node": ">=24.0.0",
-        "pnpm": ">=10.30.0"
+        "pnpm": ">=11.5.0"
     },
     "scripts": {
         "build": "tsc --noEmit && esbuild src/index.ts --bundle --platform=node --target=node24 --format=esm --outfile=build/index.js --external:@google-cloud/firestore --external:@google-cloud/functions-framework --external:got --external:xml2js",

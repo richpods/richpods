@@ -361,6 +361,28 @@ export async function updateRichPod(
 }
 
 /**
+ * Pre-flight ownership and lock check for operations that produce side
+ * effects outside Firestore (e.g. GCS uploads) before entering the
+ * authoritative transaction. The transaction must still re-check, but this
+ * prevents unauthorized callers from creating those side effects at all.
+ */
+export async function assertRichPodEditableBy(
+    richPodId: string,
+    editorUserId: string,
+    sessionId: string,
+): Promise<void> {
+    const snap = await db.collection(RICHPODS_COLLECTION).doc(richPodId).get();
+    if (!snap.exists) {
+        throw new Error("RichPod not found");
+    }
+    const data = snap.data() as RichPodDocument;
+    if (data.editor.id !== editorUserId) {
+        throw new Error("Unauthorized: You can only edit chapters of your own RichPods");
+    }
+    verifyLockHeldOrThrow(data, sessionId);
+}
+
+/**
  * Add a new chapter version to a RichPod. Atomically verifies the caller
  * holds the editor lock for the supplied sessionId — concurrent editors
  * with stale locks cannot overwrite each other's chapter sets.

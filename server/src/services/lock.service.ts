@@ -42,13 +42,22 @@ async function mapLockToGraphQL(lock: RichPodLockData): Promise<RichPodLock> {
     };
 }
 
-export async function getRichPodLock(richPodId: string): Promise<RichPodLock | null> {
+/**
+ * Returns the active lock only to the RichPod's owner. Non-owners get null
+ * (same as "no lock"), so the query cannot be used to enumerate RichPods or
+ * to learn who is editing them — and the sessionId stays within the session
+ * that owns it.
+ */
+export async function getRichPodLock(richPodId: string, userId: string): Promise<RichPodLock | null> {
     const ref = db.collection(RICHPODS_COLLECTION).doc(richPodId);
     const doc = await ref.get();
     if (!doc.exists) {
         return null;
     }
     const data = doc.data() as RichPodDocument;
+    if (data.editor.id !== userId) {
+        return null;
+    }
     if (!data.lock) {
         return null;
     }

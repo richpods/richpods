@@ -192,11 +192,17 @@ export const updateRichPodInputSchema = Joi.object({
         "object.min": "At least one field must be provided for update",
     });
 
-// ID validation
-export const idSchema = Joi.string().required().messages({
-    "any.required": "ID is required",
-    "string.empty": "ID cannot be empty",
-});
+// ID validation. All document ids are Firestore auto-ids (alphanumeric);
+// the constrained shape keeps ids safe to embed in GCS object names and
+// Firestore paths.
+export const idSchema = Joi.string()
+    .pattern(/^[A-Za-z0-9_-]{1,128}$/)
+    .required()
+    .messages({
+        "any.required": "ID is required",
+        "string.empty": "ID cannot be empty",
+        "string.pattern.base": "ID contains invalid characters",
+    });
 
 // Public query schemas
 export const recentPublishedLimitSchema = Joi.number()

@@ -1,8 +1,18 @@
 import { http, type Request, type Response } from "@google-cloud/functions-framework";
 import { Firestore, FieldValue, Timestamp } from "@google-cloud/firestore";
-import got from "got";
-import { parseFeed, RP_USER_AGENT, RSS_ACCEPT_HEADERS } from "@richpods/shared/media/feed";
+import got, { type Progress } from "got";
+import {
+    getMaxFeedSize,
+    parseFeed,
+    RP_USER_AGENT,
+    RSS_ACCEPT_HEADERS,
+} from "@richpods/shared/media/feed";
 import { runCheckFlow, isFresh, performHeadCheckWithRetries } from "@richpods/shared/media/check";
+import {
+    assertSafePublicUrl,
+    assertSafeRedirectTarget,
+    ssrfSafeDnsLookup,
+} from "@richpods/shared/utils/ssrf";
 import type {
     MediaCheckStatusValue,
     HeadCheckResponse,
@@ -63,12 +73,15 @@ const db = new Firestore({
 // ---------------------------------------------------------------------------
 
 async function performHeadCheck(url: string): Promise<HeadCheckResponse> {
+    await assertSafePublicUrl(url);
     const response = await got.head(url, {
         headers: { "User-Agent": RP_USER_AGENT },
         followRedirect: true,
         timeout: { request: HEAD_CHECK_TIMEOUT_MS },
         retry: { limit: 0 },
         throwHttpErrors: false,
+        dnsLookup: ssrfSafeDnsLookup,
+        hooks: { beforeRedirect: [assertSafeRedirectTarget] },
     });
 
     return {
@@ -84,12 +97,42 @@ async function performHeadCheck(url: string): Promise<HeadCheckResponse> {
 }
 
 async function fetchAndParseFeed(feedUrl: string): Promise<{ parsedFeed: any }> {
-    const response = await got.get(feedUrl, {
+    await assertSafePublicUrl(feedUrl);
+    const maxFeedSizeBytes = getMaxFeedSize();
+    const abortController = new AbortController();
+    let aborted = false;
+    const request = got.get(feedUrl, {
         headers: RSS_ACCEPT_HEADERS,
         responseType: "text",
         timeout: { request: 15000 },
         retry: { limit: 1 },
+        dnsLookup: ssrfSafeDnsLookup,
+        hooks: { beforeRedirect: [assertSafeRedirectTarget] },
+        signal: abortController.signal,
     });
+    // got has no maxContentLength; abort mid-transfer so an oversized or
+    // endless feed cannot exhaust the function's memory.
+    request.on("downloadProgress", (progress: Progress) => {
+        if (
+            progress.transferred > maxFeedSizeBytes ||
+            (progress.total ?? 0) > maxFeedSizeBytes
+        ) {
+            aborted = true;
+            abortController.abort();
+        }
+    });
+
+    let response;
+    try {
+        response = await request;
+    } catch (error) {
+        if (aborted) {
+            throw new Error(
+                `Feed exceeds maximum allowed size of ${Math.round(maxFeedSizeBytes / 1024 / 1024)} MB`,
+            );
+        }
+        throw error;
+    }
 
     const parsedFeed = await parseFeed(response.body);
     return { parsedFeed };

@@ -20,3 +20,17 @@ export async function parseFeed(feedXml: string): Promise<any> {
     });
     return parser.parseStringPromise(feedXml);
 }
+
+/**
+ * Maximum allowed feed size based on the current year:
+ * 40 MB for 2026, +1 MB for each subsequent year.
+ * The single limit for feed downloads — apply it to the transferred
+ * (possibly compressed) bytes and to the decoded body alike.
+ */
+export function getMaxFeedSize(): number {
+    const currentYear = new Date().getFullYear();
+    const baseYear = 2026;
+    const baseSizeMB = 40;
+    const yearDiff = Math.max(0, currentYear - baseYear);
+    return (baseSizeMB + yearDiff) * 1024 * 1024;
+}

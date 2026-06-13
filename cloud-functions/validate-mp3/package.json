@@ -5,11 +5,11 @@
     "type": "module",
     "main": "build/index.js",
     "engines": {
-        "node": ">=24.0.0"
+        "node": ">=24.0.0",
+        "pnpm": ">=11.5.0"
     },
     "scripts": {
-        "gcp-build": "tsc",
-        "build": "tsc",
+        "build": "tsc --noEmit && esbuild src/index.ts --bundle --platform=node --target=node24 --format=esm --outfile=build/index.js --external:@google-cloud/firestore --external:@google-cloud/functions-framework --external:@google-cloud/storage --external:music-metadata",
         "clean": "rimraf build",
         "dev": "npm run build && set -a; . ./.env.development; set +a; npx @google-cloud/functions-framework --target=validateMp3 --signature-type=cloudevent --port=8081",
         "start": "npx @google-cloud/functions-framework --target=validateMp3 --signature-type=cloudevent"
@@ -23,6 +23,7 @@
     "devDependencies": {
         "@tsconfig/node24": "24.0.4",
         "@types/node": "25.5.2",
+        "esbuild": "0.28.0",
         "rimraf": "6.1.3",
         "typescript": "6.0.2"
     }

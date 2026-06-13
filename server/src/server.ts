@@ -4,10 +4,11 @@ import cors, { CorsOptions } from "cors";
 import { ruruHTML } from "ruru/server";
 import { createHandler } from "graphql-http/lib/use/express";
 import fs from "node:fs";
-import { buildSchema } from "graphql";
+import { buildSchema, NoSchemaIntrospectionCustomRule } from "graphql";
 import { JSONResolver, GraphQLGeoJSON } from "graphql-scalars";
 import { createResolvers } from "./resolvers.js";
 import { createAuthContext } from "./middleware/auth.js";
+import { createMaxDepthRule, maskSystemErrors } from "./middleware/graphql-security.js";
 import { uploadRouter } from "./routes/upload.router.js";
 import { hostedRouter } from "./routes/hosted.router.js";
 import { ogRouter } from "./routes/og.router.js";
@@ -74,10 +75,21 @@ const instanceInfo = {
 };
 const app = express();
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || "http://localhost:3000")
     .split(",")
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
+
+// Reflecting arbitrary origins while credentials are allowed would let any
+// website make credentialed cross-origin requests — refuse to start that way.
+if (isProduction && allowedOrigins.includes("*")) {
+    console.error(
+        '❌ CORS_ALLOWED_ORIGINS must list explicit origins in production; "*" is not allowed.',
+    );
+    process.exit(1);
+}
 
 const corsOptions: CorsOptions = {
     origin: (
@@ -124,12 +136,20 @@ app.use("/api/v1/hosted", hostedRouter);
 app.use("/api/v1/og", ogRouter);
 app.use("/api/v1/audio", audioRouter);
 
+const graphqlMaxDepth = parseIntEnv("GRAPHQL_MAX_DEPTH", 12, { min: 1 });
+const graphqlValidationRules = [
+    createMaxDepthRule(graphqlMaxDepth),
+    ...(isProduction ? [NoSchemaIntrospectionCustomRule] : []),
+];
+
 app.all(
     "/graphql",
     async (req, res, next) => {
         const auth = await createAuthContext(req);
         const handler = createHandler({
             schema,
+            validationRules: graphqlValidationRules,
+            formatError: isProduction ? maskSystemErrors : (error) => error,
             rootValue: {
                 ...createResolvers(req, auth),
                 instanceInfo: () => instanceInfo,
@@ -142,7 +162,7 @@ app.all(
     }
 );
 
-if (process.env.NODE_ENV !== "production") {
+if (!isProduction) {
     app.get("/", (_req, res) => {
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(ruruHTML({ endpoint: "/graphql" }));

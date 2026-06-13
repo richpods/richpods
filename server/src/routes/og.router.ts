@@ -1,5 +1,3 @@
-import dns from "node:dns";
-import net from "node:net";
 import express, { Request, Response } from "express";
 import got, { type OptionsInit } from "got";
 import { load as cheerioLoad } from "cheerio";
@@ -12,6 +10,7 @@ import {
     isHtmlMimeType,
     normalizeMimeType,
 } from "@richpods/shared/media/mime";
+import { assertSafePublicUrl, ssrfSafeDnsLookup } from "@richpods/shared/utils/ssrf";
 import { createAuthContext } from "../middleware/auth.js";
 import { GCS_IMMUTABLE_CACHE_CONTROL } from "../config/storage.js";
 
@@ -32,10 +31,6 @@ const REQUEST_TIMEOUT_MS = 5_000;
 const MAX_REDIRECTS = 5;
 const REQUEST_RETRY_LIMIT = 2;
 const REQUEST_RETRY_BASE_DELAY_MS = 250;
-
-const BLOCKED_HOSTNAMES = new Set(["localhost", "metadata.google.internal", "metadata"]);
-
-const BLOCKED_HOST_SUFFIXES = [".localhost", ".local", ".internal", ".home.arpa"];
 
 const DEFAULT_USER_AGENT =
     "Mozilla/5.0 (compatible; RichPods-LinkExpanding 1.0; +https://richpods.org/)";
@@ -211,39 +206,6 @@ function normalizeRemoteFetchError(error: unknown): RemoteFetchError {
     return fetchFailed("Unknown request failure", error);
 }
 
-function createBlockedIpv4BlockList(): net.BlockList {
-    const blockList = new net.BlockList();
-    blockList.addSubnet("0.0.0.0", 8, "ipv4");
-    blockList.addSubnet("10.0.0.0", 8, "ipv4");
-    blockList.addSubnet("100.64.0.0", 10, "ipv4");
-    blockList.addSubnet("127.0.0.0", 8, "ipv4");
-    blockList.addSubnet("169.254.0.0", 16, "ipv4");
-    blockList.addSubnet("172.16.0.0", 12, "ipv4");
-    blockList.addSubnet("192.0.0.0", 24, "ipv4");
-    blockList.addSubnet("192.0.2.0", 24, "ipv4");
-    blockList.addSubnet("192.168.0.0", 16, "ipv4");
-    blockList.addSubnet("198.18.0.0", 15, "ipv4");
-    blockList.addSubnet("198.51.100.0", 24, "ipv4");
-    blockList.addSubnet("203.0.113.0", 24, "ipv4");
-    blockList.addSubnet("224.0.0.0", 4, "ipv4");
-    blockList.addSubnet("240.0.0.0", 4, "ipv4");
-    return blockList;
-}
-
-function createBlockedIpv6BlockList(): net.BlockList {
-    const blockList = new net.BlockList();
-    blockList.addSubnet("::", 128, "ipv6");
-    blockList.addSubnet("::1", 128, "ipv6");
-    blockList.addSubnet("::ffff:0:0", 96, "ipv6");
-    blockList.addSubnet("fc00::", 7, "ipv6");
-    blockList.addSubnet("fe80::", 10, "ipv6");
-    blockList.addSubnet("ff00::", 8, "ipv6");
-    return blockList;
-}
-
-const blockedIpv4BlockList = createBlockedIpv4BlockList();
-const blockedIpv6BlockList = createBlockedIpv6BlockList();
-
 function getPublicUrl(gcsName: string): string {
     const encodedPath = gcsName
         .split("/")
@@ -252,69 +214,12 @@ function getPublicUrl(gcsName: string): string {
     return `https://storage.googleapis.com/${UPLOAD_BUCKET_NAME}/${encodedPath}`;
 }
 
-function normalizeHostname(hostname: string): string {
-    return hostname.trim().replace(/\.$/, "").toLowerCase();
-}
-
-function isBlockedHostname(hostname: string): boolean {
-    if (BLOCKED_HOSTNAMES.has(hostname)) {
-        return true;
-    }
-    return BLOCKED_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix));
-}
-
-function isBlockedIpAddress(ipAddress: string): boolean {
-    const ipVersion = net.isIP(ipAddress);
-    if (ipVersion === 4) {
-        return blockedIpv4BlockList.check(ipAddress, "ipv4");
-    }
-    if (ipVersion === 6) {
-        return blockedIpv6BlockList.check(ipAddress, "ipv6");
-    }
-    return true;
-}
-
 async function assertSafeRemoteTarget(url: URL): Promise<Result<void, UnsafeTargetError>> {
-    if (url.protocol !== "http:" && url.protocol !== "https:") {
-        return fail(unsafeTarget("URL must use HTTP or HTTPS protocol"));
-    }
-
-    const hostname = normalizeHostname(url.hostname);
-    if (!hostname) {
-        return fail(unsafeTarget("URL host is required"));
-    }
-
-    if (isBlockedHostname(hostname)) {
-        return fail(unsafeTarget(`Host is not allowed: ${hostname}`));
-    }
-
-    const ipVersion = net.isIP(hostname);
-    if (ipVersion > 0) {
-        if (isBlockedIpAddress(hostname)) {
-            return fail(unsafeTarget(`IP is not allowed: ${hostname}`));
-        }
-        return ok(undefined);
-    }
-
-    let addresses: dns.LookupAddress[];
     try {
-        addresses = await dns.promises.lookup(hostname, {
-            all: true,
-            verbatim: true,
-        });
-    } catch {
-        return fail(unsafeTarget(`Unable to resolve host: ${hostname}`));
+        await assertSafePublicUrl(url.toString());
+    } catch (error) {
+        return fail(unsafeTarget(error instanceof Error ? error.message : "Unsafe remote URL"));
     }
-
-    if (addresses.length === 0) {
-        return fail(unsafeTarget(`Unable to resolve host: ${hostname}`));
-    }
-
-    const blockedAddress = addresses.find((address) => isBlockedIpAddress(address.address));
-    if (blockedAddress) {
-        return fail(unsafeTarget(`Resolved to disallowed IP: ${blockedAddress.address}`));
-    }
-
     return ok(undefined);
 }
 
@@ -347,6 +252,10 @@ function withSafeRedirectValidation(options: OptionsInit): OptionsInit {
         retry: { limit: 0 },
         throwHttpErrors: true,
         maxRedirects: MAX_REDIRECTS,
+        // Enforce the IP blocklist again at connect time so a rebinding DNS
+        // record cannot swap to an internal address between the pre-flight
+        // check in assertSafeRemoteTarget and the actual request.
+        dnsLookup: ssrfSafeDnsLookup,
         hooks: {
             ...options.hooks,
             beforeRedirect: [

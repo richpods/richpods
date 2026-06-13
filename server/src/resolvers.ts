@@ -6,6 +6,7 @@ import {
     updateRichPod,
     deleteRichPod,
     setChaptersForRichPod,
+    assertRichPodEditableBy,
 } from "./services/richpod.service.js";
 import { refreshRichPodMediaForEditor } from "./services/media-check.service.js";
 import { uploadEnclosure } from "./services/storage.service.js";
@@ -380,6 +381,11 @@ export function createResolvers(req: Request, auth: AuthContext) {
                 chapters: Array<{ begin: string; enclosureType: string; enclosure: unknown }>;
             }>(setChaptersInputSchema, { chapters });
 
+            // The enclosure uploads below write to GCS outside the chapter
+            // transaction, so ownership and lock must be verified first;
+            // otherwise rejected callers would still leave objects behind.
+            await assertRichPodEditableBy(validatedId, userId, validatedSessionId);
+
             const fsChapters: ChapterFS[] = [];
             for (const ch of validatedInput.chapters) {
                 const type = ch.enclosureType as EnclosureTypeValue;
@@ -600,9 +606,9 @@ export function createResolvers(req: Request, auth: AuthContext) {
         },
 
         richPodLock: async ({ id }: { id: string }): Promise<RichPodLock | null> => {
-            requireAuth(auth);
+            const userId = requireAuth(auth);
             const validatedId = validateField<string>(idSchema, id, "id");
-            return getRichPodLock(validatedId);
+            return getRichPodLock(validatedId, userId);
         },
 
         // Hosted Podcasts mutations

@@ -1,7 +1,13 @@
 import { http, type Request, type Response } from "@google-cloud/functions-framework";
 import { Firestore, FieldValue } from "@google-cloud/firestore";
-import got from "got";
+import got, { type Progress } from "got";
 import * as xml2js from "xml2js";
+import {
+    assertSafePublicUrl,
+    assertSafeRedirectTarget,
+    ssrfSafeDnsLookup,
+} from "@richpods/shared/utils/ssrf";
+import { getMaxFeedSize } from "@richpods/shared/media/feed";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -49,18 +55,6 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function isValidEmail(email: string): boolean {
     return EMAIL_REGEX.test(email);
-}
-
-/**
- * Calculate the maximum feed size based on the current year.
- * 20 MB for 2025, +1 MB for each subsequent year.
- */
-function getMaxFeedSize(): number {
-    const currentYear = new Date().getFullYear();
-    const baseYear = 2025;
-    const baseSizeMB = 20;
-    const yearDiff = Math.max(0, currentYear - baseYear);
-    return (baseSizeMB + yearDiff) * 1024 * 1024;
 }
 
 function validateParsedRssFeed(parsed: Record<string, unknown>): Record<string, unknown> | null {
@@ -111,7 +105,11 @@ function assertFeedNotLocked(parsed: Record<string, unknown>): void {
 async function fetchFeed(
     feedUrl: string,
 ): Promise<{ feedContent: string; parsedFeed: Record<string, unknown> }> {
-    const response = await got.get(feedUrl, {
+    await assertSafePublicUrl(feedUrl);
+    const maxFeedSizeBytes = getMaxFeedSize();
+    const abortController = new AbortController();
+    let aborted = false;
+    const request = got.get(feedUrl, {
         headers: {
             "User-Agent": RP_USER_AGENT,
             Accept: "application/rss+xml, application/xml, text/xml",
@@ -119,15 +117,41 @@ async function fetchFeed(
         responseType: "text",
         timeout: { request: 15000 },
         retry: { limit: 1 },
+        dnsLookup: ssrfSafeDnsLookup,
+        hooks: { beforeRedirect: [assertSafeRedirectTarget] },
+        signal: abortController.signal,
     });
+    // got has no maxContentLength; abort mid-transfer so an oversized or
+    // endless feed cannot exhaust the function's memory. The decoded size is
+    // checked again below against the same limit.
+    request.on("downloadProgress", (progress: Progress) => {
+        if (
+            progress.transferred > maxFeedSizeBytes ||
+            (progress.total ?? 0) > maxFeedSizeBytes
+        ) {
+            aborted = true;
+            abortController.abort();
+        }
+    });
+
+    let response;
+    try {
+        response = await request;
+    } catch (error) {
+        if (aborted) {
+            throw new Error(
+                `Feed exceeds maximum allowed size of ${Math.round(maxFeedSizeBytes / 1024 / 1024)} MB`,
+            );
+        }
+        throw error;
+    }
 
     const feedContent = response.body;
     const contentLength = Buffer.byteLength(feedContent, "utf-8");
-    const maxSize = getMaxFeedSize();
 
-    if (contentLength > maxSize) {
+    if (contentLength > maxFeedSizeBytes) {
         throw new Error(
-            `Feed size (${Math.round(contentLength / 1024 / 1024)} MB) exceeds maximum allowed size (${Math.round(maxSize / 1024 / 1024)} MB)`,
+            `Feed size (${Math.round(contentLength / 1024 / 1024)} MB) exceeds maximum allowed size (${Math.round(maxFeedSizeBytes / 1024 / 1024)} MB)`,
         );
     }
 
