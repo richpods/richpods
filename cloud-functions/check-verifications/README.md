@@ -53,7 +53,7 @@ gcloud functions deploy check-verifications \
     --trigger-http \
     --no-allow-unauthenticated \
     --set-env-vars="GOOGLE_CLOUD_PROJECT=YOUR_PROJECT,FIRESTORE_DATABASE_ID=YOUR_DB_ID" \
-    --memory=256Mi \
+    --memory=512Mi \
     --timeout=540s
 ```
 
