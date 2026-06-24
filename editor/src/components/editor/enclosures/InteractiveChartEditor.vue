@@ -159,6 +159,7 @@
                     rows="12"
                     class="w-full px-3 py-2 border rounded-md text-sm font-mono"
                     :class="jsonError ? 'border-red-300' : 'border-gray-300'"
+                    @input="handleJsonInput"
                     @blur="handleJsonBlur"
                 ></textarea>
                 <p v-if="jsonError" class="text-xs text-red-600 mt-1">{{ jsonError }}</p>
@@ -438,7 +439,12 @@ function handleBlur() {
 
 function handleSpreadsheetUpdate(data: GridData) {
     spreadsheetData.value = data;
+    richpodStore.markDirty();
     updatePreview();
+}
+
+function handleJsonInput() {
+    richpodStore.markDirty();
 }
 
 function handleJsonBlur() {
