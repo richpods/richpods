@@ -1,9 +1,8 @@
-import {
-    auth,
-} from "../config/firebase.js";
+import { auth } from "../config/firebase.js";
 import { adminAuth } from "../config/firebase-admin.js";
 import {
     createUser,
+    findUserByFirebaseUid,
     getUserByFirebaseUid,
     updateUser,
 } from "./user.service.js";
@@ -17,6 +16,30 @@ import {
 import { type SupportedLanguage } from "@richpods/shared/i18n/language";
 import type { UserRoleValue } from "../types/firestore.js";
 import { normalizeRole } from "@richpods/shared/utils/roles";
+
+const INVALID_CREDENTIALS_ERROR = "Invalid email or password";
+
+async function resolveSignInUser(
+    firebaseUid: string,
+    editorLanguage: SupportedLanguage,
+    providerLabel: string,
+): Promise<User> {
+    const lookup = await findUserByFirebaseUid(firebaseUid, true);
+
+    if (lookup.status === "active") {
+        return lookup.value;
+    }
+
+    if (lookup.status === "blocked") {
+        console.warn(`Rejected ${providerLabel} sign-in of blocked user, uid: ${firebaseUid}`);
+        throw new Error(INVALID_CREDENTIALS_ERROR);
+    }
+
+    console.warn(
+        `Created missing ${providerLabel} user with existing valid credentials, uid: ${firebaseUid}`,
+    );
+    return await createUser(firebaseUid, editorLanguage);
+}
 
 export async function signUpWithEmailPassword(
     email: string,
@@ -58,13 +81,7 @@ export async function signInWithEmailPassword(
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const firebaseUser = userCredential.user;
 
-        let user = await getUserByFirebaseUid(firebaseUser.uid, true);
-        if (!user) {
-            console.warn(
-                `Created missing email/password user with existing valid credentials, uid: ${firebaseUser.uid}`,
-            );
-            user = await createUser(firebaseUser.uid, editorLanguage);
-        }
+        const user = await resolveSignInUser(firebaseUser.uid, editorLanguage, "email/password");
 
         const token = await firebaseUser.getIdToken();
 
@@ -74,10 +91,10 @@ export async function signInWithEmailPassword(
         };
     } catch (error: any) {
         if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
-            throw new Error("Invalid email or password");
+            throw new Error(INVALID_CREDENTIALS_ERROR);
         }
-        if (error.code === "auth/invalid-credential") {
-            throw new Error("Invalid email or password");
+        if (error.code === "auth/invalid-credential" || error.code === "auth/user-disabled") {
+            throw new Error(INVALID_CREDENTIALS_ERROR);
         }
         throw error;
     }
@@ -92,13 +109,7 @@ export async function signInWithGoogle(
         const userCredential = await signInWithCredential(auth, credential);
         const firebaseUser = userCredential.user;
 
-        let user = await getUserByFirebaseUid(firebaseUser.uid, true);
-        if (!user) {
-            console.warn(
-                `Created missing Google Auth user with existing valid credentials, uid: ${firebaseUser.uid}`,
-            );
-            user = await createUser(firebaseUser.uid, editorLanguage);
-        }
+        const user = await resolveSignInUser(firebaseUser.uid, editorLanguage, "Google Auth");
 
         const token = await firebaseUser.getIdToken();
 

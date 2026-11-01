@@ -1,8 +1,10 @@
 import { db, USERS_COLLECTION } from "../config/firestore.js";
+import { adminAuth } from "../config/firebase-admin.js";
 import { FieldValue } from "@google-cloud/firestore";
 import { UserDocument, UserState } from "../types/firestore.js";
 import { User } from "../graphql.js";
 import { getUserQuotaInfo } from "./quota.service.js";
+import { classifyUserRecords, type UserLookupResult } from "./user-state.service.js";
 import { type SupportedLanguage } from "@richpods/shared/i18n/language";
 
 export async function getUserById(id: string, isCurrentUser = false): Promise<User | null> {
@@ -21,29 +23,41 @@ export async function getUserById(id: string, isCurrentUser = false): Promise<Us
     return await mapToGraphQL(id, data, isCurrentUser);
 }
 
+export async function findUserByFirebaseUid(
+    firebaseUid: string,
+    isCurrentUser = false,
+): Promise<UserLookupResult<User>> {
+    const querySnapshot = await db
+        .collection(USERS_COLLECTION)
+        .where("firebaseUid", "==", firebaseUid)
+        .get();
+
+    const lookup = classifyUserRecords(
+        querySnapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() as UserDocument })),
+    );
+
+    if (lookup.status !== "active") {
+        return lookup;
+    }
+
+    return {
+        status: "active",
+        value: await mapToGraphQL(lookup.value.id, lookup.value.data, isCurrentUser),
+    };
+}
+
 export async function getUserByFirebaseUid(
     firebaseUid: string,
     isCurrentUser = false,
 ): Promise<User | null> {
-    const querySnapshot = await db
-        .collection(USERS_COLLECTION)
-        .where("firebaseUid", "==", firebaseUid)
-        .where("state", "==", UserState.ACTIVE)
-        .limit(1)
-        .get();
-
-    if (querySnapshot.empty) {
-        return null;
-    }
-
-    const doc = querySnapshot.docs[0];
-    const data = doc.data() as UserDocument;
-
-    return await mapToGraphQL(doc.id, data, isCurrentUser);
+    const lookup = await findUserByFirebaseUid(firebaseUid, isCurrentUser);
+    return lookup.status === "active" ? lookup.value : null;
 }
 
-
-export async function createUser(firebaseUid: string, editorLanguage: SupportedLanguage): Promise<User> {
+export async function createUser(
+    firebaseUid: string,
+    editorLanguage: SupportedLanguage,
+): Promise<User> {
     const docData = {
         firebaseUid,
         socialAccounts: [],
@@ -56,7 +70,7 @@ export async function createUser(firebaseUid: string, editorLanguage: SupportedL
     const docRef = await db.collection(USERS_COLLECTION).add(docData);
     const created = await docRef.get();
     const createdData = created.data() as UserDocument;
-    console.info(`Created new user with uid: ${createdData.firebaseUid}`)
+    console.info(`Created new user with uid: ${createdData.firebaseUid}`);
 
     return await mapToGraphQL(docRef.id, createdData, true);
 }
@@ -104,10 +118,15 @@ export async function blockUser(id: string): Promise<boolean> {
         return false;
     }
 
+    const { firebaseUid } = doc.data() as UserDocument;
+
     await docRef.update({
         state: UserState.BLOCKED,
         updatedAt: FieldValue.serverTimestamp(),
     });
+
+    await adminAuth.updateUser(firebaseUid, { disabled: true });
+    await adminAuth.revokeRefreshTokens(firebaseUid);
 
     return true;
 }
