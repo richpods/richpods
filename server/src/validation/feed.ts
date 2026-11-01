@@ -1,3 +1,25 @@
+import { findEpisodeInFeed } from "@richpods/shared/media/check";
+import { normalizeMimeType } from "@richpods/shared/media/mime";
+
+export const allowedEpisodeAudioMimeTypes: readonly string[] = [
+    "audio/mpeg",
+    "audio/mp3",
+    "audio/mp4",
+    "audio/m4a",
+    "audio/wav",
+    "audio/ogg",
+    "audio/aac",
+    "audio/flac",
+    "audio/x-m4a",
+];
+
+export type EpisodeMedia = {
+    url: string;
+    type: string;
+    length: number;
+    checksum: string;
+};
+
 /**
  * Validate a parsed RSS feed for RSS 2.0 compliance and required fields.
  * Throws with a descriptive reason if the feed is invalid.
@@ -101,4 +123,52 @@ export function episodeExistsInFeed(parsed: any, episodeGuid: string): boolean {
                 : item.guid;
         return guid === episodeGuid;
     });
+}
+
+function toHttpUrl(value: unknown): string | null {
+    if (typeof value !== "string") return null;
+    const trimmed = value.trim();
+    try {
+        const { protocol } = new URL(trimmed);
+        return protocol === "http:" || protocol === "https:" ? trimmed : null;
+    } catch {
+        return null;
+    }
+}
+
+function toAllowedAudioMimeType(value: unknown): string | null {
+    const normalized = typeof value === "string" ? normalizeMimeType(value) : null;
+    return normalized !== null && allowedEpisodeAudioMimeTypes.includes(normalized)
+        ? normalized
+        : null;
+}
+
+export function resolveEpisodeMediaFromFeed(
+    parsedFeed: unknown,
+    episodeGuid: string,
+    clientMedia: EpisodeMedia,
+): EpisodeMedia {
+    const enclosure = findEpisodeInFeed(parsedFeed, episodeGuid, null);
+    if (!enclosure) {
+        throw new Error(
+            `Episode with GUID "${episodeGuid}" not found in RSS feed or has no media enclosure`,
+        );
+    }
+
+    const url = toHttpUrl(enclosure.url);
+    if (!url) {
+        throw new Error("Episode media URL in RSS feed must be a valid http/https URL");
+    }
+
+    const type = toAllowedAudioMimeType(enclosure.type);
+    if (!type) {
+        throw new Error("Episode media type is not a supported audio format");
+    }
+
+    const length =
+        Number.isSafeInteger(enclosure.length) && enclosure.length > 0
+            ? enclosure.length
+            : clientMedia.length;
+
+    return { url, type, length, checksum: clientMedia.checksum };
 }

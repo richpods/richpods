@@ -7,6 +7,7 @@ import { pollEnclosureSchema } from "./poll.js";
 import { markdownEnclosureSchema } from "./markdown.js";
 import { slideshowEnclosureSchema } from "./slideshow.js";
 import { cardEnclosureSchema } from "./card.js";
+import { allowedEpisodeAudioMimeTypes } from "./feed.js";
 
 // Helper: validate http/https URLs and allow internationalized domains (IDN)
 const httpUrlUnicode = () =>
@@ -91,21 +92,10 @@ export const podcastMediaInputSchema = Joi.object({
         "any.required": "Media URL is required",
     }),
     type: Joi.string()
-        .valid(
-            "audio/mpeg",
-            "audio/mp3",
-            "audio/mp4",
-            "audio/m4a",
-            "audio/wav",
-            "audio/ogg",
-            "audio/aac",
-            "audio/flac",
-            "audio/x-m4a",
-        )
+        .valid(...allowedEpisodeAudioMimeTypes)
         .required()
         .messages({
-            "any.only":
-                "Media type must be a valid audio format: audio/mpeg, audio/mp3, audio/mp4, audio/m4a, audio/wav, audio/ogg, audio/aac, audio/flac, audio/x-m4a",
+            "any.only": `Media type must be a valid audio format: ${allowedEpisodeAudioMimeTypes.join(", ")}`,
             "any.required": "Media type is required",
         }),
     length: Joi.number().integer().min(1).required().messages({

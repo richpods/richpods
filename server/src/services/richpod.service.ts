@@ -34,6 +34,7 @@ import { isPrivilegedRole } from "@richpods/shared/utils/roles";
 import { geminiConfig } from "../config/gemini.js";
 import type { PaginatedResult } from "../utils/pagination.js";
 import { ValidationError } from "../validation/validator.js";
+import { resolveEpisodeMediaFromFeed } from "../validation/feed.js";
 
 /**
  * Get paginated RichPods for a user.
@@ -230,6 +231,17 @@ export async function createRichPod(
         richPod.origin.episode.guid,
     );
 
+    const media = resolveEpisodeMediaFromFeed(
+        parsedFeed,
+        richPod.origin.episode.guid,
+        richPod.origin.episode.media,
+    );
+    if (media.url !== richPod.origin.episode.media.url) {
+        console.info(
+            `createRichPod: client media URL for episode ${JSON.stringify(richPod.origin.episode.guid)} differs from feed enclosure; using feed value`,
+        );
+    }
+
     // Ensure pubDate is persisted — extract from feed if client didn't provide it
     if (!richPod.origin.episode.pubDate) {
         const channel = parsedFeed.rss.channel;
@@ -269,6 +281,10 @@ export async function createRichPod(
         ...richPod,
         origin: {
             ...richPod.origin,
+            episode: {
+                ...richPod.origin.episode,
+                media,
+            },
             gcsFeedName,
             verified,
         },
