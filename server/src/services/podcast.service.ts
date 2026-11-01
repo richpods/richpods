@@ -5,6 +5,8 @@ import { parseFeed } from "@richpods/shared/media/feed";
 import { PodcastMetadata, PodcastEpisodeSearchResult } from "../graphql.js";
 import type {
     ParsedPodcast,
+    ParsedEpisode,
+    GuidLike,
     ITunesSearchResponse,
     EnclosureHeader,
 } from "../types/services.js";
@@ -58,6 +60,15 @@ export async function searchPodcastEpisodes(
         console.error("Error searching podcast episodes:", error);
         throw new Error("Failed to search podcast episodes");
     }
+}
+
+const MAX_FEED_CANDIDATES = 5;
+
+export function selectFeedCandidates(
+    candidates: readonly string[],
+    max: number = MAX_FEED_CANDIDATES,
+): string[] {
+    return Array.from(new Set(candidates)).slice(0, max);
 }
 
 /**
@@ -139,8 +150,7 @@ export async function extractFeedUrl(url: string): Promise<string> {
             });
         }
 
-        // Dedupe while preserving order of appearance
-        const uniqueCandidates = Array.from(new Set(candidates));
+        const uniqueCandidates = selectFeedCandidates(candidates);
 
         // Try each candidate and return the first REAL RSS 2.0 podcast feed
         for (const candidateUrl of uniqueCandidates) {
@@ -238,6 +248,7 @@ async function generateChecksum(mediaUrl: string): Promise<string> {
         await assertSafePublicUrl(mediaUrl);
         const response = await got.head(mediaUrl, {
             timeout: { request: 10000 },
+            retry: { limit: 0 },
             headers: {
                 "User-Agent": RP_USER_AGENT,
             },
@@ -286,6 +297,24 @@ function validateEnclosureMimeType(enclosure: EnclosureHeader): boolean {
     return audioMimeTypes.includes(enclosure.type.toLowerCase());
 }
 
+function getItemGuid(item: ParsedEpisode): GuidLike | undefined {
+    return typeof item.guid === "object" && item.guid["_"] ? item.guid["_"] : item.guid;
+}
+
+export function selectEpisodesForGuid(
+    items: readonly ParsedEpisode[],
+    episodeGuid: string,
+): ParsedEpisode[] {
+    const matching = items.filter((item) => getItemGuid(item) === episodeGuid);
+    if (matching.length === 0) {
+        throw new Error(`Episode with GUID ${episodeGuid} not found`);
+    }
+    const firstWithAudio = matching.find(
+        (item) => !!item.enclosure && validateEnclosureMimeType(item.enclosure),
+    );
+    return firstWithAudio ? [firstWithAudio] : [];
+}
+
 /**
  * Get podcast metadata including all episodes or a specific episode
  */
@@ -301,20 +330,9 @@ export async function getPodcastMetadata(
             throw new Error("No episodes found in the podcast feed");
         }
 
-        // Process all episodes or filter by GUID
-        let episodesToProcess = podcast.items;
-        if (episodeGuid) {
-            episodesToProcess = podcast.items.filter((item) => {
-                const guid = typeof item.guid === 'object' && item.guid["_"] 
-                    ? item.guid["_"] 
-                    : item.guid;
-                return guid === episodeGuid;
-            });
-            
-            if (episodesToProcess.length === 0) {
-                throw new Error(`Episode with GUID ${episodeGuid} not found`);
-            }
-        }
+        const episodesToProcess = episodeGuid
+            ? selectEpisodesForGuid(podcast.items, episodeGuid)
+            : podcast.items;
 
         // Process each episode
         const episodes = await Promise.all(
@@ -351,10 +369,7 @@ export async function getPodcastMetadata(
                     
                     const episodeLink = episode.link || podcast.link || feedUrl;
                     
-                    // Extract GUID - handle both string and object formats
-                    const guid = typeof episode.guid === 'object' && episode.guid["_"] 
-                        ? episode.guid["_"] 
-                        : (episode.guid || `episode-${Date.now()}-${Math.random()}`);
+                    const guid = getItemGuid(episode) || `episode-${Date.now()}-${Math.random()}`;
 
                     return {
                         guid: String(guid),
