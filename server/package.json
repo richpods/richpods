@@ -64,7 +64,7 @@
         "deploy:indexes": "pnpm exec firebase deploy --only firestore:indexes",
         "format:check": "prettier --check \"**/*.{ts,js,json}\" --ignore-path .gitignore",
         "set-user-role": "tsx scripts/set-user-role.ts",
-        "test": "node --import tsx --test \"tests/**/*.test.ts\"",
-        "test:watch": "node --import tsx --test --watch \"tests/**/*.test.ts\""
+        "test": "pnpm run build:shared && node --import tsx --test \"tests/**/*.test.ts\"",
+        "test:watch": "pnpm run build:shared && node --import tsx --test --watch \"tests/**/*.test.ts\""
     }
 }

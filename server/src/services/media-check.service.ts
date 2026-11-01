@@ -4,7 +4,11 @@ import { db, RICHPODS_COLLECTION } from "../config/firestore.js";
 import { fetchFeed } from "./feed.service.js";
 import { parseIntEnv } from "../utils/env.js";
 import { runCheckFlow, isFresh } from "@richpods/shared/media/check";
-import { assertSafePublicUrl } from "@richpods/shared/utils/ssrf";
+import {
+    assertSafePublicUrl,
+    assertSafeRedirectTarget,
+    ssrfSafeDnsLookup,
+} from "@richpods/shared/utils/ssrf";
 import type { CheckFlowDeps, HeadCheckResponse } from "@richpods/shared/media/types";
 import {
     RichPodState as FirestoreRichPodState,
@@ -21,15 +25,8 @@ async function performHeadCheck(url: string, timeoutMs?: number): Promise<HeadCh
         timeout: { request: timeoutMs ?? HEAD_CHECK_TIMEOUT_MS },
         retry: { limit: 0 },
         throwHttpErrors: false,
-        hooks: {
-            beforeRedirect: [
-                async (redirectOptions) => {
-                    if (redirectOptions.url) {
-                        await assertSafePublicUrl(redirectOptions.url.toString());
-                    }
-                },
-            ],
-        },
+        dnsLookup: ssrfSafeDnsLookup,
+        hooks: { beforeRedirect: [assertSafeRedirectTarget] },
     });
 
     return {
