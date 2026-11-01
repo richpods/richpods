@@ -1,13 +1,13 @@
 # Check Verifications Cloud Function
 
-A Google Cloud Function (Gen2) that checks all verified/approved podcast feed verifications daily. It fetches each verified feed's RSS, extracts the `itunes:email`, and compares it against the stored verification email. Verifications that no longer match are marked as failed.
+A Google Cloud Function (Gen2) that checks all verified podcast feed verifications daily. It fetches each verified feed's RSS, extracts the `itunes:email`, and compares it against the email stored on each verification. Verifications that no longer match are marked as failed.
 
 ## What it does
 
-1. Queries all Firestore verification documents with state `verified` or `approved`
+1. Queries all Firestore verification documents with state `verified`
 2. Groups verifications by feed URL to avoid redundant fetches
 3. For each unique feed, fetches the RSS and extracts the `itunes:email`
-4. Compares the current email against the stored verified email
+4. Compares the current email against the email stored on each verification, per user: a user keeps all of their verifications for the feed if at least one of them matches, otherwise all of them fail
 5. Marks mismatched or unreachable verifications as `failed` in Firestore
 
 ## Environment Variables
@@ -23,6 +23,12 @@ A Google Cloud Function (Gen2) that checks all verified/approved podcast feed ve
 
 ```bash
 pnpm --filter @richpods/check-verifications build
+```
+
+### Test
+
+```bash
+pnpm --filter @richpods/check-verifications test
 ```
 
 ### Run locally

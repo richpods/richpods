@@ -8,6 +8,14 @@ import {
     ssrfSafeDnsLookup,
 } from "@richpods/shared/utils/ssrf";
 import { getMaxFeedSize } from "@richpods/shared/media/feed";
+import {
+    checkFeedVerifications,
+    extractEmailFromFeed,
+    feedFetchFailure,
+    type FeedCheckTally,
+    type FeedEmailCheck,
+    type VerifiedRecord,
+} from "./verification-check.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,6 +42,8 @@ type VerificationCheckResult = {
     errors: number;
 };
 
+type FeedVerificationRecord = VerifiedRecord & { ref: FirebaseFirestore.DocumentReference };
+
 // ---------------------------------------------------------------------------
 // Firestore
 // ---------------------------------------------------------------------------
@@ -51,12 +61,6 @@ const db = new Firestore({
 
 const RP_USER_AGENT = "RichPods/1.0 (+https://richpods.org/bot)";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function isValidEmail(email: string): boolean {
-    return EMAIL_REGEX.test(email);
-}
-
 function validateParsedRssFeed(parsed: Record<string, unknown>): Record<string, unknown> | null {
     if (!parsed || !(parsed as any).rss || !(parsed as any).rss.channel) return null;
     const version = (parsed as any).rss.version;
@@ -65,11 +69,7 @@ function validateParsedRssFeed(parsed: Record<string, unknown>): Record<string, 
     const channel = (parsed as any).rss.channel;
     if (!channel.title || !channel.description) return null;
 
-    const items = Array.isArray(channel.item)
-        ? channel.item
-        : channel.item
-          ? [channel.item]
-          : [];
+    const items = Array.isArray(channel.item) ? channel.item : channel.item ? [channel.item] : [];
     if (!items.length) return null;
 
     for (const item of items) {
@@ -85,7 +85,9 @@ function validateParsedRssFeed(parsed: Record<string, unknown>): Record<string, 
                   typeof guidVal._ === "string" &&
                   guidVal._.trim().length > 0;
         const enc = item?.enclosure;
-        const hasEnclosure = Boolean(enc && typeof enc.url === "string" && enc.url.trim().length > 0);
+        const hasEnclosure = Boolean(
+            enc && typeof enc.url === "string" && enc.url.trim().length > 0,
+        );
         if (!hasTitle || !hasGuid || !hasEnclosure) return null;
     }
     return parsed;
@@ -125,10 +127,7 @@ async function fetchFeed(
     // endless feed cannot exhaust the function's memory. The decoded size is
     // checked again below against the same limit.
     request.on("downloadProgress", (progress: Progress) => {
-        if (
-            progress.transferred > maxFeedSizeBytes ||
-            (progress.total ?? 0) > maxFeedSizeBytes
-        ) {
+        if (progress.transferred > maxFeedSizeBytes || (progress.total ?? 0) > maxFeedSizeBytes) {
             aborted = true;
             abortController.abort();
         }
@@ -173,55 +172,56 @@ async function fetchFeed(
 }
 
 // ---------------------------------------------------------------------------
-// Email extraction (ported from server verification.service.ts)
-// ---------------------------------------------------------------------------
-
-function extractEmailFromFeed(parsedFeed: Record<string, unknown>): string | null {
-    if (!(parsedFeed as any)?.rss?.channel) {
-        return null;
-    }
-
-    const channel = (parsedFeed as any).rss.channel;
-    const directEmail =
-        typeof channel["itunes:email"] === "string" ? channel["itunes:email"].trim() : undefined;
-    if (directEmail && isValidEmail(directEmail)) {
-        return directEmail;
-    }
-
-    const owner = channel["itunes:owner"];
-    const ownerEmail =
-        typeof owner?.["itunes:email"] === "string" ? owner["itunes:email"].trim() : undefined;
-    if (ownerEmail && isValidEmail(ownerEmail)) {
-        return ownerEmail;
-    }
-
-    return null;
-}
-
-// ---------------------------------------------------------------------------
 // Revalidation
 // ---------------------------------------------------------------------------
 
-async function revalidateVerification(
-    feedUrl: string,
-    expectedEmail: string,
-): Promise<{ success: boolean; reason?: string }> {
+async function fetchCurrentFeedEmail(feedUrl: string): Promise<FeedEmailCheck> {
     try {
         const { parsedFeed } = await fetchFeed(feedUrl);
-        const currentEmail = extractEmailFromFeed(parsedFeed);
-
-        if (!currentEmail) {
-            return { success: false, reason: "Email not found in feed" };
-        }
-
-        if (currentEmail.toLowerCase() !== expectedEmail.toLowerCase()) {
-            return { success: false, reason: "Email mismatch" };
-        }
-
-        return { success: true };
+        return { ok: true, email: extractEmailFromFeed(parsedFeed) };
     } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        return { success: false, reason: `Feed fetch error: ${message}` };
+        return feedFetchFailure(error);
+    }
+}
+
+async function revokeVerification(record: FeedVerificationRecord, reason: string): Promise<void> {
+    console.log(`[checkAllVerifications] Revoking verification ${record.id}: ${reason}`);
+    try {
+        await record.ref.update({
+            state: VerificationRequestState.FAILED,
+            verificationTimestamp: FieldValue.serverTimestamp(),
+            lastCheckReason: reason,
+        });
+    } catch (error) {
+        console.error(
+            `[checkAllVerifications] Failed to revoke verification ${record.id}:`,
+            error instanceof Error ? error.message : error,
+        );
+        throw error;
+    }
+}
+
+async function checkFeed(
+    feedUrl: string,
+    records: readonly FeedVerificationRecord[],
+): Promise<FeedCheckTally> {
+    console.log(
+        `[checkAllVerifications] Checking feed: ${feedUrl} (${records.length} verifications)`,
+    );
+
+    try {
+        const feed = await fetchCurrentFeedEmail(feedUrl);
+        const tally = await checkFeedVerifications(records, feed, revokeVerification);
+        console.log(
+            `[checkAllVerifications] Checked feed: ${feedUrl} (passed: ${tally.passed}, revoked: ${tally.failed}, errors: ${tally.errors})`,
+        );
+        return tally;
+    } catch (error) {
+        console.error(
+            `[checkAllVerifications] Error checking feed ${feedUrl}:`,
+            error instanceof Error ? error.message : error,
+        );
+        return { checked: records.length, passed: 0, failed: 0, errors: records.length };
     }
 }
 
@@ -254,15 +254,11 @@ async function checkAllVerifications(): Promise<VerificationCheckResult> {
         return result;
     }
 
-    const uniqueFeeds = new Map<
-        string,
-        Array<{ id: string; email: string; userId: string }>
-    >();
+    const uniqueFeeds = new Map<string, FeedVerificationRecord[]>();
 
     snapshot.forEach((doc) => {
         const data = doc.data() as VerificationDocument;
         const feedUrl = data.feedUrl;
-        const userId = data.user.id;
 
         if (!uniqueFeeds.has(feedUrl)) {
             uniqueFeeds.set(feedUrl, []);
@@ -270,8 +266,9 @@ async function checkAllVerifications(): Promise<VerificationCheckResult> {
 
         uniqueFeeds.get(feedUrl)!.push({
             id: doc.id,
+            userPath: data.user.path,
             email: data.email,
-            userId,
+            ref: doc.ref,
         });
     });
 
@@ -286,57 +283,16 @@ async function checkAllVerifications(): Promise<VerificationCheckResult> {
 
     for (let i = 0; i < feedEntries.length; i += BATCH_SIZE) {
         const batch = feedEntries.slice(i, i + BATCH_SIZE);
+        const tallies = await Promise.all(
+            batch.map(([feedUrl, records]) => checkFeed(feedUrl, records)),
+        );
 
-        const batchPromises = batch.map(async ([feedUrl, verifications]) => {
-            console.log(
-                `[checkAllVerifications] Checking feed: ${feedUrl} (${verifications.length} verifications)`,
-            );
-
-            try {
-                const firstVerification = verifications[0];
-                const checkResult = await revalidateVerification(
-                    feedUrl,
-                    firstVerification.email,
-                );
-
-                for (const verification of verifications) {
-                    result.checked++;
-
-                    if (checkResult.success) {
-                        result.passed++;
-                        console.log(
-                            `[checkAllVerifications] Pass: ${feedUrl}`,
-                        );
-                    } else {
-                        result.failed++;
-                        console.log(
-                            `[checkAllVerifications] Fail: ${feedUrl}: ${checkResult.reason}`,
-                        );
-
-                        const docRef = db
-                            .collection(VERIFICATIONS_COLLECTION)
-                            .doc(verification.id);
-                        await docRef.update({
-                            state: VerificationRequestState.FAILED,
-                            verificationTimestamp: FieldValue.serverTimestamp(),
-                            lastCheckReason:
-                                checkResult.reason || "Verification check failed",
-                        });
-                    }
-                }
-            } catch (error) {
-                for (const _verification of verifications) {
-                    result.checked++;
-                    result.errors++;
-                }
-                console.error(
-                    `[checkAllVerifications] Error checking feed ${feedUrl}:`,
-                    error instanceof Error ? error.message : error,
-                );
-            }
-        });
-
-        await Promise.all(batchPromises);
+        for (const tally of tallies) {
+            result.checked += tally.checked;
+            result.passed += tally.passed;
+            result.failed += tally.failed;
+            result.errors += tally.errors;
+        }
 
         if (i + BATCH_SIZE < feedEntries.length) {
             await sleep(DELAY_MS);

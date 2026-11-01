@@ -11,7 +11,8 @@
     "scripts": {
         "build": "tsc --noEmit && esbuild src/index.ts --bundle --platform=node --target=node24 --format=esm --outfile=build/index.js --external:@google-cloud/firestore --external:@google-cloud/functions-framework --external:got --external:xml2js",
         "clean": "rimraf build",
-        "start": "npx @google-cloud/functions-framework --target=checkVerifications --signature-type=http"
+        "start": "npx @google-cloud/functions-framework --target=checkVerifications --signature-type=http",
+        "test": "node --test \"tests/**/*.test.ts\""
     },
     "dependencies": {
         "@google-cloud/firestore": "8.3.0",
