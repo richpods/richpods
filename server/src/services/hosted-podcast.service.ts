@@ -1,11 +1,8 @@
 import { FieldValue, type DocumentReference } from "@google-cloud/firestore";
-import {
-    db,
-    HOSTED_PODCASTS_COLLECTION,
-    HOSTED_EPISODES_COLLECTION,
-} from "../config/firestore.js";
+import { db, HOSTED_PODCASTS_COLLECTION, HOSTED_EPISODES_COLLECTION } from "../config/firestore.js";
 import type { HostedEpisodeDocument, HostedPodcastDocument } from "../types/firestore.js";
 import { getUserReference } from "./user.service.js";
+import { assertOwnership } from "./access.service.js";
 import { deletePodcastChannelFiles, getHostedPublicUrl } from "./hosted-storage.service.js";
 import type {
     HostedPodcast,
@@ -122,12 +119,7 @@ export async function getHostedPodcastById(
     }
 
     const data = doc.data() as HostedPodcastDocument;
-    if (data.editor.id !== editorUserId) {
-        console.warn(
-            `Unauthorized podcast access attempt: user ${editorUserId} tried to access podcast ${id} owned by ${data.editor.id}`,
-        );
-        throw new Error("Unauthorized: You can only access your own hosted podcasts");
-    }
+    assertOwnership(data, editorUserId, `podcast access (${id})`);
 
     const episodeCount = await countEpisodes(id);
     return mapToGraphQL(id, data, episodeCount);
@@ -275,12 +267,7 @@ export async function updateHostedPodcast(
     }
 
     const data = doc.data() as HostedPodcastDocument;
-    if (data.editor.id !== editorUserId) {
-        console.warn(
-            `Unauthorized podcast update attempt: user ${editorUserId} tried to edit podcast ${id} owned by ${data.editor.id}`,
-        );
-        throw new Error("Unauthorized: You can only edit your own hosted podcasts");
-    }
+    assertOwnership(data, editorUserId, `podcast update (${id})`);
 
     const updates: Record<string, unknown> = {
         updatedAt: FieldValue.serverTimestamp(),
@@ -353,12 +340,7 @@ export async function deleteHostedPodcast(id: string, editorUserId: string): Pro
     }
 
     const data = doc.data() as HostedPodcastDocument;
-    if (data.editor.id !== editorUserId) {
-        console.warn(
-            `Unauthorized podcast deletion attempt: user ${editorUserId} tried to delete podcast ${id} owned by ${data.editor.id}`,
-        );
-        throw new Error("Unauthorized: You can only delete your own hosted podcasts");
-    }
+    assertOwnership(data, editorUserId, `podcast deletion (${id})`);
 
     const episodeCount = await countEpisodes(id);
     if (episodeCount > 0) {

@@ -5,6 +5,7 @@ import { fileTypeFromBuffer } from "file-type";
 
 import { hostingConfig, allowedCoverMimeTypes } from "../config/hosting.js";
 import { getUserFromToken } from "../services/auth.service.js";
+import { OWNERSHIP_ERROR } from "../services/access.service.js";
 import { isPrivilegedRole } from "@richpods/shared/utils/roles";
 import { validate } from "../validation/validator.js";
 import {
@@ -16,7 +17,11 @@ import {
     getHostedPodcastById,
     syncHostedPodcastFieldsToRichPods,
 } from "../services/hosted-podcast.service.js";
-import { createHostedEpisode, getHostedEpisodeDoc, createRichPodForEpisode } from "../services/hosted-episode.service.js";
+import {
+    createHostedEpisode,
+    getHostedEpisodeDoc,
+    createRichPodForEpisode,
+} from "../services/hosted-episode.service.js";
 import {
     savePodcastCover,
     generateEpisodeAudioName,
@@ -393,8 +398,7 @@ hostedRouter.post(
             });
         } catch (error) {
             console.error("Error creating hosted episode:", error);
-            const message =
-                error instanceof Error ? error.message : "Failed to create episode";
+            const message = error instanceof Error ? error.message : "Failed to create episode";
             res.status(500).json({ error: message });
         }
     },
@@ -424,7 +428,9 @@ hostedRouter.get(
             }
 
             if (episode.data.editor.id !== auth.userId) {
-                res.status(403).json({ error: "You can only check validation for your own episodes" });
+                res.status(403).json({
+                    error: "You can only check validation for your own episodes",
+                });
                 return;
             }
 
@@ -481,12 +487,15 @@ hostedRouter.post(
             res.status(201).json({ richPodId: result.richPodId });
         } catch (error) {
             console.error("Error creating RichPod for episode:", error);
-            const message =
-                error instanceof Error ? error.message : "Failed to create RichPod";
-            const status = message.includes("Unauthorized") ? 403
-                : message.includes("not found") ? 404
-                : message.includes("not passed validation") ? 409
-                : 500;
+            const message = error instanceof Error ? error.message : "Failed to create RichPod";
+            const status =
+                message === OWNERSHIP_ERROR
+                    ? 403
+                    : message.includes("not found")
+                      ? 404
+                      : message.includes("not passed validation")
+                        ? 409
+                        : 500;
             res.status(status).json({ error: message });
         }
     },
@@ -541,9 +550,8 @@ hostedRouter.post(
                 coverResult.mimeType,
             );
 
-            const { db, HOSTED_EPISODES_COLLECTION, RICHPODS_COLLECTION } = await import(
-                "../config/firestore.js"
-            );
+            const { db, HOSTED_EPISODES_COLLECTION, RICHPODS_COLLECTION } =
+                await import("../config/firestore.js");
             const { FieldValue } = await import("@google-cloud/firestore");
 
             await db.collection(HOSTED_EPISODES_COLLECTION).doc(episodeId).update({

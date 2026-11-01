@@ -2,7 +2,7 @@ import { db, RICHPODS_COLLECTION } from "../config/firestore.js";
 import { Timestamp } from "@google-cloud/firestore";
 import { getUserById, getUserReference } from "./user.service.js";
 import type { RichPodDocument, RichPodLockData, UserRoleValue } from "../types/firestore.js";
-import { assertHostedAccess } from "./hosted-access.service.js";
+import { assertEditorAccess, assertOwnership } from "./access.service.js";
 import type { RichPodLock, RichPodLockAcquireResult } from "../graphql.js";
 
 export const LOCK_HEARTBEAT_INTERVAL_SECONDS = 90;
@@ -49,7 +49,10 @@ async function mapLockToGraphQL(lock: RichPodLockData): Promise<RichPodLock> {
  * to learn who is editing them — and the sessionId stays within the session
  * that owns it.
  */
-export async function getRichPodLock(richPodId: string, userId: string): Promise<RichPodLock | null> {
+export async function getRichPodLock(
+    richPodId: string,
+    userId: string,
+): Promise<RichPodLock | null> {
     const ref = db.collection(RICHPODS_COLLECTION).doc(richPodId);
     const doc = await ref.get();
     if (!doc.exists) {
@@ -83,10 +86,7 @@ export async function acquireRichPodLock(
                 throw new Error("RichPod not found");
             }
             const data = snap.data() as RichPodDocument;
-            if (data.editor.id !== userId) {
-                throw new Error("Unauthorized: You can only edit your own RichPods");
-            }
-            assertHostedAccess(data, userRole);
+            assertEditorAccess(data, userId, userRole, "lock acquisition");
 
             const now = Timestamp.now();
             const existing = data.lock ?? null;
@@ -125,10 +125,7 @@ export async function heartbeatRichPodLock(
             throw new Error("RichPod not found");
         }
         const data = snap.data() as RichPodDocument;
-        if (data.editor.id !== userId) {
-            throw new Error("Unauthorized: You can only edit your own RichPods");
-        }
-        assertHostedAccess(data, userRole);
+        assertEditorAccess(data, userId, userRole, "lock heartbeat");
         const existing = data.lock ?? null;
         if (!existing || existing.sessionId !== sessionId) {
             throw new Error(LOCK_LOST_ERROR);
@@ -157,9 +154,7 @@ export async function releaseRichPodLock(
             return false;
         }
         const data = snap.data() as RichPodDocument;
-        if (data.editor.id !== userId) {
-            throw new Error("Unauthorized: You can only release locks on your own RichPods");
-        }
+        assertOwnership(data, userId, "lock release");
         const existing = data.lock ?? null;
         if (!existing || existing.sessionId !== sessionId) {
             return false;
@@ -176,10 +171,7 @@ export async function releaseRichPodLock(
  */
 export async function clearAllLocksForUser(userId: string): Promise<number> {
     const userRef = getUserReference(userId);
-    const snapshot = await db
-        .collection(RICHPODS_COLLECTION)
-        .where("editor", "==", userRef)
-        .get();
+    const snapshot = await db.collection(RICHPODS_COLLECTION).where("editor", "==", userRef).get();
 
     const docsToClear = snapshot.docs.filter((doc) => {
         const data = doc.data() as RichPodDocument;

@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
 import { UserRole } from "@richpods/shared/utils/roles";
-import { assertHostedAccess, HOSTED_ACCESS_ERROR } from "../src/services/hosted-access.service.js";
+import { assertHostedAccess, HOSTED_ACCESS_ERROR } from "../src/services/access.service.js";
 
 describe("assertHostedAccess", () => {
     it("allows privileged roles on hosted RichPods", () => {

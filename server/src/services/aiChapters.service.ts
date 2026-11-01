@@ -25,7 +25,7 @@ import { isPrivilegedRole } from "@richpods/shared/utils/roles";
 import { ChapterGenerationState as GqlChapterGenerationState } from "../graphql.js";
 import type { ChapterGenerationStatus, Transcript } from "../graphql.js";
 import { verifyLockHeldOrThrow } from "./lock.service.js";
-import { assertHostedAccess } from "./hosted-access.service.js";
+import { assertHostedAccess, assertOwnership } from "./access.service.js";
 import { mapEnclosureToGraphQL } from "./richpod.service.js";
 import { getUserReference } from "./user.service.js";
 import { getHostedEpisodeDoc } from "./hosted-episode.service.js";
@@ -145,7 +145,10 @@ function assertAudioEligible(info: AudioInfo): void {
     if (info.byteSize !== null && info.byteSize > geminiConfig.maxFileSizeBytes) {
         throw new Error("The episode audio file is too large for AI chapter generation");
     }
-    if (info.durationSeconds !== null && info.durationSeconds > geminiConfig.maxAudioLengthSeconds) {
+    if (
+        info.durationSeconds !== null &&
+        info.durationSeconds > geminiConfig.maxAudioLengthSeconds
+    ) {
         throw new Error("The episode audio is too long for AI chapter generation");
     }
 }
@@ -269,9 +272,7 @@ async function loadOwnedRichPod(richPodId: string, userId: string): Promise<Rich
     if (data.state === FirestoreRichPodState.DELETED) {
         throw new Error("RichPod not found");
     }
-    if (data.editor.id !== userId) {
-        throw new Error("Unauthorized: You can only generate chapters for your own RichPods");
-    }
+    assertOwnership(data, userId, "chapter generation");
     return data;
 }
 

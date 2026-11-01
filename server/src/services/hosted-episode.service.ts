@@ -14,6 +14,7 @@ import type {
 } from "../types/firestore.js";
 import { ValidationStatus, RichPodState } from "../types/firestore.js";
 import { getUserReference } from "./user.service.js";
+import { assertOwnership } from "./access.service.js";
 import { deleteRichPod, mapFirestoreStateToGraphQL } from "./richpod.service.js";
 import { deleteEpisodeFiles, getHostedPublicUrl } from "./hosted-storage.service.js";
 import type { HostedEpisode, PublicHostedEpisode } from "../graphql.js";
@@ -97,12 +98,7 @@ export async function createHostedEpisode(
     }
 
     const podcastData = podcastDoc.data() as HostedPodcastDocument;
-    if (podcastData.editor.id !== editorUserId) {
-        console.warn(
-            `Unauthorized episode creation attempt: user ${editorUserId} tried to add episode to podcast ${podcastId} owned by ${podcastData.editor.id}`,
-        );
-        throw new Error("Unauthorized: You can only add episodes to your own hosted podcasts");
-    }
+    assertOwnership(podcastData, editorUserId, `episode creation in podcast ${podcastId}`);
 
     const episodeRef = db.collection(HOSTED_EPISODES_COLLECTION).doc(episodeId);
 
@@ -158,9 +154,7 @@ export async function createRichPodForEpisode(
 
         const episodeData = episodeDoc.data() as HostedEpisodeDocument;
 
-        if (episodeData.editor.id !== editorUserId) {
-            throw new Error("Unauthorized: You can only create RichPods for your own episodes");
-        }
+        assertOwnership(episodeData, editorUserId, `RichPod creation for episode ${episodeId}`);
 
         // Idempotent: return existing RichPod if already created
         if (episodeData.richPod) {
@@ -240,12 +234,7 @@ export async function getHostedEpisode(
     }
 
     const data = doc.data() as HostedEpisodeDocument;
-    if (data.editor.id !== editorUserId) {
-        console.warn(
-            `Unauthorized episode access attempt: user ${editorUserId} tried to access episode ${episodeId} owned by ${data.editor.id}`,
-        );
-        throw new Error("Unauthorized: You can only access your own hosted episodes");
-    }
+    assertOwnership(data, editorUserId, `episode access (${episodeId})`);
 
     let linkedRichPod: LinkedRichPodInfo | null = null;
     if (data.richPod) {
@@ -281,12 +270,7 @@ export async function getHostedEpisodesForPodcast(
     }
 
     const podcastData = podcastDoc.data() as HostedPodcastDocument;
-    if (podcastData.editor.id !== editorUserId) {
-        console.warn(
-            `Unauthorized podcast episodes access attempt: user ${editorUserId} tried to list episodes for podcast ${podcastId} owned by ${podcastData.editor.id}`,
-        );
-        throw new Error("Unauthorized: You can only access episodes from your own hosted podcasts");
-    }
+    assertOwnership(podcastData, editorUserId, `episode listing for podcast ${podcastId}`);
 
     const baseQuery = db
         .collection(HOSTED_EPISODES_COLLECTION)
@@ -325,9 +309,7 @@ export async function getHostedEpisodesForPodcast(
 
     const items = docs.map((doc) => {
         const data = doc.data() as HostedEpisodeDocument;
-        if (data.editor.id !== editorUserId) {
-            throw new Error("Unauthorized: You can only access your own hosted episodes");
-        }
+        assertOwnership(data, editorUserId, `episode listing (${doc.id})`);
         const linkedRichPod = data.richPod ? (richPodInfoMap.get(data.richPod.id) ?? null) : null;
         return mapToGraphQL(doc.id, data, linkedRichPod);
     });
@@ -474,12 +456,7 @@ export async function deleteHostedEpisode(
     }
 
     const episodeData = episodeDoc.data() as HostedEpisodeDocument;
-    if (episodeData.editor.id !== editorUserId) {
-        console.warn(
-            `Unauthorized episode deletion attempt: user ${editorUserId} tried to delete episode ${episodeId} owned by ${episodeData.editor.id}`,
-        );
-        throw new Error("Unauthorized: You can only delete your own hosted episodes");
-    }
+    assertOwnership(episodeData, editorUserId, `episode deletion (${episodeId})`);
 
     // Deleting a hosted episode must also remove its linked RichPod — the two
     // cannot exist without each other. deleteRichPod owns the full cascade
