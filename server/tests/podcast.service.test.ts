@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
 import assert from "node:assert";
+import { EventEmitter } from "node:events";
 import got from "got";
 import {
     extractFeedUrl,
@@ -80,7 +81,10 @@ const toEpisode = (item: FixtureItem): ParsedEpisode => ({
 });
 
 const mockGet = (routes: (url: string) => FixtureResponse) =>
-    mock.method(got, "get", async (url: string) => routes(url));
+    mock.method(got, "get", (url: string) => {
+        const events = new EventEmitter();
+        return Object.assign(Promise.resolve(routes(url)), { on: events.on.bind(events) });
+    });
 
 const mockHead = () =>
     mock.method(got, "head", async (_url: string, _options: RequestOptions) => ({

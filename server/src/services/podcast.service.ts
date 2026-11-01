@@ -16,7 +16,7 @@ import {
     assertSafeRedirectTarget,
     ssrfSafeDnsLookup,
 } from "@richpods/shared/utils/ssrf";
-import { toClientSafeFetchError } from "../utils/fetch-error.js";
+import { fetchTextWithLimit } from "../utils/bounded-fetch.js";
 
 const RP_USER_AGENT = "RichPods/1.0 (+https://richpods.org/bot)";
 
@@ -77,19 +77,15 @@ export function selectFeedCandidates(
 export async function extractFeedUrl(url: string): Promise<string> {
     try {
         const normalizedUrl = normalizeUrl(url);
-        await assertSafePublicUrl(normalizedUrl);
         // First check if the URL is already an RSS feed
-        const response = await got.get(normalizedUrl, {
-            responseType: "text",
+        const response = await fetchTextWithLimit(normalizedUrl, {
+            subject: "URL",
+            timeoutMs: 5000,
+            retryLimit: 1,
             headers: {
                 "User-Agent": RP_USER_AGENT,
-                Accept:
-                    "application/rss+xml, application/xml, text/xml, text/html, application/xhtml+xml",
+                Accept: "application/rss+xml, application/xml, text/xml, text/html, application/xhtml+xml",
             },
-            retry: { limit: 1 },
-            timeout: { request: 5000 },
-            dnsLookup: ssrfSafeDnsLookup,
-            hooks: { beforeRedirect: [assertSafeRedirectTarget] },
         });
 
         // Ensure we can safely sniff the body
@@ -183,23 +179,13 @@ export async function extractFeedUrl(url: string): Promise<string> {
 async function parsePodcastFeed(feedUrl: string): Promise<ParsedPodcast> {
     try {
         const normalizedUrl = normalizeUrl(feedUrl);
-        await assertSafePublicUrl(normalizedUrl);
-        let response;
-        try {
-            response = await got.get(normalizedUrl, {
-                headers: {
-                    "User-Agent": RP_USER_AGENT,
-                },
-                responseType: "text",
-                timeout: { request: 15000 },
-                dnsLookup: ssrfSafeDnsLookup,
-                hooks: { beforeRedirect: [assertSafeRedirectTarget] },
-            });
-        } catch (error) {
-            throw toClientSafeFetchError(error, "podcast feed");
-        }
+        const { body } = await fetchTextWithLimit(normalizedUrl, {
+            subject: "podcast feed",
+            timeoutMs: 15000,
+            headers: { "User-Agent": RP_USER_AGENT },
+        });
 
-        const parsedFeed = await parseAndValidateRssFeed(response.body);
+        const parsedFeed = await parseAndValidateRssFeed(body);
         const channel = parsedFeed.rss.channel;
         return {
             title: channel.title || "Unknown Podcast",

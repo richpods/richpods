@@ -1,21 +1,14 @@
 import { createHash } from "crypto";
-import got, { type Progress } from "got";
 import { v4 as uuidv4 } from "uuid";
 import { Storage } from "@google-cloud/storage";
-import { validateParsedRssFeed, assertFeedNotLocked, episodeExistsInFeed } from "../validation/feed.js";
+import {
+    validateParsedRssFeed,
+    assertFeedNotLocked,
+    episodeExistsInFeed,
+} from "../validation/feed.js";
 import { GCS_IMMUTABLE_CACHE_CONTROL } from "../config/storage.js";
-import {
-    getMaxFeedSize,
-    parseFeed,
-    RP_USER_AGENT,
-    RSS_ACCEPT_HEADERS,
-} from "@richpods/shared/media/feed";
-import {
-    assertSafePublicUrl,
-    assertSafeRedirectTarget,
-    ssrfSafeDnsLookup,
-} from "@richpods/shared/utils/ssrf";
-import { toClientSafeFetchError } from "../utils/fetch-error.js";
+import { parseFeed, RSS_ACCEPT_HEADERS } from "@richpods/shared/media/feed";
+import { fetchTextWithLimit } from "../utils/bounded-fetch.js";
 
 const storage = new Storage({
     projectId: process.env.GOOGLE_CLOUD_PROJECT,
@@ -41,49 +34,12 @@ export interface FetchFeedResult {
 }
 
 export async function fetchFeed(feedUrl: string): Promise<FetchFeedResult> {
-    await assertSafePublicUrl(feedUrl);
-    const maxSize = getMaxFeedSize();
-    const abortController = new AbortController();
-    let aborted = false;
-    const request = got.get(feedUrl, {
+    const { body: feedContent } = await fetchTextWithLimit(feedUrl, {
+        subject: "feed",
+        timeoutMs: 5000,
+        retryLimit: 1,
         headers: RSS_ACCEPT_HEADERS,
-        responseType: "text",
-        timeout: { request: 5000 },
-        retry: { limit: 1 },
-        dnsLookup: ssrfSafeDnsLookup,
-        hooks: { beforeRedirect: [assertSafeRedirectTarget] },
-        signal: abortController.signal,
     });
-    // got has no maxContentLength; abort mid-transfer so an oversized or
-    // endless feed cannot exhaust server memory. The decoded size is checked
-    // again below against the same limit.
-    request.on("downloadProgress", (progress: Progress) => {
-        if (progress.transferred > maxSize || (progress.total ?? 0) > maxSize) {
-            aborted = true;
-            abortController.abort();
-        }
-    });
-
-    let response;
-    try {
-        response = await request;
-    } catch (error) {
-        if (aborted) {
-            throw new Error(
-                `Feed exceeds maximum allowed size of ${Math.round(maxSize / 1024 / 1024)} MB`,
-            );
-        }
-        throw toClientSafeFetchError(error, "feed");
-    }
-
-    const feedContent = response.body;
-    const contentLength = Buffer.byteLength(feedContent, "utf-8");
-
-    if (contentLength > maxSize) {
-        throw new Error(
-            `Feed size (${Math.round(contentLength / 1024 / 1024)} MB) exceeds maximum allowed size (${Math.round(maxSize / 1024 / 1024)} MB)`,
-        );
-    }
 
     const parsed = await parseFeed(feedContent);
     validateParsedRssFeed(parsed);
