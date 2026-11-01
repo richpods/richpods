@@ -220,6 +220,7 @@
                                     <Icon icon="ion:create-outline" class="w-4 h-4" />
                                 </button>
                                 <button
+                                    v-if="richpod.canDelete"
                                     @click="handleDelete(richpod.id)"
                                     class="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                                     :title="t('myRichPods.deleteRichPod')"
@@ -268,7 +269,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Icon } from "@iconify/vue";
-import { graphqlSdk, DEFAULT_PAGE_SIZE, type UserRichPodsQuery } from "@/lib/graphql";
+import { graphqlSdk, DEFAULT_PAGE_SIZE, type UserRichPodsQuery, RichPodState } from "@/lib/graphql";
 
 const { t, locale } = useI18n();
 const router = useRouter();
@@ -296,6 +297,7 @@ const formattedRichPods = computed(() => {
         status: richPod.state,
         verified: richPod.origin.verified,
         isHosted: richPod.isHosted,
+        canDelete: !(richPod.isHosted && richPod.state === RichPodState.Published),
         originalPodcast: {
             name: richPod.origin.title || t("myRichPods.unknownPodcast"),
             link: richPod.origin.link,

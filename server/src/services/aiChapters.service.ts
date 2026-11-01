@@ -25,6 +25,7 @@ import { isPrivilegedRole } from "@richpods/shared/utils/roles";
 import { ChapterGenerationState as GqlChapterGenerationState } from "../graphql.js";
 import type { ChapterGenerationStatus, Transcript } from "../graphql.js";
 import { verifyLockHeldOrThrow } from "./lock.service.js";
+import { assertHostedAccess } from "./hosted-access.service.js";
 import { mapEnclosureToGraphQL } from "./richpod.service.js";
 import { getUserReference } from "./user.service.js";
 import { getHostedEpisodeDoc } from "./hosted-episode.service.js";
@@ -323,6 +324,7 @@ export async function startChapterGeneration(
     userRole?: UserRoleValue | null,
 ): Promise<ChapterGenerationStatus> {
     const data = await loadOwnedRichPod(richPodId, userId);
+    assertHostedAccess(data, userRole);
     assertAiFeaturesAllowed(data, userRole);
     verifyLockHeldOrThrow(data, sessionId);
 
@@ -351,6 +353,7 @@ export async function recordChapterGenerationBaseline(
     userRole?: UserRoleValue | null,
 ): Promise<ChapterGenerationStatus> {
     const data = await loadOwnedRichPod(richPodId, userId);
+    assertHostedAccess(data, userRole);
     assertAiFeaturesAllowed(data, userRole);
     verifyLockHeldOrThrow(data, sessionId);
 
@@ -370,6 +373,7 @@ export async function startTranscriptGeneration(
     userRole?: UserRoleValue | null,
 ): Promise<ChapterGenerationStatus> {
     const data = await loadOwnedRichPod(richPodId, userId);
+    assertHostedAccess(data, userRole);
     assertAiFeaturesAllowed(data, userRole);
     verifyLockHeldOrThrow(data, sessionId);
 

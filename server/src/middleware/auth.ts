@@ -3,6 +3,7 @@ import { getUserFromToken } from "../services/auth.service.js";
 import { User } from "../graphql.js";
 import type { UserRoleValue } from "../types/firestore.js";
 import { isPrivilegedRole } from "@richpods/shared/utils/roles";
+import { HOSTED_ACCESS_ERROR } from "../services/hosted-access.service.js";
 
 export type AuthContext = {
     user?: User | null;
@@ -47,7 +48,7 @@ export function requireAuth(context: AuthContext): string {
 export function requirePrivilegedAuth(context: AuthContext): string {
     const userId = requireAuth(context);
     if (!isPrivilegedRole(context.role)) {
-        throw new Error("Hosted RichPods are only available to privileged users");
+        throw new Error(HOSTED_ACCESS_ERROR);
     }
     return userId;
 }

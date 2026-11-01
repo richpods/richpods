@@ -107,6 +107,7 @@
                                         <Icon icon="ion:eye-outline" class="w-4 h-4" />
                                     </router-link>
                                     <button
+                                        v-if="richpod.canDelete"
                                         @click="handleDelete(richpod.id)"
                                         class="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                                         :title="t('myRichPods.deleteRichPod')"
@@ -162,6 +163,7 @@ const formattedRichPods = computed(() => {
         id: richPod.id,
         title: richPod.title,
         description: richPod.description,
+        canDelete: !richPod.isHosted,
         originalPodcast: {
             name: richPod.origin.title || t("myRichPods.unknownPodcast"),
             link: richPod.origin.link,

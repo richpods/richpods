@@ -352,13 +352,13 @@ export function createResolvers(req: Request, auth: AuthContext) {
             if (validatedInput.state !== undefined) updates.state = validatedInput.state;
             if (validatedInput.explicit !== undefined) updates.explicit = validatedInput.explicit;
 
-            return updateRichPod(validatedId, updates, userId, validatedSessionId);
+            return updateRichPod(validatedId, updates, userId, validatedSessionId, auth.role);
         },
 
         deleteRichPod: async ({ id }: { id: string }): Promise<boolean> => {
             const userId = requireAuth(auth);
             const validatedId = validateField<string>(idSchema, id, "id");
-            return deleteRichPod(validatedId, userId);
+            return deleteRichPod(validatedId, userId, auth.role);
         },
 
         setRichPodChapters: async ({
@@ -384,7 +384,7 @@ export function createResolvers(req: Request, auth: AuthContext) {
             // The enclosure uploads below write to GCS outside the chapter
             // transaction, so ownership and lock must be verified first;
             // otherwise rejected callers would still leave objects behind.
-            await assertRichPodEditableBy(validatedId, userId, validatedSessionId);
+            await assertRichPodEditableBy(validatedId, userId, validatedSessionId, auth.role);
 
             const fsChapters: ChapterFS[] = [];
             for (const ch of validatedInput.chapters) {
@@ -638,7 +638,7 @@ export function createResolvers(req: Request, auth: AuthContext) {
         deleteHostedEpisode: async ({ id }: { id: string }): Promise<boolean> => {
             const userId = requirePrivilegedAuth(auth);
             const validatedId = validateField<string>(idSchema, id, "id");
-            return deleteHostedEpisode(validatedId, userId);
+            return deleteHostedEpisode(validatedId, userId, auth.role);
         },
 
         refreshEpisodeMedia: async ({
@@ -672,6 +672,7 @@ export function createResolvers(req: Request, auth: AuthContext) {
                 userId,
                 validatedSessionId,
                 takeover === true,
+                auth.role,
             );
         },
 
@@ -689,7 +690,7 @@ export function createResolvers(req: Request, auth: AuthContext) {
                 sessionId,
                 "sessionId",
             );
-            return heartbeatRichPodLock(validatedId, userId, validatedSessionId);
+            return heartbeatRichPodLock(validatedId, userId, validatedSessionId, auth.role);
         },
 
         releaseRichPodLock: async ({

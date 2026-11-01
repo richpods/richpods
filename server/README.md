@@ -22,6 +22,12 @@ Certain server-side checks (rate limits, upload quotas, verification gates) are
 bypassed for users whose Firebase Auth custom `role` claim is in the
 **privileged roles** list.
 
+Hosted podcasts are only available to privileged users. The role is re-checked
+on every request that creates, edits, publishes, locks or deletes hosted
+content, including the generic RichPod mutations when they target a hosted
+RichPod. Removing the role claim therefore freezes the user's existing hosted
+RichPods until the role is restored or the content is transferred.
+
 The list is defined in `@richpods/shared/utils/roles` (`PRIVILEGED_ROLES`).
 To change which roles are privileged, edit that file — see the
 [shared package README](../shared/README.md#privileged-roles) for details.

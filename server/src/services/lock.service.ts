@@ -1,7 +1,8 @@
 import { db, RICHPODS_COLLECTION } from "../config/firestore.js";
 import { Timestamp } from "@google-cloud/firestore";
 import { getUserById, getUserReference } from "./user.service.js";
-import type { RichPodDocument, RichPodLockData } from "../types/firestore.js";
+import type { RichPodDocument, RichPodLockData, UserRoleValue } from "../types/firestore.js";
+import { assertHostedAccess } from "./hosted-access.service.js";
 import type { RichPodLock, RichPodLockAcquireResult } from "../graphql.js";
 
 export const LOCK_HEARTBEAT_INTERVAL_SECONDS = 90;
@@ -72,6 +73,7 @@ export async function acquireRichPodLock(
     userId: string,
     sessionId: string,
     takeover: boolean,
+    userRole?: UserRoleValue | null,
 ): Promise<RichPodLockAcquireResult> {
     const result = await db.runTransaction<{ acquired: boolean; lock: RichPodLockData }>(
         async (tx) => {
@@ -84,6 +86,7 @@ export async function acquireRichPodLock(
             if (data.editor.id !== userId) {
                 throw new Error("Unauthorized: You can only edit your own RichPods");
             }
+            assertHostedAccess(data, userRole);
 
             const now = Timestamp.now();
             const existing = data.lock ?? null;
@@ -113,6 +116,7 @@ export async function heartbeatRichPodLock(
     richPodId: string,
     userId: string,
     sessionId: string,
+    userRole?: UserRoleValue | null,
 ): Promise<RichPodLock> {
     const renewed = await db.runTransaction<RichPodLockData>(async (tx) => {
         const ref = db.collection(RICHPODS_COLLECTION).doc(richPodId);
@@ -124,6 +128,7 @@ export async function heartbeatRichPodLock(
         if (data.editor.id !== userId) {
             throw new Error("Unauthorized: You can only edit your own RichPods");
         }
+        assertHostedAccess(data, userRole);
         const existing = data.lock ?? null;
         if (!existing || existing.sessionId !== sessionId) {
             throw new Error(LOCK_LOST_ERROR);

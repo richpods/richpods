@@ -104,11 +104,11 @@ Roles are assigned manually via a CLI script on the server:
 pnpm --filter @richpods/server exec tsx scripts/set-user-role.ts <firebaseUid> <super_admin|editor|none>
 ```
 
-The underlying service (`server/src/services/role-claims.service.ts`) calls `adminAuth.setCustomUserClaims()` to write the `role` claim. On each API request, the server reads the role from the decoded ID token (`server/src/services/auth.service.ts`). Role changes take effect when the client presents a fresh ID token (e.g. after token refresh or re-login).
+The underlying service (`server/src/services/role-claims.service.ts`) calls `adminAuth.setCustomUserClaims()` to write the `role` claim. On each API request, the server reads the role from the decoded ID token (`server/src/services/auth.service.ts`). Role changes take effect when the client presents a fresh ID token (e.g. after token refresh or re-login). The server re-checks the role on every mutation that targets a hosted RichPod, so removing the role also freezes the user's existing hosted episodes: they can no longer be edited, published or deleted until the role is restored.
 
 ## Capabilities by Role
 
-The matrix below summarizes which actions are available to each role. Key distinctions: regular users without a verified feed cannot upload images or use Slideshow/Poll chapters, while Editors and Super Admins have full access to all chapter types and can create hosted podcasts.
+The matrix below summarizes which actions are available to each role. Key distinctions: regular users without a verified feed cannot upload images or use Slideshow/Poll chapters, while Editors and Super Admins have full access to all chapter types and can create and manage hosted podcasts.
 
 ```mermaid
 block-beta
@@ -126,9 +126,11 @@ block-beta
     row8["Slideshow & Poll (verified)"]:1 y20["✓"]:1 y21["✓"]:1 y22["✓"]:1
     row9["Create hosted podcast"]:1 n3["✗"]:1 y23["✓"]:1 y24["✓"]:1
     row10["Upload hosted episodes"]:1 n4["✗"]:1 y25["✓"]:1 y26["✓"]:1
+    row11["Edit, publish & delete hosted episodes"]:1 n5["✗"]:1 y27["✓"]:1 y28["✓"]:1
 
     style n1 fill:#fee,color:#c00
     style n2 fill:#fee,color:#c00
     style n3 fill:#fee,color:#c00
     style n4 fill:#fee,color:#c00
+    style n5 fill:#fee,color:#c00
 ```

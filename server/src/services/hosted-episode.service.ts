@@ -10,6 +10,7 @@ import type {
     HostedEpisodeDocument,
     HostedPodcastDocument,
     RichPodDocument,
+    UserRoleValue,
 } from "../types/firestore.js";
 import { ValidationStatus, RichPodState } from "../types/firestore.js";
 import { getUserReference } from "./user.service.js";
@@ -463,6 +464,7 @@ export async function getPublicPublishedEpisodes(
 export async function deleteHostedEpisode(
     episodeId: string,
     editorUserId: string,
+    userRole?: UserRoleValue | null,
 ): Promise<boolean> {
     const episodeRef = db.collection(HOSTED_EPISODES_COLLECTION).doc(episodeId);
     const episodeDoc = await episodeRef.get();
@@ -481,21 +483,10 @@ export async function deleteHostedEpisode(
 
     // Deleting a hosted episode must also remove its linked RichPod — the two
     // cannot exist without each other. deleteRichPod owns the full cascade
-    // (RichPod, this episode, its GCS files, validation record, enclosures).
+    // (RichPod, this episode, its GCS files, validation record, enclosures)
+    // and refuses to delete a published episode.
     if (episodeData.richPod) {
-        // Guard against deleting a published episode: the client only offers
-        // deletion for unpublished episodes, but a stale list or a direct call
-        // could target one whose RichPod was published meanwhile.
-        const richPodDoc = await episodeData.richPod.get();
-        if (richPodDoc.exists) {
-            const richPodData = richPodDoc.data() as RichPodDocument;
-            if (richPodData.state === RichPodState.PUBLISHED) {
-                throw new Error(
-                    "Cannot delete a published episode. Unpublish the RichPod before deleting it.",
-                );
-            }
-        }
-        return deleteRichPod(episodeData.richPod.id, editorUserId);
+        return deleteRichPod(episodeData.richPod.id, editorUserId, userRole);
     }
 
     const podcastId = episodeData.hostedPodcast.id;

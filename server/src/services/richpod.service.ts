@@ -5,6 +5,7 @@ import { getUserById, getUserReference } from "./user.service.js";
 import { fetchAndValidateFeed, storeFeedInGCS } from "./feed.service.js";
 import { resolveRichPodVerificationStatus } from "./verification.service.js";
 import { verifyLockHeldOrThrow } from "./lock.service.js";
+import { assertHostedAccess } from "./hosted-access.service.js";
 import type {
     ChapterDocument,
     Chapter,
@@ -299,6 +300,7 @@ export async function updateRichPod(
     updates: Partial<Omit<RichPodDocument, "createdAt" | "updatedAt" | "editor">>,
     editorUserId: string,
     sessionId: string,
+    userRole?: UserRoleValue | null,
 ): Promise<RichPod | null> {
     const docRef = db.collection(RICHPODS_COLLECTION).doc(id);
 
@@ -319,6 +321,7 @@ export async function updateRichPod(
         if (data.editor.id !== editorUserId) {
             throw new Error("Unauthorized: You can only edit your own RichPods");
         }
+        assertHostedAccess(data, userRole);
         verifyLockHeldOrThrow(data, sessionId);
 
         if (
@@ -370,6 +373,7 @@ export async function assertRichPodEditableBy(
     richPodId: string,
     editorUserId: string,
     sessionId: string,
+    userRole?: UserRoleValue | null,
 ): Promise<void> {
     const snap = await db.collection(RICHPODS_COLLECTION).doc(richPodId).get();
     if (!snap.exists) {
@@ -379,6 +383,7 @@ export async function assertRichPodEditableBy(
     if (data.editor.id !== editorUserId) {
         throw new Error("Unauthorized: You can only edit chapters of your own RichPods");
     }
+    assertHostedAccess(data, userRole);
     verifyLockHeldOrThrow(data, sessionId);
 }
 
@@ -411,6 +416,7 @@ export async function setChaptersForRichPod(
         if (richPodData.editor.id !== editorUserId) {
             throw new Error("Unauthorized: You can only edit chapters of your own RichPods");
         }
+        assertHostedAccess(richPodData, userRole);
         verifyLockHeldOrThrow(richPodData, sessionId);
 
         if (richPodData.state === FirestoreRichPodState.PUBLISHED && chapters.length === 0) {
@@ -503,7 +509,11 @@ async function getChaptersForRichPod(
 /**
  * Soft delete a RichPod
  */
-export async function deleteRichPod(id: string, editorUserId: string): Promise<boolean> {
+export async function deleteRichPod(
+    id: string,
+    editorUserId: string,
+    userRole?: UserRoleValue | null,
+): Promise<boolean> {
     const docRef = db.collection(RICHPODS_COLLECTION).doc(id);
     const doc = await docRef.get();
 
@@ -515,6 +525,16 @@ export async function deleteRichPod(id: string, editorUserId: string): Promise<b
 
     if (data.editor.id !== editorUserId) {
         throw new Error("Unauthorized: You can only delete your own RichPods");
+    }
+    assertHostedAccess(data, userRole);
+
+    // A hosted RichPod is the public feed item of its episode. Deleting it
+    // cascades into the episode and its audio, so a published one must be
+    // unpublished first, no matter which entry point requested the deletion.
+    if (data.isHosted && data.state === FirestoreRichPodState.PUBLISHED) {
+        throw new Error(
+            "Cannot delete a published episode. Unpublish the RichPod before deleting it.",
+        );
     }
 
     // Soft-delete the RichPod and drop any editor lock so a stale concurrent
