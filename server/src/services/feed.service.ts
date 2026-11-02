@@ -7,8 +7,8 @@ import {
     episodeExistsInFeed,
 } from "../validation/feed.js";
 import { GCS_IMMUTABLE_CACHE_CONTROL } from "../config/storage.js";
-import { parseFeed, RSS_ACCEPT_HEADERS } from "@richpods/shared/media/feed";
-import { fetchTextWithLimit } from "../utils/bounded-fetch.js";
+import { getMaxFeedSize, parseFeed, RSS_ACCEPT_HEADERS } from "@richpods/shared/media/feed";
+import { fetchTextWithLimit } from "@richpods/shared/utils/bounded-fetch";
 
 const storage = new Storage({
     projectId: process.env.GOOGLE_CLOUD_PROJECT,
@@ -36,6 +36,7 @@ export interface FetchFeedResult {
 export async function fetchFeed(feedUrl: string): Promise<FetchFeedResult> {
     const { body: feedContent } = await fetchTextWithLimit(feedUrl, {
         subject: "feed",
+        maxBytes: getMaxFeedSize(),
         timeoutMs: 5000,
         retryLimit: 1,
         headers: RSS_ACCEPT_HEADERS,

@@ -33,6 +33,14 @@
             "types": "./dist/utils/ssrf.d.ts",
             "import": "./dist/utils/ssrf.js"
         },
+        "./utils/bounded-fetch": {
+            "types": "./dist/utils/bounded-fetch.d.ts",
+            "import": "./dist/utils/bounded-fetch.js"
+        },
+        "./utils/fetch-error": {
+            "types": "./dist/utils/fetch-error.d.ts",
+            "import": "./dist/utils/fetch-error.js"
+        },
         "./media/types": {
             "types": "./dist/media/types.d.ts",
             "import": "./dist/media/types.js"
@@ -53,13 +61,17 @@
         "./components/*": "./components/*"
     },
     "scripts": {
-        "build": "tsc -p tsconfig.json"
+        "build": "tsc -p tsconfig.json",
+        "type-check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.tests.json",
+        "test": "tsc -p tsconfig.json && tsc -p tsconfig.tests.json && node --test \"tests/**/*.test.ts\""
     },
     "dependencies": {
+        "got": "15.0.1",
         "ipaddr.js": "2.4.0",
         "xml2js": "0.6.2"
     },
     "devDependencies": {
+        "@types/node": "catalog:",
         "@types/xml2js": "0.4.14",
         "typescript": "catalog:",
         "vue": "catalog:"

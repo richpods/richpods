@@ -24,7 +24,8 @@ type FixtureItem = {
 };
 
 type FixtureResponse = {
-    body: string;
+    statusCode: number;
+    rawBody: Buffer;
     headers: Record<string, string>;
 };
 
@@ -65,12 +66,14 @@ const renderPage = (feedHrefs: readonly string[]): string =>
 const candidateUrl = (index: number): string => `${ORIGIN}/candidate-${index}.xml`;
 
 const xmlResponse = (body: string): FixtureResponse => ({
-    body,
+    statusCode: 200,
+    rawBody: Buffer.from(body),
     headers: { "content-type": "application/rss+xml" },
 });
 
 const htmlResponse = (body: string): FixtureResponse => ({
-    body,
+    statusCode: 200,
+    rawBody: Buffer.from(body),
     headers: { "content-type": "text/html" },
 });
 

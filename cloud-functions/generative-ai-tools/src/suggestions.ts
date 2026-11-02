@@ -1,5 +1,6 @@
-import got, { type BeforeRedirectHook } from "got";
+import got from "got";
 import { v4 as uuidv4 } from "uuid";
+import { ssrfSafeRequestOptions } from "@richpods/shared/utils/bounded-fetch";
 import { assertSafePublicUrl } from "@richpods/shared/utils/ssrf";
 import { config } from "./config.js";
 import { disambiguateWikidata } from "./gemini.js";
@@ -38,18 +39,7 @@ const OFFICIAL_SITE_LABEL: Record<string, string> = {
     de: "Offizielle Website",
 };
 
-const HTTP_USER_AGENT =
-    "Mozilla/5.0 (compatible; RichPodsBot/1.0; +https://www.richpods.org)";
-
-/**
- * SSRF guard: re-validate the resolved target of every redirect so a public URL
- * cannot bounce the request onto an internal / metadata address.
- */
-const ssrfSafeRedirect: BeforeRedirectHook = async (options) => {
-    if (options.url) {
-        await assertSafePublicUrl(options.url.toString());
-    }
-};
+const HTTP_USER_AGENT = "Mozilla/5.0 (compatible; RichPodsBot/1.0; +https://www.richpods.org)";
 
 // A chapter spans until the next chapter begins, so consecutive chapters must
 // be at least this far apart to guarantee a minimum chapter length and prevent
@@ -103,10 +93,7 @@ function beginToSeconds(begin: string): number {
     const match = /^(\d+):(\d{2}):(\d{2})\.(\d{3})$/.exec(begin);
     if (!match) return 0;
     return (
-        Number(match[1]) * 3600 +
-        Number(match[2]) * 60 +
-        Number(match[3]) +
-        Number(match[4]) / 1000
+        Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]) + Number(match[4]) / 1000
     );
 }
 
@@ -595,7 +582,7 @@ async function fetchOpenGraph(url: string): Promise<CardOpenGraph | null> {
             followRedirect: true,
             responseType: "text",
             headers: { "user-agent": HTTP_USER_AGENT },
-            hooks: { beforeRedirect: [ssrfSafeRedirect] },
+            ...ssrfSafeRequestOptions,
         });
         const contentType = String(response.headers["content-type"] ?? "");
         if (!contentType.includes("text/html")) return null;
@@ -725,10 +712,7 @@ export async function buildSuggestions(
                 begin: normalizeBegin(link.begin),
                 enclosureType: EnclosureType.CARD,
                 enclosure: {
-                    title: truncate(
-                        link.title?.trim() || openGraph?.ogTitle?.trim() || url,
-                        200,
-                    ),
+                    title: truncate(link.title?.trim() || openGraph?.ogTitle?.trim() || url, 200),
                     cardType: "LINK",
                     visibleAsChapter: true,
                     url,

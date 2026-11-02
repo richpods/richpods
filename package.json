@@ -20,6 +20,7 @@
         "build:website": "pnpm --filter @richpods/website build",
         "build:functions": "pnpm --filter './cloud-functions/**' build",
         "build:all": "pnpm -r --if-present run build",
+        "test:shared": "pnpm --filter @richpods/shared test",
         "test:server": "pnpm --filter @richpods/server test",
         "test:player": "pnpm --filter @richpods/player test:unit",
         "lint": "pnpm -r --if-present run lint",

@@ -1,7 +1,7 @@
 import got from "got";
 import { toASCII } from "node:punycode";
 import * as cheerio from "cheerio";
-import { parseFeed } from "@richpods/shared/media/feed";
+import { getMaxFeedSize, parseFeed } from "@richpods/shared/media/feed";
 import { PodcastMetadata, PodcastEpisodeSearchResult } from "../graphql.js";
 import type {
     ParsedPodcast,
@@ -16,7 +16,7 @@ import {
     assertSafeRedirectTarget,
     ssrfSafeDnsLookup,
 } from "@richpods/shared/utils/ssrf";
-import { fetchTextWithLimit } from "../utils/bounded-fetch.js";
+import { fetchTextWithLimit } from "@richpods/shared/utils/bounded-fetch";
 
 const RP_USER_AGENT = "RichPods/1.0 (+https://richpods.org/bot)";
 
@@ -80,6 +80,7 @@ export async function extractFeedUrl(url: string): Promise<string> {
         // First check if the URL is already an RSS feed
         const response = await fetchTextWithLimit(normalizedUrl, {
             subject: "URL",
+            maxBytes: getMaxFeedSize(),
             timeoutMs: 5000,
             retryLimit: 1,
             headers: {
@@ -181,6 +182,7 @@ async function parsePodcastFeed(feedUrl: string): Promise<ParsedPodcast> {
         const normalizedUrl = normalizeUrl(feedUrl);
         const { body } = await fetchTextWithLimit(normalizedUrl, {
             subject: "podcast feed",
+            maxBytes: getMaxFeedSize(),
             timeoutMs: 15000,
             headers: { "User-Agent": RP_USER_AGENT },
         });

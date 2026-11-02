@@ -1,23 +1,13 @@
 import { spawn } from "node:child_process";
-import got, { type BeforeRedirectHook } from "got";
+import got from "got";
+import { fetchBufferWithLimit, ssrfSafeRequestOptions } from "@richpods/shared/utils/bounded-fetch";
 import { assertSafePublicUrl } from "@richpods/shared/utils/ssrf";
 import { logWarn } from "./log.js";
 
 const REQUEST_TIMEOUT_MS = 15000;
 const DOWNLOAD_TIMEOUT_MS = 120000;
 const SIZE_PROBE_MAX_BYTES = 1024;
-
-/**
- * SSRF guard: re-validate the resolved target of every redirect so a public URL
- * cannot bounce the request onto an internal / metadata address.
- */
-const ssrfSafeRedirect: BeforeRedirectHook = async (options) => {
-    if (options.url) {
-        await assertSafePublicUrl(options.url.toString());
-    }
-};
-
-const ssrfHooks = { beforeRedirect: [ssrfSafeRedirect] };
+const AUDIO_TOO_LARGE_MESSAGE = "The episode audio file is too large for AI chapter generation";
 
 const FFPROBE_TIMEOUT_MS = 60000;
 
@@ -132,9 +122,9 @@ export async function probeAudioDuration(
 
 /**
  * Download external audio bytes (after the security checks have passed) so they
- * can be uploaded to the Gemini Files API. A HEAD request determines the
- * Content-Length up front so an oversized file is rejected before any bytes are
- * downloaded into memory.
+ * can be uploaded to the Gemini Files API. The HEAD Content-Length only rejects an
+ * advertised oversized file early; the GET itself is aborted as soon as the body
+ * exceeds the size cap, whatever the host claimed.
  */
 export async function downloadExternalAudio(
     url: string,
@@ -146,23 +136,24 @@ export async function downloadExternalAudio(
         timeout: { request: REQUEST_TIMEOUT_MS },
         throwHttpErrors: false,
         followRedirect: true,
-        hooks: ssrfHooks,
+        ...ssrfSafeRequestOptions,
     });
     const contentLength = Number.parseInt(head.headers["content-length"] ?? "", 10);
     if (!Number.isFinite(contentLength) || contentLength <= 0) {
         throw new Error("Could not determine a valid audio file size");
     }
     if (contentLength > maxFileSizeBytes) {
-        throw new Error("The episode audio file is too large for AI chapter generation");
+        throw new Error(AUDIO_TOO_LARGE_MESSAGE);
     }
 
-    const response = await got(url, {
-        responseType: "buffer",
-        timeout: { request: DOWNLOAD_TIMEOUT_MS },
-        followRedirect: true,
-        hooks: ssrfHooks,
+    const { body } = await fetchBufferWithLimit(url, {
+        subject: "audio",
+        maxBytes: maxFileSizeBytes,
+        timeoutMs: DOWNLOAD_TIMEOUT_MS,
+        retryLimit: 0,
+        tooLargeMessage: AUDIO_TOO_LARGE_MESSAGE,
     });
-    return response.rawBody;
+    return body;
 }
 
 /**
@@ -186,7 +177,7 @@ export async function verifyExternalAudio(
         timeout: { request: REQUEST_TIMEOUT_MS },
         throwHttpErrors: false,
         followRedirect: true,
-        hooks: ssrfHooks,
+        ...ssrfSafeRequestOptions,
     });
     if (head.statusCode < 200 || head.statusCode >= 400) {
         throw new Error(`Audio URL returned HTTP ${head.statusCode} for HEAD request`);
@@ -197,7 +188,7 @@ export async function verifyExternalAudio(
         throw new Error("Could not determine a valid audio file size");
     }
     if (byteSize > maxFileSizeBytes) {
-        throw new Error("The episode audio file is too large for AI chapter generation");
+        throw new Error(AUDIO_TOO_LARGE_MESSAGE);
     }
 
     await assertAudioMagicBytes(url, declaredMimeType);
@@ -227,7 +218,7 @@ async function probeRemoteSize(url: string): Promise<number> {
                 timeout: { request: REQUEST_TIMEOUT_MS },
                 throwHttpErrors: false,
                 followRedirect: true,
-                hooks: ssrfHooks,
+                ...ssrfSafeRequestOptions,
             });
         } catch (error) {
             const normalized = error instanceof Error ? error : new Error(String(error));
@@ -264,7 +255,10 @@ async function probeRemoteSize(url: string): Promise<number> {
 
         stream.once("end", () => {
             if (!settled) {
-                settle({ ok: false, error: new Error("Audio URL did not return a valid range response") });
+                settle({
+                    ok: false,
+                    error: new Error("Audio URL did not return a valid range response"),
+                });
             }
         });
     });
@@ -322,21 +316,21 @@ async function assertAudioMagicBytes(url: string, mimeType: string): Promise<voi
     const check = MAGIC_BYTE_CHECKS[mimeType];
     if (!check) return;
 
-    const response = await got(url, {
+    const { body } = await fetchBufferWithLimit(url, {
+        subject: "audio header",
+        maxBytes: SIZE_PROBE_MAX_BYTES,
+        timeoutMs: REQUEST_TIMEOUT_MS,
+        retryLimit: 0,
+        tooLargeMessage: "Audio header probe exceeded the maximum response size",
         headers: { range: "bytes=0-11" },
-        responseType: "buffer",
-        timeout: { request: REQUEST_TIMEOUT_MS },
         throwHttpErrors: false,
-        followRedirect: true,
-        hooks: ssrfHooks,
     });
 
-    const bytes = response.rawBody;
-    if (!bytes || bytes.length < 2) {
+    if (body.length < 2) {
         throw new Error("Could not read audio file header");
     }
 
-    if (!check(bytes)) {
+    if (!check(body)) {
         throw new Error(`The referenced file does not match the expected ${mimeType} audio format`);
     }
 }
