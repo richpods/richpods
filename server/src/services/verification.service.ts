@@ -3,6 +3,8 @@ import { ServerClient } from "postmark";
 import { FieldValue, DocumentReference } from "@google-cloud/firestore";
 import { db, VERIFICATIONS_COLLECTION } from "../config/firestore.js";
 import { fetchFeedForVerification } from "./feed.service.js";
+import { consumeVerificationEmailSlot } from "./rate-limit.service.js";
+import { verificationConfig } from "../config/verification.js";
 import {
     VerificationDocument,
     VerificationRequestState,
@@ -11,8 +13,6 @@ import {
 import { getUserReference } from "./user.service.js";
 import type { PaginatedResult } from "../utils/pagination.js";
 import { ValidationError } from "../validation/validator.js";
-
-const VERIFICATION_TIMEOUT_MS = 10 * 60 * 1000;
 
 const POSTMARK_SERVER_TOKEN = process.env.POSTMARK_SERVER_TOKEN;
 const POSTMARK_FROM_EMAIL = process.env.POSTMARK_FROM_EMAIL;
@@ -109,7 +109,7 @@ async function sendVerificationEmail(to: string, code: string, feedUrl: string) 
 function mapVerification(docId: string, data: VerificationDocument): VerificationRecord {
     const createdAt = data.createdAt.toDate();
     const verificationTimestamp = data.verificationTimestamp ? data.verificationTimestamp.toDate() : null;
-    const expiresAt = new Date(createdAt.getTime() + VERIFICATION_TIMEOUT_MS);
+    const expiresAt = new Date(createdAt.getTime() + verificationConfig.requestTtlMs);
     return {
         id: docId,
         feedUrl: data.feedUrl,
@@ -134,7 +134,7 @@ async function markExpiredPendingAsFailed(userRef: DocumentReference, now = new 
         if (!createdAt) {
             return;
         }
-        const isExpired = now.getTime() - createdAt.getTime() >= VERIFICATION_TIMEOUT_MS;
+        const isExpired = now.getTime() - createdAt.getTime() >= verificationConfig.requestTtlMs;
         if (isExpired) {
             await doc.ref.update({
                 state: VerificationRequestState.FAILED,
@@ -146,13 +146,12 @@ async function markExpiredPendingAsFailed(userRef: DocumentReference, now = new 
     await Promise.all(updates);
 }
 
-async function ensureNoRecentPending(userRef: DocumentReference): Promise<void> {
+async function ensureNoRecentVerification(userRef: DocumentReference): Promise<void> {
     await markExpiredPendingAsFailed(userRef);
 
     const snapshot = await db
         .collection(VERIFICATIONS_COLLECTION)
         .where("user", "==", userRef)
-        .where("state", "==", VerificationRequestState.PENDING)
         .orderBy("createdAt", "desc")
         .limit(1)
         .get();
@@ -161,28 +160,23 @@ async function ensureNoRecentPending(userRef: DocumentReference): Promise<void> 
         return;
     }
 
-    const doc = snapshot.docs[0];
-    const data = doc.data() as VerificationDocument;
+    const data = snapshot.docs[0].data() as VerificationDocument;
     const createdAt = data.createdAt?.toDate();
     if (!createdAt) {
         return;
     }
 
-    const now = new Date();
-    const diff = now.getTime() - createdAt.getTime();
-    if (diff < VERIFICATION_TIMEOUT_MS) {
-        throw new Error("A verification is already pending. Please wait up to 10 minutes before starting a new verification.");
+    if (Date.now() - createdAt.getTime() < verificationConfig.requestTtlMs) {
+        const ttlMinutes = Math.round(verificationConfig.requestTtlMs / 60_000);
+        throw new Error(
+            `Only one verification every ${ttlMinutes} minutes is allowed. Please wait before starting a new verification.`,
+        );
     }
-
-    await doc.ref.update({
-        state: VerificationRequestState.FAILED,
-        verificationTimestamp: FieldValue.serverTimestamp(),
-    });
 }
 
 export async function startVerification(userId: string, feedUrl: string): Promise<VerificationRecord> {
     const userRef = getUserReference(userId);
-    await ensureNoRecentPending(userRef);
+    await ensureNoRecentVerification(userRef);
 
     const { parsedFeed } = await fetchFeedForVerification(feedUrl);
     const email = extractEmailFromFeed(parsedFeed);
@@ -191,9 +185,13 @@ export async function startVerification(userId: string, feedUrl: string): Promis
         throw new Error("No valid itunes:email could be found in the RSS feed.");
     }
 
-    const code = generateVerificationCode();
-    await sendVerificationEmail(email, code, feedUrl);
+    const rateLimit = await consumeVerificationEmailSlot();
+    if (!rateLimit.ok) {
+        console.warn("Verification e-mail global rate limit exceeded");
+        throw new Error("Too many verification requests. Please try again later.");
+    }
 
+    const code = generateVerificationCode();
     const docRef = await db.collection(VERIFICATIONS_COLLECTION).add({
         user: userRef,
         feedUrl,
@@ -202,6 +200,13 @@ export async function startVerification(userId: string, feedUrl: string): Promis
         state: VerificationRequestState.PENDING,
         createdAt: FieldValue.serverTimestamp(),
     });
+
+    try {
+        await sendVerificationEmail(email, code, feedUrl);
+    } catch (error) {
+        await docRef.delete();
+        throw error;
+    }
 
     const created = await docRef.get();
     const data = created.data() as VerificationDocument;
@@ -241,7 +246,7 @@ export async function completeVerification(
     }
 
     const now = new Date();
-    const isExpired = now.getTime() - createdAt.getTime() >= VERIFICATION_TIMEOUT_MS;
+    const isExpired = now.getTime() - createdAt.getTime() >= verificationConfig.requestTtlMs;
     if (isExpired) {
         await doc.ref.update({
             state: VerificationRequestState.FAILED,

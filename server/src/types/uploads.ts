@@ -9,5 +9,3 @@ export type UploadedFile = {
     size: number;
     originalname?: string;
 };
-
-export type RateLimitScope = "user" | "global";
