@@ -4,6 +4,7 @@ import { User } from "../graphql.js";
 import type { UserRoleValue } from "../types/firestore.js";
 import { isPrivilegedRole } from "@richpods/shared/utils/roles";
 import { HOSTED_ACCESS_ERROR } from "../services/access.service.js";
+import { AUTHENTICATION_REQUIRED_MESSAGE } from "./graphql-security.js";
 
 export type AuthContext = {
     user?: User | null;
@@ -40,7 +41,7 @@ export async function createAuthContext(req: Request): Promise<AuthContext> {
 
 export function requireAuth(context: AuthContext): string {
     if (!context.userId || !context.user) {
-        throw new Error("Authentication required");
+        throw new Error(AUTHENTICATION_REQUIRED_MESSAGE);
     }
     return context.userId;
 }

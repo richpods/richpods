@@ -3,6 +3,7 @@ import {
     Kind,
     type ASTVisitor,
     type DocumentNode,
+    type FieldNode,
     type FragmentDefinitionNode,
     type SelectionSetNode,
     type ValidationContext,
@@ -104,4 +105,132 @@ export function maskSystemErrors(error: Readonly<GraphQLError | Error>): GraphQL
         path: error.path,
         positions: error.positions,
     });
+}
+
+/**
+ * Root fields that may be executed without a signed-in user: what the website
+ * and the player need, plus the mutations that establish a session.
+ */
+export const PUBLIC_ROOT_FIELDS: ReadonlySet<string> = new Set([
+    "richPod",
+    "recentPublishedRichPods",
+    "publicHostedPodcast",
+    "publicHostedPodcastEpisodes",
+    "signUp",
+    "signIn",
+    "signInWithGoogle",
+]);
+
+export const AUTHENTICATION_REQUIRED_MESSAGE = "Authentication required";
+
+/**
+ * No client of this API uses aliases. Rejecting them removes the cheapest way
+ * to repeat the same root field many times within a single operation.
+ */
+export function createNoAliasesRule(): ValidationRule {
+    return (context: ValidationContext): ASTVisitor => ({
+        Field(node: FieldNode) {
+            if (node.alias) {
+                context.reportError(
+                    new GraphQLError(
+                        `Field aliases are not allowed ("${node.alias.value}: ${node.name.value}")`,
+                        { nodes: node },
+                    ),
+                );
+            }
+        },
+    });
+}
+
+function collectFragmentDefinitions(document: DocumentNode): Map<string, FragmentDefinitionNode> {
+    const fragments = new Map<string, FragmentDefinitionNode>();
+    for (const definition of document.definitions) {
+        if (definition.kind === Kind.FRAGMENT_DEFINITION) {
+            fragments.set(definition.name.value, definition);
+        }
+    }
+    return fragments;
+}
+
+function collectRootFields(
+    selectionSet: SelectionSetNode,
+    fragments: ReadonlyMap<string, FragmentDefinitionNode>,
+    visitedFragments: ReadonlySet<string> = new Set(),
+): FieldNode[] {
+    return selectionSet.selections.flatMap((selection): FieldNode[] => {
+        if (selection.kind === Kind.FIELD) {
+            return [selection];
+        }
+        if (selection.kind === Kind.INLINE_FRAGMENT) {
+            return collectRootFields(selection.selectionSet, fragments, visitedFragments);
+        }
+        const fragment = fragments.get(selection.name.value);
+        if (!fragment || visitedFragments.has(selection.name.value)) {
+            return [];
+        }
+        return collectRootFields(
+            fragment.selectionSet,
+            fragments,
+            new Set([...visitedFragments, selection.name.value]),
+        );
+    });
+}
+
+/**
+ * Validation rule for unauthenticated requests: every root field of every
+ * operation must be in `publicFields`, otherwise the whole document is
+ * rejected before anything is executed.
+ */
+export function createPublicFieldsOnlyRule(publicFields: ReadonlySet<string>): ValidationRule {
+    return (context: ValidationContext): ASTVisitor => ({
+        Document(document: DocumentNode) {
+            const fragments = collectFragmentDefinitions(document);
+            for (const definition of document.definitions) {
+                if (definition.kind !== Kind.OPERATION_DEFINITION) {
+                    continue;
+                }
+                for (const field of collectRootFields(definition.selectionSet, fragments)) {
+                    const name = field.name.value;
+                    if (name.startsWith("__") || publicFields.has(name)) {
+                        continue;
+                    }
+                    context.reportError(
+                        new GraphQLError(`${AUTHENTICATION_REQUIRED_MESSAGE} for field "${name}"`, {
+                            nodes: field,
+                        }),
+                    );
+                }
+            }
+        },
+    });
+}
+
+type RootValue = Record<string, unknown>;
+
+/**
+ * Second line of defence behind `createPublicFieldsOnlyRule`: root resolvers
+ * outside `publicFields` refuse to run for unauthenticated callers even if the
+ * validation step is ever bypassed or misconfigured.
+ */
+export function requireAuthForPrivateRootFields(
+    rootValue: RootValue,
+    isAuthenticated: boolean,
+    publicFields: ReadonlySet<string>,
+): RootValue {
+    if (isAuthenticated) {
+        return rootValue;
+    }
+    return Object.fromEntries(
+        Object.entries(rootValue).map(([name, resolver]) => {
+            if (typeof resolver !== "function" || publicFields.has(name)) {
+                return [name, resolver];
+            }
+            return [
+                name,
+                () => {
+                    throw new Error(AUTHENTICATION_REQUIRED_MESSAGE);
+                },
+            ];
+        }),
+    );
 }

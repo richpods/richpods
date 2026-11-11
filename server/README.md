@@ -102,6 +102,16 @@ are not affected by this setting.
 Override the default via the `JSON_BODY_LIMIT_BYTES` environment variable (in
 bytes, minimum 100,000).
 
+## GraphQL access control and rate limits
+
+Unauthenticated callers can only execute the public queries used by the website
+and the player; everything else requires a signed-in user. Field aliases are
+rejected, and every request counts against a per-IP rate limit, signed-in users
+additionally against a per-user limit (HTTP 429 with `Retry-After` when
+exceeded). Defaults can be overridden with
+`GRAPHQL_RATE_LIMIT_PER_USER`, `GRAPHQL_RATE_LIMIT_PER_IP` and
+`TRUST_PROXY_HOPS`, see `.env.example`.
+
 ## Upload quota caveats
 
 Current upload quota enforcement is best-effort and has two known limitations:

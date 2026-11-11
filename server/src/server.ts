@@ -8,13 +8,27 @@ import { buildSchema, NoSchemaIntrospectionCustomRule } from "graphql";
 import { JSONResolver, GraphQLGeoJSON } from "graphql-scalars";
 import { createResolvers } from "./resolvers.js";
 import { createAuthContext } from "./middleware/auth.js";
-import { createMaxDepthRule, maskSystemErrors } from "./middleware/graphql-security.js";
+import {
+    createMaxDepthRule,
+    createNoAliasesRule,
+    createPublicFieldsOnlyRule,
+    maskSystemErrors,
+    PUBLIC_ROOT_FIELDS,
+    requireAuthForPrivateRootFields,
+} from "./middleware/graphql-security.js";
+import {
+    enforceGraphqlIpRateLimit,
+    enforceGraphqlUserRateLimit,
+    isAuthenticated,
+} from "./middleware/graphql-rate-limit.js";
 import { uploadRouter } from "./routes/upload.router.js";
 import { hostedRouter } from "./routes/hosted.router.js";
 import { ogRouter } from "./routes/og.router.js";
 import { audioRouter } from "./routes/audio.router.js";
 import { parseIntEnv } from "./utils/env.js";
 import { hostingConfig } from "./config/hosting.js";
+import { graphqlConfig } from "./config/graphql.js";
+import { proxyConfig } from "./config/proxy.js";
 import { verifySigningCapability } from "./services/hosted-storage.service.js";
 
 // Validate required environment variables at startup
@@ -74,6 +88,10 @@ const instanceInfo = {
     },
 };
 const app = express();
+
+// Without this, every request behind Cloud Run's proxy would share the proxy's
+// IP and the per-IP rate limits would collapse into a single bucket.
+app.set("trust proxy", proxyConfig.trustProxyHops);
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -136,31 +154,44 @@ app.use("/api/v1/hosted", hostedRouter);
 app.use("/api/v1/og", ogRouter);
 app.use("/api/v1/audio", audioRouter);
 
-const graphqlMaxDepth = parseIntEnv("GRAPHQL_MAX_DEPTH", 12, { min: 1 });
 const graphqlValidationRules = [
-    createMaxDepthRule(graphqlMaxDepth),
+    createMaxDepthRule(graphqlConfig.maxDepth),
+    createNoAliasesRule(),
     ...(isProduction ? [NoSchemaIntrospectionCustomRule] : []),
 ];
+const publicFieldsOnlyRule = createPublicFieldsOnlyRule(PUBLIC_ROOT_FIELDS);
 
-app.all(
-    "/graphql",
-    async (req, res, next) => {
-        const auth = await createAuthContext(req);
-        const handler = createHandler({
-            schema,
-            validationRules: graphqlValidationRules,
-            formatError: isProduction ? maskSystemErrors : (error) => error,
-            rootValue: {
+app.all("/graphql", async (req, res, next) => {
+    if (!(await enforceGraphqlIpRateLimit(req, res))) {
+        return;
+    }
+
+    const auth = await createAuthContext(req);
+    if (!(await enforceGraphqlUserRateLimit(auth, res))) {
+        return;
+    }
+
+    const authenticated = isAuthenticated(auth);
+    const handler = createHandler({
+        schema,
+        validationRules: authenticated
+            ? graphqlValidationRules
+            : [...graphqlValidationRules, publicFieldsOnlyRule],
+        formatError: isProduction ? maskSystemErrors : (error) => error,
+        rootValue: requireAuthForPrivateRootFields(
+            {
                 ...createResolvers(req, auth),
                 instanceInfo: () => instanceInfo,
                 // Add scalar resolvers
                 JSON: JSONResolver,
                 GeoJSON: GraphQLGeoJSON,
             },
-        });
-        return handler(req, res, next);
-    }
-);
+            authenticated,
+            PUBLIC_ROOT_FIELDS,
+        ),
+    });
+    return handler(req, res, next);
+});
 
 if (!isProduction) {
     app.get("/", (_req, res) => {

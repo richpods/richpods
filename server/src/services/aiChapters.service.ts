@@ -8,7 +8,7 @@ import {
     TRANSCRIPT_GENERATIONS_COLLECTION,
     TRANSCRIPTIONS_COLLECTION,
 } from "../config/firestore.js";
-import { geminiConfig } from "../config/gemini.js";
+import { aiGenerationConfig, geminiConfig } from "../config/gemini.js";
 import { cloudTasksConfig, genAiTasksQueue } from "../config/tasks.js";
 import {
     ChapterGenerationState as FsChapterGenerationState,
@@ -30,6 +30,7 @@ import { mapEnclosureToGraphQL } from "./richpod.service.js";
 import { getUserReference } from "./user.service.js";
 import { getHostedEpisodeDoc } from "./hosted-episode.service.js";
 import { downloadTranscriptObject } from "./storage.service.js";
+import { consumeAiGenerationSlot } from "./rate-limit.service.js";
 
 type GenerationMode = "transcript" | "chapters";
 type StoredTranscriptSegment = {
@@ -172,8 +173,9 @@ async function enqueueChapterGeneration(
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: payloadBody,
-        }).catch((error) => {
+        }).catch(async (error) => {
             console.error("Direct chapter-generation invocation failed:", error);
+            await markDispatchFailed(mode, richPodId);
         });
         return;
     }
@@ -225,28 +227,95 @@ type GenerationStatusCollection =
     | typeof CHAPTER_GENERATIONS_COLLECTION
     | typeof TRANSCRIPT_GENERATIONS_COLLECTION;
 
+const GENERATION_COLLECTION: Record<GenerationMode, GenerationStatusCollection> = {
+    transcript: TRANSCRIPT_GENERATIONS_COLLECTION,
+    chapters: CHAPTER_GENERATIONS_COLLECTION,
+};
+
+const IN_FLIGHT_STATES: ReadonlySet<ChapterGenerationStateValue> = new Set([
+    FsChapterGenerationState.PENDING,
+    FsChapterGenerationState.TRANSCRIBING,
+    FsChapterGenerationState.GENERATING,
+]);
+
+function isInFlight(data: ChapterGenerationDocument, nowMs: number): boolean {
+    const updatedAtMs = data.updatedAt?.toMillis();
+    return (
+        IN_FLIGHT_STATES.has(data.state) &&
+        updatedAtMs !== undefined &&
+        nowMs - updatedAtMs < aiGenerationConfig.inFlightTimeoutMs
+    );
+}
+
 /**
- * Write (or reset) the pending status document the editor polls. Transcript and
- * chapter jobs use separate collections so their progress can never overwrite
- * each other; the shape is identical, so writing to Firestore is shared.
+ * Only a job that is still pending is marked failed: a dispatch error can also
+ * surface after the function has started, and failing that job would let a
+ * duplicate run start.
  */
-async function writePendingStatus(
-    collection: GenerationStatusCollection,
+async function markDispatchFailed(mode: GenerationMode, richPodId: string): Promise<void> {
+    const docRef = db.collection(GENERATION_COLLECTION[mode]).doc(richPodId);
+    try {
+        await db.runTransaction(async (tx) => {
+            const snap = await tx.get(docRef);
+            if (snap.data()?.state !== FsChapterGenerationState.PENDING) {
+                return;
+            }
+            tx.update(docRef, {
+                state: FsChapterGenerationState.FAILED,
+                error: "The generation job could not be started. Please try again later.",
+                updatedAt: FieldValue.serverTimestamp(),
+            });
+        });
+    } catch (writeError) {
+        console.error("Could not record generation dispatch failure:", writeError);
+    }
+}
+
+/**
+ * Claim the pending status document the editor polls and enqueue the job. When
+ * a job for this RichPod is still in flight, nothing is written or enqueued and
+ * its current status is returned instead. Transcript and chapter jobs use
+ * separate collections so their progress can never overwrite each other.
+ */
+async function startGenerationJob(
+    mode: GenerationMode,
     richPodId: string,
     userId: string,
 ): Promise<ChapterGenerationStatus> {
-    const docRef = db.collection(collection).doc(richPodId);
-    const existing = await docRef.get();
+    const rateLimit = await consumeAiGenerationSlot(userId);
+    if (!rateLimit.ok) {
+        throw new Error("Too many requests. Please try again later.");
+    }
 
-    await docRef.set({
-        richPod: db.collection(RICHPODS_COLLECTION).doc(richPodId),
-        requestedBy: getUserReference(userId),
-        state: FsChapterGenerationState.PENDING,
-        error: null,
-        suggestions: [],
-        createdAt: existing.exists ? existing.data()!.createdAt : FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
+    const docRef = db.collection(GENERATION_COLLECTION[mode]).doc(richPodId);
+    const inFlight = await db.runTransaction(async (tx) => {
+        const snap = await tx.get(docRef);
+        const existing = snap.exists ? (snap.data() as ChapterGenerationDocument) : null;
+        if (existing && isInFlight(existing, Date.now())) {
+            return existing;
+        }
+
+        tx.set(docRef, {
+            richPod: db.collection(RICHPODS_COLLECTION).doc(richPodId),
+            requestedBy: getUserReference(userId),
+            state: FsChapterGenerationState.PENDING,
+            error: null,
+            suggestions: [],
+            createdAt: existing?.createdAt ?? FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+        });
+        return null;
     });
+    if (inFlight) {
+        return mapStatus(inFlight);
+    }
+
+    try {
+        await enqueueChapterGeneration(richPodId, userId, mode);
+    } catch (error) {
+        await markDispatchFailed(mode, richPodId);
+        throw error;
+    }
 
     const written = await docRef.get();
     return mapStatus(written.data() as ChapterGenerationDocument);
@@ -342,9 +411,7 @@ export async function startChapterGeneration(
         );
     }
 
-    const status = await writePendingStatus(CHAPTER_GENERATIONS_COLLECTION, richPodId, userId);
-    await enqueueChapterGeneration(richPodId, userId, "chapters");
-    return status;
+    return startGenerationJob("chapters", richPodId, userId);
 }
 
 export async function recordChapterGenerationBaseline(
@@ -380,9 +447,7 @@ export async function startTranscriptGeneration(
 
     assertAudioEligible(await resolveAudioInfo(data));
 
-    const status = await writePendingStatus(TRANSCRIPT_GENERATIONS_COLLECTION, richPodId, userId);
-    await enqueueChapterGeneration(richPodId, userId, "transcript");
-    return status;
+    return startGenerationJob("transcript", richPodId, userId);
 }
 
 export async function getChapterGenerationStatus(
