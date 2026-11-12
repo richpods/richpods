@@ -288,8 +288,18 @@ export const chapterInputSchema = Joi.object({
     }),
 });
 
+export const MAX_CHAPTERS_PER_RICHPOD = 200;
+export const TOO_MANY_CHAPTERS_MESSAGE = `A RichPod cannot have more than ${MAX_CHAPTERS_PER_RICHPOD} chapters`;
+
 export const setChaptersInputSchema = Joi.object({
-    chapters: Joi.array().items(chapterInputSchema).min(0).required(),
+    chapters: Joi.array()
+        .items(chapterInputSchema)
+        .min(0)
+        .max(MAX_CHAPTERS_PER_RICHPOD)
+        .required()
+        .messages({
+            "array.max": TOO_MANY_CHAPTERS_MESSAGE,
+        }),
 });
 
 export const startVerificationSchema = Joi.object({

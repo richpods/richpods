@@ -6,6 +6,7 @@ import { fetchAndValidateFeed, storeFeedInGCS } from "./feed.service.js";
 import { resolveRichPodVerificationStatus } from "./verification.service.js";
 import { verifyLockHeldOrThrow } from "./lock.service.js";
 import { assertEditorAccess } from "./access.service.js";
+import { assertChapterCountWithinLimit, assertChapterSetAllowed } from "./richpod/chapter-set.js";
 import type {
     ChapterDocument,
     Chapter,
@@ -30,7 +31,6 @@ import type {
     RichPod,
     User,
 } from "../graphql.js";
-import { isPrivilegedRole } from "@richpods/shared/utils/roles";
 import { geminiConfig } from "../config/gemini.js";
 import type { PaginatedResult } from "../utils/pagination.js";
 import { ValidationError } from "../validation/validator.js";
@@ -377,17 +377,19 @@ export async function updateRichPod(
 }
 
 /**
- * Pre-flight ownership and lock check for operations that produce side
- * effects outside Firestore (e.g. GCS uploads) before entering the
- * authoritative transaction. The transaction must still re-check, but this
- * prevents unauthorized callers from creating those side effects at all.
+ * Pre-flight ownership, lock and chapter-set check for operations that
+ * produce side effects outside Firestore (e.g. GCS uploads) before entering
+ * the authoritative transaction. The transaction must still re-check, but this
+ * prevents rejected chapter sets from creating those side effects at all.
  */
 export async function assertRichPodEditableBy(
     richPodId: string,
     editorUserId: string,
     sessionId: string,
+    chapters: ReadonlyArray<Pick<Chapter, "enclosureType">>,
     userRole?: UserRoleValue | null,
 ): Promise<void> {
+    assertChapterCountWithinLimit(chapters.length);
     const snap = await db.collection(RICHPODS_COLLECTION).doc(richPodId).get();
     if (!snap.exists) {
         throw new Error("RichPod not found");
@@ -395,12 +397,15 @@ export async function assertRichPodEditableBy(
     const data = snap.data() as RichPodDocument;
     assertEditorAccess(data, editorUserId, userRole, "chapter edit");
     verifyLockHeldOrThrow(data, sessionId);
+    assertChapterSetAllowed(data, chapters, userRole);
 }
 
 /**
  * Add a new chapter version to a RichPod. Atomically verifies the caller
  * holds the editor lock for the supplied sessionId — concurrent editors
  * with stale locks cannot overwrite each other's chapter sets.
+ * `onCommitAttempt` fires once all checks passed and Firestore is about to
+ * commit; from then on a failure may still have persisted the version.
  */
 export async function setChaptersForRichPod(
     richPodId: string,
@@ -408,7 +413,9 @@ export async function setChaptersForRichPod(
     editorUserId: string,
     sessionId: string,
     userRole?: UserRoleValue | null,
+    onCommitAttempt?: () => void,
 ): Promise<string> {
+    assertChapterCountWithinLimit(chapters.length);
     const richPodRef = db.collection(RICHPODS_COLLECTION).doc(richPodId);
     const chaptersCollection = richPodRef.collection(CHAPTERS_SUBCOLLECTION);
 
@@ -425,21 +432,7 @@ export async function setChaptersForRichPod(
         const richPodData = richPodSnap.data() as RichPodDocument;
         assertEditorAccess(richPodData, editorUserId, userRole, "chapter edit");
         verifyLockHeldOrThrow(richPodData, sessionId);
-
-        if (richPodData.state === FirestoreRichPodState.PUBLISHED && chapters.length === 0) {
-            throw new Error("Cannot remove all chapters from a published RichPod");
-        }
-
-        const requiresVerification =
-            !isPrivilegedRole(userRole) &&
-            chapters.some(
-                (ch) =>
-                    ch.enclosureType === EnclosureType.SLIDESHOW ||
-                    ch.enclosureType === EnclosureType.POLL,
-            );
-        if (requiresVerification && !richPodData.origin.verified) {
-            throw new Error("Slideshow and Poll chapters require podcast verification");
-        }
+        assertChapterSetAllowed(richPodData, chapters, userRole);
 
         const nextVersion = latestSnap.empty
             ? 1
@@ -454,6 +447,7 @@ export async function setChaptersForRichPod(
 
         tx.update(richPodRef, { updatedAt: FieldValue.serverTimestamp() });
 
+        onCommitAttempt?.();
         return docRef.id;
     });
 }

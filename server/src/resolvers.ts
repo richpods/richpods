@@ -9,7 +9,11 @@ import {
     assertRichPodEditableBy,
 } from "./services/richpod.service.js";
 import { refreshRichPodMediaForEditor } from "./services/media-check.service.js";
-import { uploadEnclosure } from "./services/storage.service.js";
+import { deleteEnclosure, uploadEnclosure } from "./services/storage.service.js";
+import {
+    assertChapterCountWithinLimit,
+    uploadAndCommitChapters,
+} from "./services/richpod/chapter-set.js";
 import { RichPodState, type Enclosure } from "./types/firestore.js";
 import {
     signUpWithEmailPassword,
@@ -79,7 +83,7 @@ import {
 import { updateHostedPodcastInputSchema } from "./validation/hosted-schemas.js";
 import { type AuthContext, requireAuth, requirePrivilegedAuth } from "./middleware/auth.js";
 import { resolvePageSize } from "./utils/pagination.js";
-import type { EnclosureTypeValue, Chapter as ChapterFS } from "./types/firestore.js";
+import type { EnclosureTypeValue } from "./types/firestore.js";
 import {
     RichPod,
     User,
@@ -377,30 +381,45 @@ export function createResolvers(req: Request, auth: AuthContext) {
                 sessionId,
                 "sessionId",
             );
+            if (Array.isArray(chapters)) {
+                assertChapterCountWithinLimit(chapters.length);
+            }
             const validatedInput = validate<{
-                chapters: Array<{ begin: string; enclosureType: string; enclosure: unknown }>;
+                chapters: Array<{
+                    begin: string;
+                    enclosureType: EnclosureTypeValue;
+                    enclosure: Enclosure;
+                }>;
             }>(setChaptersInputSchema, { chapters });
 
             // The enclosure uploads below write to GCS outside the chapter
-            // transaction, so ownership and lock must be verified first;
+            // transaction, so every deterministic rejection must happen first;
             // otherwise rejected callers would still leave objects behind.
-            await assertRichPodEditableBy(validatedId, userId, validatedSessionId, auth.role);
-
-            const fsChapters: ChapterFS[] = [];
-            for (const ch of validatedInput.chapters) {
-                const type = ch.enclosureType as EnclosureTypeValue;
-                // Validation has verified this is a valid Enclosure
-                const gcsName = await uploadEnclosure(validatedId, type, ch.enclosure as Enclosure);
-                fsChapters.push({ begin: ch.begin, enclosureType: type, gcsName });
-            }
-
-            await setChaptersForRichPod(
+            await assertRichPodEditableBy(
                 validatedId,
-                fsChapters,
                 userId,
                 validatedSessionId,
+                validatedInput.chapters,
                 auth.role,
             );
+
+            await uploadAndCommitChapters(validatedInput.chapters, {
+                upload: async (ch) => ({
+                    begin: ch.begin,
+                    enclosureType: ch.enclosureType,
+                    gcsName: await uploadEnclosure(validatedId, ch.enclosureType, ch.enclosure),
+                }),
+                commit: (fsChapters, markCommitAttempted) =>
+                    setChaptersForRichPod(
+                        validatedId,
+                        fsChapters,
+                        userId,
+                        validatedSessionId,
+                        auth.role,
+                        markCommitAttempted,
+                    ),
+                remove: deleteEnclosure,
+            });
             return getRichPodById(
                 validatedId,
                 [RichPodState.PUBLISHED, RichPodState.DRAFT],
