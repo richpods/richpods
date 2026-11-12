@@ -11,7 +11,8 @@ import {
     getUploadRecord,
     saveUploadToGcs,
 } from "../services/upload.service.js";
-import { createAuthContext } from "../middleware/auth.js";
+import { createAuthContext, type AuthContext } from "../middleware/auth.js";
+import type { User } from "../graphql.js";
 import { db, RICHPODS_COLLECTION, USERS_COLLECTION } from "../config/firestore.js";
 import type { RichPodDocument, UserDocument } from "../types/firestore.js";
 import { UploadType, RichPodState } from "../types/firestore.js";
@@ -50,6 +51,29 @@ function logUploadSuccess(uploadId: string, { ip, userId, richPodId }: UploadCon
     );
 }
 
+type UploadAuth = {
+    user: User;
+    role: AuthContext["role"];
+};
+
+type UploadAuthRequest = Request & {
+    uploadAuth?: UploadAuth;
+};
+
+async function requireUploadAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const auth = await createAuthContext(req);
+    if (!auth.userId || !auth.user) {
+        logUploadFailure(auth.token ? "invalid token" : "missing bearer token", {
+            ip: req.ip ?? "unknown",
+        });
+        res.status(401).json({ error: "Authentication required" });
+        return;
+    }
+
+    (req as UploadAuthRequest).uploadAuth = { user: auth.user, role: auth.role };
+    next();
+}
+
 async function getRichPodDocument(richPodId: string): Promise<RichPodDocument | null> {
     const doc = await db.collection(RICHPODS_COLLECTION).doc(richPodId).get();
     if (!doc.exists) {
@@ -68,6 +92,7 @@ async function getUserDocument(userId: string): Promise<UserDocument | null> {
 
 uploadRouter.post(
     "/",
+    requireUploadAuth,
     upload.single("file"),
     async (req: Request, res: Response) => {
         req.setTimeout(uploadConfig.timeoutMs);
@@ -78,16 +103,15 @@ uploadRouter.post(
         };
 
         try {
-            const auth = await createAuthContext(req);
-            if (!auth.userId || !auth.user) {
-                logUploadFailure(auth.token ? "invalid token" : "missing bearer token", context);
+            const uploadAuth = (req as UploadAuthRequest).uploadAuth;
+            if (!uploadAuth) {
+                logUploadFailure("missing upload auth", context);
                 res.status(401).json({ error: "Authentication required" });
                 return;
             }
 
-            context.userId = auth.userId;
-            const user = auth.user;
-            const role = auth.role;
+            const { user, role } = uploadAuth;
+            context.userId = user.id;
             const isPrivileged = isPrivilegedRole(role);
 
             if (!isPrivileged) {
