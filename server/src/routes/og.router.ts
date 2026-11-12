@@ -1,18 +1,13 @@
 import express, { Request, Response } from "express";
 import got, { type OptionsInit } from "got";
 import { load as cheerioLoad } from "cheerio";
-import sharp from "sharp";
-import { fileTypeFromBuffer } from "file-type";
 import { v4 as uuidv4 } from "uuid";
 import { Storage } from "@google-cloud/storage";
-import {
-    allowedImageMimeTypes,
-    isHtmlMimeType,
-    normalizeMimeType,
-} from "@richpods/shared/media/mime";
+import { isHtmlMimeType, normalizeMimeType } from "@richpods/shared/media/mime";
 import { assertSafePublicUrl, ssrfSafeDnsLookup } from "@richpods/shared/utils/ssrf";
 import { createAuthContext } from "../middleware/auth.js";
 import { GCS_IMMUTABLE_CACHE_CONTROL } from "../config/storage.js";
+import { OG_IMAGE_MAX_BYTES, processOgImage } from "../utils/og-image.js";
 
 export const ogRouter = express.Router();
 
@@ -23,9 +18,6 @@ const storage = new Storage({
 const UPLOAD_BUCKET_NAME = process.env.GCS_UPLOAD_BUCKET_NAME ?? "";
 
 const MAX_HTML_SIZE = 10 * 1024 * 1024; // 10 MB
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
-const MIN_IMAGE_WIDTH = 460;
-const MIN_IMAGE_HEIGHT = 300;
 const MAX_URL_LENGTH = 500;
 const REQUEST_TIMEOUT_MS = 5_000;
 const MAX_REDIRECTS = 5;
@@ -373,7 +365,7 @@ async function downloadAndStoreOgImage(imageUrl: string): Promise<StoredImage | 
         return null;
     }
 
-    const downloadResult = await downloadWithLimit(parsedImageUrl, MAX_IMAGE_SIZE, {
+    const downloadResult = await downloadWithLimit(parsedImageUrl, OG_IMAGE_MAX_BYTES, {
         timeout: { request: REQUEST_TIMEOUT_MS },
         headers: buildRequestHeaders(parsedImageUrl, {
             Accept: "image/webp,image/png,image/jpeg,image/*",
@@ -385,7 +377,9 @@ async function downloadAndStoreOgImage(imageUrl: string): Promise<StoredImage | 
             return null;
         }
         if (downloadResult.error.kind === "download_limit_exceeded") {
-            console.warn(`OG image exceeded max size (${MAX_IMAGE_SIZE} bytes) from ${imageUrl}`);
+            console.warn(
+                `OG image exceeded max size (${OG_IMAGE_MAX_BYTES} bytes) from ${imageUrl}`,
+            );
             return null;
         }
         console.warn(
@@ -396,74 +390,25 @@ async function downloadAndStoreOgImage(imageUrl: string): Promise<StoredImage | 
     }
 
     try {
-        const buffer = downloadResult.value;
-        const detectedType = await fileTypeFromBuffer(buffer);
-        if (!detectedType || !(detectedType.mime in allowedImageMimeTypes)) {
-            console.warn(
-                `OG image unsupported type: ${detectedType?.mime ?? "unknown"} from ${imageUrl}`,
-            );
+        const processed = await processOgImage(downloadResult.value);
+        if (!processed.ok) {
+            console.warn(`OG image rejected (${processed.reason}) from ${imageUrl}`);
             return null;
         }
 
-        const extension = allowedImageMimeTypes[detectedType.mime];
-
-        const image = sharp(buffer, { failOn: "truncated" });
-        const metadata = await image.metadata();
-
-        if (!metadata.width || !metadata.height) {
-            console.warn(`OG image: could not read dimensions from ${imageUrl}`);
-            return null;
-        }
-
-        if (metadata.width < MIN_IMAGE_WIDTH || metadata.height < MIN_IMAGE_HEIGHT) {
-            console.warn(
-                `OG image too small: ${metadata.width}x${metadata.height} from ${imageUrl} (min: ${MIN_IMAGE_WIDTH}x${MIN_IMAGE_HEIGHT})`,
-            );
-            return null;
-        }
-
-        const aspectRatio = metadata.width / metadata.height;
-        if (aspectRatio < 0.25 || aspectRatio > 4) {
-            console.warn(
-                `OG image aspect ratio out of range: ${metadata.width}x${metadata.height} (${aspectRatio.toFixed(2)}) from ${imageUrl} (allowed: 1:4 to 4:1)`,
-            );
-            return null;
-        }
-
-        // Re-encode the image to strip metadata and validate
-        let processedBuffer: Buffer;
-        switch (detectedType.mime) {
-            case "image/png":
-                processedBuffer = await image.png({ compressionLevel: 9 }).toBuffer();
-                break;
-            case "image/jpeg":
-                processedBuffer = await image.jpeg({ quality: 85, mozjpeg: true }).toBuffer();
-                break;
-            case "image/webp":
-                processedBuffer = await image.webp({ quality: 85 }).toBuffer();
-                break;
-            default:
-                return null;
-        }
-
-        if (processedBuffer.length > MAX_IMAGE_SIZE) {
-            console.warn(`OG image processed too large: ${processedBuffer.length} bytes`);
-            return null;
-        }
-
-        const gcsName = `og-images/${uuidv4()}.${extension}`;
+        const gcsName = `og-images/${uuidv4()}.${processed.extension}`;
         const bucket = storage.bucket(UPLOAD_BUCKET_NAME);
         const file = bucket.file(gcsName);
 
-        await file.save(processedBuffer, {
+        await file.save(processed.buffer, {
             resumable: false,
             metadata: {
-                contentType: detectedType.mime,
+                contentType: processed.mimeType,
                 cacheControl: GCS_IMMUTABLE_CACHE_CONTROL,
             },
         });
 
-        return { url: getPublicUrl(gcsName), width: metadata.width, height: metadata.height };
+        return { url: getPublicUrl(gcsName), width: processed.width, height: processed.height };
     } catch (error) {
         console.warn(`Failed to download/store OG image from ${imageUrl}:`, error);
         return null;

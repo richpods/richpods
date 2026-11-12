@@ -119,12 +119,9 @@ uploadRouter.post(
                 if (!rateLimitResult.ok) {
                     const retryAfterSeconds = Math.ceil(rateLimitResult.retryAfterMs / 1000);
                     res.setHeader("Retry-After", `${retryAfterSeconds}`);
-                    logUploadFailure(
-                        `${rateLimitResult.scope} rate limit exceeded`,
-                        context,
-                    );
+                    logUploadFailure(`${rateLimitResult.scope} rate limit exceeded`, context);
                     res.status(429).json({
-                        error: "Upload rate limit exceeded"
+                        error: "Upload rate limit exceeded",
                     });
                     return;
                 }
@@ -172,7 +169,10 @@ uploadRouter.post(
                 return;
             }
 
-            if (file.buffer.length > uploadConfig.maxFileSizeBytes || file.size > uploadConfig.maxFileSizeBytes) {
+            if (
+                file.buffer.length > uploadConfig.maxFileSizeBytes ||
+                file.size > uploadConfig.maxFileSizeBytes
+            ) {
                 logUploadFailure("file exceeds max size", context);
                 res.status(413).json({ error: "File exceeds maximum size" });
                 return;
@@ -187,15 +187,13 @@ uploadRouter.post(
 
             const extension = allowedImageMimeTypes[detectedType.mime];
 
-            let processedBuffer: Buffer;
-            let width: number | undefined;
-            let height: number | undefined;
-
-            const image = sharp(file.buffer, { failOn: "truncated" }).rotate();
-            const metadata = await image.metadata();
-
-            width = metadata.width;
-            height = metadata.height;
+            const image = sharp(file.buffer, {
+                failOn: "truncated",
+                limitInputPixels: uploadConfig.maxPixels,
+            }).rotate();
+            const metadata = await image.metadata().catch(() => null);
+            const width = metadata?.width;
+            const height = metadata?.height;
 
             if (!width || !height) {
                 logUploadFailure("could not read image dimensions", context);
@@ -218,6 +216,7 @@ uploadRouter.post(
                 return;
             }
 
+            let processedBuffer: Buffer;
             switch (detectedType.mime) {
                 case "image/png":
                     processedBuffer = await image.png({ compressionLevel: 9 }).toBuffer();
@@ -357,7 +356,8 @@ uploadRouter.get("/:uploadId", async (req: Request, res: Response) => {
 uploadRouter.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     if (err instanceof MulterError) {
         const context: UploadContext = { ip: req.ip ?? "unknown" };
-        const message = err.code === "LIMIT_FILE_SIZE" ? "File exceeds maximum size" : "Invalid upload";
+        const message =
+            err.code === "LIMIT_FILE_SIZE" ? "File exceeds maximum size" : "Invalid upload";
         logUploadFailure(`multer error: ${err.code}`, context);
         const status = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
         res.status(status).json({ error: message });

@@ -12,6 +12,7 @@ export const uploadConfig = {
     }),
     minDimensionPx: parseIntEnv("UPLOAD_MIN_DIMENSION_PX", 320, { min: 1 }),
     maxDimensionPx: parseIntEnv("UPLOAD_MAX_DIMENSION_PX", 5_000, { min: 1 }),
+    maxPixels: parseIntEnv("UPLOAD_MAX_PIXELS", 16_000_000, { min: 1 }),
     perUserRateLimitPerMinute: parseIntEnv("UPLOAD_RATE_LIMIT_PER_USER", 20, { min: 1 }),
     globalRateLimitPerMinute: parseIntEnv("UPLOAD_RATE_LIMIT_GLOBAL", 100, { min: 1 }),
     defaultUserQuotaBytes: parseIntEnv("UPLOAD_DEFAULT_USER_QUOTA_BYTES", 50 * ONE_MEGABYTE, {

@@ -34,6 +34,8 @@ import type { CreateHostedPodcastInput } from "../graphql.js";
 
 export const hostedRouter = express.Router();
 
+const COVER_MAX_PIXELS = hostingConfig.imageMaxDimensionPx ** 2;
+
 /**
  * GET /api/v1/hosted/podcast/:podcastId/feed.xml
  * Public RSS feed for a hosted podcast. No authentication required.
@@ -143,11 +145,13 @@ async function validateCoverImage(
     }
 
     const extension = allowedCoverMimeTypes[detectedType.mime];
-    const image = sharp(buffer, { failOn: "truncated" }).rotate();
-    const metadata = await image.metadata();
-
-    const width = metadata.width;
-    const height = metadata.height;
+    const image = sharp(buffer, {
+        failOn: "truncated",
+        limitInputPixels: COVER_MAX_PIXELS,
+    }).rotate();
+    const metadata = await image.metadata().catch(() => null);
+    const width = metadata?.width;
+    const height = metadata?.height;
 
     if (!width || !height) {
         return { error: "Could not read image dimensions" };
